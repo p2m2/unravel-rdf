@@ -31,6 +31,23 @@ case class SWDiscovery(
                         val fn : Option[String] = None)
 {
   //implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  // For vanilla Scala Futures
+  import scala.concurrent.{Future, ExecutionContext}
+  import scala.concurrent.blocking
+
+  // Separate execution contexts
+  implicit val cpuBoundEC: ExecutionContext = ExecutionContext.global
+  val blockingIOEC: ExecutionContext = 
+    ExecutionContext.fromExecutor(
+      java.util.concurrent.Executors.newCachedThreadPool()
+    )
+
+  def executeBlockingQuery(query: String): Future[QueryResult] = 
+    Future {
+      blocking {  // Scala's BlockContext API
+        executeHttpRequest(query)
+      }
+    }(blockingIOEC)
 
   val focusNode : String = fn match {
     case Some(v) => v
