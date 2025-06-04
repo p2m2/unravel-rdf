@@ -26,11 +26,11 @@ object SWDiscovery {
 }
 
 case class SWDiscovery(
-                        config: SWDiscoveryConfiguration=SWDiscoveryConfiguration.init(),
-                        rootNode : Root = Root(),
-                        fn : Option[String] = None)
+                        val config: SWDiscoveryConfiguration=SWDiscoveryConfiguration.init(),
+                        val rootNode : Root = Root(),
+                        val fn : Option[String] = None)
 {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  //implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val focusNode : String = fn match {
     case Some(v) => v
@@ -327,8 +327,7 @@ case class SWDiscovery(
     val lDatatypeRef = rootNode.lDatatypeNode.map(ldn => ldn.idRef )
     SWDiscoveryHelper(this).count(lRef.filter( ! lDatatypeRef.contains(_)) ).map {
       case nSolutions if nSolutions == 0 => (nSolutions, Seq())
-      case nSolutions =>
-        val nit : Int = nSolutions / config.settings.pageSize
+      case nSolutions =>        val nit: Int = (nSolutions + config.settings.pageSize - 1) / config.settings.pageSize
         (nSolutions,(0 to nit).map( p =>{
           val limit = config.settings.pageSize
           val offset = p*config.settings.pageSize
@@ -349,7 +348,7 @@ case class SWDiscovery(
     SWDiscoveryHelper(this).count(lRef.filter(!lDatatypeRef.contains(_)), true).map {
       case nSolutions if nSolutions == 0 => (nSolutions, Seq())
       case nSolutions =>
-        val nit: Int = nSolutions / config.settings.pageSize
+        val nit: Int = (nSolutions + config.settings.pageSize - 1) / config.settings.pageSize
         (nSolutions, (0 to nit).map(p => {
           val limit = config.settings.pageSize
           val offset = p * config.settings.pageSize
