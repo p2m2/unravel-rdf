@@ -30,18 +30,15 @@ lazy val scala_js_macrotask_executor = "1.1.1"
 
 /* --- NPM Packages Versions --- */
 
-lazy val scala_js_nodejs = "0.14.0"
-lazy val comunica_version = "2.10.2"
-lazy val version_n3="1.17.2"
-lazy val version_rdfxml = "2.4.0"
+lazy val npm_comunica_version = "4.2.0"
+lazy val npm_comunica_bindings_factory = "3.3.0"
+lazy val npm_n3="1.26.0"
+lazy val npm_rdfxml_streaming_parser = "3.0.1"
 lazy val npm_typescript_version = "latest"
 
 lazy val npm_axios_version = "latest"
-lazy val npm_comunica_version_datasource = "1.22.2"
-lazy val npm_buffer_version = "6.0.3"
-lazy val npm_stream_version = "0.0.3"
+lazy val npm_buffer_version = "latest"
 lazy val npm_showdown_version = "latest"
-lazy val npm_util_version = "latest"
 lazy val npm_types_jest = "latest"
 lazy val npm_types_sax = "latest"
 lazy val npm_types_qs = "latest"
@@ -49,8 +46,8 @@ lazy val npm_types_showdown = "latest"
 lazy val npm_types_combined_stream = "latest"
 lazy val npm_types_mime_types = "latest"
 lazy val npm_types_node = "18.11.18"
-lazy val jest = "29.4.2"
-lazy val tsjest = "29.0.5"
+lazy val jest = "latest"
+lazy val tsjest = "latest"
 
 /* --- Génération du fichier de version --- */
 val generateSWDiscoveryVersionFile = taskKey[Unit]("SWDiscovery version file.")
@@ -152,7 +149,6 @@ lazy val discovery = crossProject(JSPlatform, JVMPlatform)
       (
         "org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13),
         "org.scala-js" %%% "scalajs-dom" % scalajs_dom_version,
-        //"net.exoego" %%% "scala-js-nodejs-v16" % scala_js_nodejs % Test,
         "org.scala-js" %%% "scala-js-macrotask-executor" % scala_js_macrotask_executor  
     ),
     webpackBundlingMode := BundlingMode.LibraryAndApplication(),
@@ -164,16 +160,13 @@ lazy val discovery = crossProject(JSPlatform, JVMPlatform)
       "@types/combined-stream" -> npm_types_combined_stream,
       "@types/mime-types" -> npm_types_mime_types,
       "axios" -> npm_axios_version,
-     // "qs" -> npm_qs_version,
       "showdown" -> npm_showdown_version,
-      "n3" -> version_n3,
-      "@comunica/query-sparql" ->  comunica_version,
-      "@comunica/utils-datasource" -> npm_comunica_version_datasource,
-      "rdfxml-streaming-parser" -> version_rdfxml,
+      "n3" -> npm_n3,
+      "@comunica/query-sparql" ->  npm_comunica_version,
+      "@comunica/bindings-factory" -> npm_comunica_bindings_factory,
+      "rdfxml-streaming-parser" -> npm_rdfxml_streaming_parser,
       "buffer" -> npm_buffer_version,
       "typescript" -> npm_typescript_version
-    //  "stream" -> npm_stream_version,
-    //  "util" -> npm_util_version
     ),
     Compile / fastOptJS / scalaJSLinkerConfig ~= {
       _.withOptimizer(false)
