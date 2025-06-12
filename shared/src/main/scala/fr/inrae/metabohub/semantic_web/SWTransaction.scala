@@ -119,21 +119,23 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
         throw SWDiscoveryException("The user have to select node of interest before setup a desired datatype ["+lDatatype.map( d=>d.idRef + "->"+d.refNode).mkString(" ,")+"]")
       }
 
-
+    
     Try(StrategyRequestBuilder.build(sw.config)) match {
       case Failure(e) => _prom_raw failure e
       case Success(driver) =>
+        
         driver.subscribe(this.asInstanceOf[Subscriber[DiscoveryRequestEvent,Publisher[DiscoveryRequestEvent]]])
+        println("DRIVER1"+driver.toString())
         driver.execute(this)
           /* manage datatype decoration */
           .map((qr: QueryResult) => {
+            println("DRIVER2")
             notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.DATATYPE_BUILD))
             /* create an empty set of datatype */
             qr.json("results").update("datatype", ujson.Obj())
             trace(qr.json)
             /* manage datatype */
             trace("  lDatatype ====> " + lDatatype.toString())
-
             Future.sequence(lDatatype.map(datatypeNode => {
               trace("datatype node:" + datatypeNode)
 
@@ -147,8 +149,12 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
                     } catch {
                       case _: Throwable => List()
                     }
+                    trace("ICI1:"+qr.toString())
                   Future.sequence(process_datatype(sw.rootNode,qr, datatypeNode, lUris))
-                case None => Future {}
+                case None => { 
+                  trace("ICI2:"+qr.toString())
+                  Future {}
+                }
               }
             })) onComplete {
               case Success(_) =>
@@ -226,6 +232,4 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
   def getSerializedString : String = OptionPickler.write(this)
   def setSerializedString(query : String) : SWTransaction = OptionPickler.read[SWTransaction](query)
   def console : SWTransaction = sw.console.transaction
-  def removeProxyConfiguration : SWTransaction = SWTransaction(sw.removeProxyConfiguration)
-
 }

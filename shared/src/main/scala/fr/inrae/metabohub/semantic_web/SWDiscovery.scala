@@ -6,7 +6,6 @@ import fr.inrae.metabohub.semantic_web.node._
 import fr.inrae.metabohub.semantic_web.node.pm.{NodeVisitor, RemoveNode}
 import fr.inrae.metabohub.semantic_web.rdf._
 import fr.inrae.metabohub.semantic_web.sparql.QueryResult
-import fr.inrae.metabohub.semantic_web.strategy.StrategyRequestBuilder
 import wvlet.log.Logger
 import wvlet.log.Logger.rootLogger._
 
@@ -108,12 +107,6 @@ case class SWDiscovery(
     SWDiscovery(newConfig,rootNode,Some(focusNode))
 
   def getConfig : SWDiscoveryConfiguration = config
-
-  /**
-   * Disable Proxy configuration
-   * @return SWDiscovery
-   */
-  def removeProxyConfiguration : SWDiscovery = SWDiscovery(SWDiscoveryConfiguration(config.settings,config.sources,None),rootNode,fn)
 
   /* get current focus */
   def focus() : String = focusNode

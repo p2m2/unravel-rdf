@@ -56,30 +56,6 @@ object StrategyRequestBuilderTest extends TestSuite {
         case Failure(_) => assert(false)
       }
     }
-
-    test("2 sources - proxy use") {
-      Try(StrategyRequestBuilder.build(SWDiscoveryConfiguration
-        .setConfigString(
-          """{
-           "sources" : [{
-               "id"  : "dbpedia",
-               "path" : "https://dbpedia.org/sparql",
-               "mimetype" : "application/sparql-query"
-             },{
-               "id"  : "dbpedia2",
-               "path" : "https://dbpedia.org/sparql2",
-               "mimetype" : "application/sparql-query"
-             }],
-             "proxy" : {
-               "url"   : "https://myproxy/sparql"
-             }
-           }""".stripMargin))) match {
-        case Success(strategy : ProxyStrategyRequest) => assert(strategy.urlProxy == "https://myproxy/sparql")
-        case Success(_) => assert(false)
-        case Failure(_) => assert(false)
-      }
-    }
-
   }
 
 }

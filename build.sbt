@@ -34,18 +34,20 @@ lazy val scala_js_nodejs = "0.14.0"
 lazy val comunica_version = "2.10.2"
 lazy val version_n3="1.17.2"
 lazy val version_rdfxml = "2.4.0"
+lazy val npm_typescript_version = "latest"
 
-lazy val npm_axios_version = "1.9.0"
+lazy val npm_axios_version = "latest"
 lazy val npm_comunica_version_datasource = "1.22.2"
 lazy val npm_buffer_version = "6.0.3"
 lazy val npm_stream_version = "0.0.3"
-lazy val npm_util_version = "0.12.5"
-lazy val npm_types_jest = "29.4.0"
-lazy val npm_types_sax = "1.2.4"
-lazy val npm_types_qs = "6.14.0"
-lazy val npm_types_showdown = "2.0.6"
-lazy val npm_types_combined_stream = "1.0.6"
-lazy val npm_types_mime_types = "3.0.1"
+lazy val npm_showdown_version = "latest"
+lazy val npm_util_version = "latest"
+lazy val npm_types_jest = "latest"
+lazy val npm_types_sax = "latest"
+lazy val npm_types_qs = "latest"
+lazy val npm_types_showdown = "latest"
+lazy val npm_types_combined_stream = "latest"
+lazy val npm_types_mime_types = "latest"
 lazy val npm_types_node = "18.11.18"
 lazy val jest = "29.4.2"
 lazy val tsjest = "29.0.5"
@@ -163,13 +165,13 @@ lazy val discovery = crossProject(JSPlatform, JVMPlatform)
       "@types/mime-types" -> npm_types_mime_types,
       "axios" -> npm_axios_version,
      // "qs" -> npm_qs_version,
-      "showdown" -> "latest",
+      "showdown" -> npm_showdown_version,
       "n3" -> version_n3,
       "@comunica/query-sparql" ->  comunica_version,
       "@comunica/utils-datasource" -> npm_comunica_version_datasource,
       "rdfxml-streaming-parser" -> version_rdfxml,
       "buffer" -> npm_buffer_version,
-      "typescript" -> "5.4.5"
+      "typescript" -> npm_typescript_version
     //  "stream" -> npm_stream_version,
     //  "util" -> npm_util_version
     ),

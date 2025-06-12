@@ -38,6 +38,8 @@ object SWDiscoveryHelperTest  extends TestSuite  {
 
   def tests: Tests = Tests {
     test("count") {
+      println("COUNT")
+      println(config)
      insertData.map(_ => {
         SWDiscovery(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))

@@ -18,6 +18,7 @@ trait Rdf4jRequestDriver extends RequestDriver {
     Future {
       publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.START_HTTP_REQUEST))
       publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.PROCESS_HTTP_REQUEST))
+      
       val out = new ByteArrayOutputStream()
 
       Try(con

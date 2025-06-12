@@ -10,10 +10,12 @@ trait RequestDriver extends Publisher[DiscoveryRequestEvent] {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   def request(query: String): Future[QueryResult] = {
+
     publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.START_HTTP_REQUEST))
     val dateStart = System.nanoTime
     val t1 = System.nanoTime
     debug("RequestDriver Send request "+dateStart+","+t1)
+    
     requestOnSWDB(query).map(resultsQR => {
 
       publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.RESULTS_BUILD))
