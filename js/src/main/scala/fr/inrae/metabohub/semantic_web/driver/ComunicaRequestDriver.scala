@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web.driver
 
-import com.github.p2m2.facade._
+import facade.npm._
 import fr.inrae.metabohub.semantic_web.configuration.SourcePath
 import fr.inrae.metabohub.semantic_web.configuration.SourcePath.SourcePath
 import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
@@ -51,10 +51,14 @@ object ComunicaRequestDriver {
 
     val parser = new RdfXmlParser(RdfXmlParserOptions(baseIRI="http://com.github.p2m2.discovery/"))
 
-    parser.on("data", (quad : Quad) => {
+    parser.on("data", (chunk : js.Any) => {
+      val quad = chunk.asInstanceOf[Quad];
       store.addQuad(quad)
-    }).on("error", (error : String) => {throw SWDiscoveryException(error)})
-      .on("end", () => {
+    }).on("error", (elt : js.Any) => {
+        val error = elt.asInstanceOf[String];
+        throw SWDiscoveryException(error)
+      })
+      .on("end", (nothing : js.Any) => {
         p success store
       })
 
@@ -81,11 +85,12 @@ object ComunicaRequestDriver {
         .toFuture.map( v => {
         val p = Promise[String]()
         var sparql_results = ""
-        v.data.on("data", (chunk: js.Object) => {
+        v.data.on("data", (chunk: Any) => {
           sparql_results += chunk.toString
-        }).on("end", () => {
+        }).on("end", js.Any.fromFunction1 { chunk: Any =>
           p success sparql_results
-        }).on("error", (error: String) => {
+        }).on("error", js.Any.fromFunction1 { chunk: Any =>
+          val error = chunk.toString 
           p failure SWDiscoveryException(error)
         })
         p.future

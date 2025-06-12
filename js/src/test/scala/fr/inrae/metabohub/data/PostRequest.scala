@@ -1,7 +1,6 @@
 package fr.inrae.metabohub.data
 
-import facade.npm.{qs}
-import com.github.p2m2.facade.Axios
+import facade.npm.{qs,Axios}
 import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
 
 import scala.scalajs.js

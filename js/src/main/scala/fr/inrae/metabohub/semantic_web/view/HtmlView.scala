@@ -1,12 +1,13 @@
 package fr.inrae.metabohub.semantic_web.view
 
-import facade.npm.Showdown
 import fr.inrae.metabohub.semantic_web.node.pm.{NodeVisitor, SimpleConsole}
 import fr.inrae.metabohub.semantic_web.{SWDiscovery, SWDiscoveryVersionAtBuildTime}
 import org.scalajs.dom.document
 
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic
+
+import facade.npm._
 
 case class HtmlView(sw: SWDiscovery,regex : String = "") {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -112,9 +113,8 @@ ${SimpleConsole(consoleColor=false,displayRootStyle=false).get(sw.rootNode)}
     "strikethrough" -> false
   )
 
-
   def update(): Any = {
-    val converter = new Showdown.Converter(options)
+    val converter = new ShowdownConverter(options)
     val html: String = converter.makeHtml(css + text)
     document.querySelector("html").innerHTML = html
   }

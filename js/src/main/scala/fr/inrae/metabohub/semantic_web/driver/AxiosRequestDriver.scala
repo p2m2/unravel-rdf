@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.semantic_web.driver
 
-import facade.npm.{qs}
-import com.github.p2m2.facade.Axios
+import facade.npm.{qs,Axios}
+
 import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
 import fr.inrae.metabohub.semantic_web.event.{DiscoveryRequestEvent, DiscoveryStateRequestEvent}
 import fr.inrae.metabohub.semantic_web.sparql.QueryResult

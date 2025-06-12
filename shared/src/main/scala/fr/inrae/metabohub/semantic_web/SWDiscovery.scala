@@ -5,6 +5,7 @@ import fr.inrae.metabohub.semantic_web.exception._
 import fr.inrae.metabohub.semantic_web.node._
 import fr.inrae.metabohub.semantic_web.node.pm.{NodeVisitor, RemoveNode}
 import fr.inrae.metabohub.semantic_web.rdf._
+import fr.inrae.metabohub.semantic_web.sparql.QueryResult
 import fr.inrae.metabohub.semantic_web.strategy.StrategyRequestBuilder
 import wvlet.log.Logger
 import wvlet.log.Logger.rootLogger._
@@ -30,24 +31,7 @@ case class SWDiscovery(
                         val rootNode : Root = Root(),
                         val fn : Option[String] = None)
 {
-  //implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
-  // For vanilla Scala Futures
-  import scala.concurrent.{Future, ExecutionContext}
-  import scala.concurrent.blocking
-
-  // Separate execution contexts
-  implicit val cpuBoundEC: ExecutionContext = ExecutionContext.global
-  val blockingIOEC: ExecutionContext = 
-    ExecutionContext.fromExecutor(
-      java.util.concurrent.Executors.newCachedThreadPool()
-    )
-
-  def executeBlockingQuery(query: String): Future[QueryResult] = 
-    Future {
-      blocking {  // Scala's BlockContext API
-        executeHttpRequest(query)
-      }
-    }(blockingIOEC)
+  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val focusNode : String = fn match {
     case Some(v) => v

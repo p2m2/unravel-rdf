@@ -1,7 +1,6 @@
 package fr.inrae.metabohub.semantic_web.strategy
 
-import com.github.p2m2.facade.Axios
-import facade.npm.qs
+import facade.npm.{qs,Axios}
 import fr.inrae.metabohub.semantic_web.SWTransaction
 import fr.inrae.metabohub.semantic_web.event.{DiscoveryRequestEvent, DiscoveryStateRequestEvent}
 import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
