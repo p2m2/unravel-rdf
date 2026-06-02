@@ -26,11 +26,11 @@ lazy val npmTypescriptVersion = "6.0.3"
 
 def bundledArtifact(base: File, scalaBinary: String, projectName: String, optimized: Boolean): File = {
   val suffix = if (optimized) "opt" else "fastopt"
-  base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"${projectName}-$suffix.js"
+  base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"$projectName-$suffix.js"
 }
 
 def bundledSourceMap(base: File, scalaBinary: String, projectName: String): File =
-  base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"${projectName}-fastopt.js.map"
+  base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"$projectName-fastopt.js.map"
 
 def renderPackageJson(
                        packageName: String,
@@ -101,7 +101,7 @@ def prepareNpmDir(
   val bundledJs = bundledArtifact(base, scalaBinary, projectName, optimized)
   val sourceMap = bundledSourceMap(base, scalaBinary, projectName)
   val npmDir = base / "target" / outputDirName
-  val outputJs = npmDir / s"${projectName}.js"
+  val outputJs = npmDir / s"$projectName.js"
   val outputPackageJson = npmDir / "package.json"
   val readmeFile = base / "README.md"
   val registryUrl = s"https://forge.inrae.fr/api/v4/projects/${sys.env.getOrElse("CI_PROJECT_ID", "YOUR_PROJECT_ID")}/packages/npm/"
@@ -113,18 +113,18 @@ def prepareNpmDir(
   IO.createDirectory(npmDir)
   IO.copyFile(bundledJs, outputJs)
 
-  var includedFiles = Seq(s"${projectName}.js")
+  var includedFiles = Seq(s"$projectName.js")
 
   if (!optimized && sourceMap.exists()) {
-    IO.copyFile(sourceMap, npmDir / s"${projectName}.js.map")
-    includedFiles = includedFiles :+ s"${projectName}.js.map"
+    IO.copyFile(sourceMap, npmDir / s"$projectName.js.map")
+    includedFiles = includedFiles :+ s"$projectName.js.map"
   }
 
   val packageJsonContent = renderPackageJson(
-    packageName = s"@${orgName}/${projectName}",
+    packageName = s"@$orgName/$projectName",
     description = projectDescription,
     version = projectVersion,
-    mainFile = s"./${projectName}.js",
+    mainFile = s"./$projectName.js",
     includedFiles = includedFiles,
     dependencies = npmDeps,
     registryUrl = registryUrl
@@ -160,26 +160,33 @@ licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-lic
 homepage := Some(url("https://forge.inrae.fr/p2m2/discovery"))
 description := "Ease SPARQL requests to semantic databases."
 
-lazy val root = (project in file("."))
-  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
-  .settings(
-    useYarn := false,
+  lazy val root = (project in file("."))
+    .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+    .settings(
+      useYarn := false,
 
-    testFrameworks += new TestFramework("utest.runner.Framework"),
+      testFrameworks += new TestFramework("utest.runner.Framework"),
 
-    scalacOptions ++= Seq(
-      "-deprecation",
-      "-feature",
-      "-P:scalajs:nowarnGlobalExecutionContext"
-    ),
+      scalacOptions ++= Seq(
+        "-deprecation",
+        "-feature",
+        "-P:scalajs:nowarnGlobalExecutionContext"
+      ),
 
-    Test / parallelExecution := false,
+      Test / parallelExecution := false,
 
-    webpackBundlingMode := BundlingMode.LibraryOnly(),
+      Test / jsEnv := {
+        val virtuosoUrl = sys.env.getOrElse("VIRTUOSO_URL", "http://localhost:8890/sparql")
+        NodeJSEnv(
+          NodeJSEnv.Config().withEnv(Map("VIRTUOSO_URL" -> virtuosoUrl))
+        )
+      },
 
-    libraryDependencies ++= Seq(
-      "com.lihaoyi" %%% "upickle" % lihaoyiUpickleVersion,
-      "io.lemonlabs" %%% "scala-uri" % scalaUriVersion,
+      webpackBundlingMode := BundlingMode.LibraryOnly(),
+
+      libraryDependencies ++= Seq(
+        "com.lihaoyi" %%% "upickle" % lihaoyiUpickleVersion,
+        "io.lemonlabs" %%% "scala-uri" % scalaUriVersion,
       "org.wvlet.airframe" %%% "airframe-log" % airframeLogVersion,
       "org.scala-js" %%% "scalajs-dom" % scalaJsDomVersion,
       "org.scala-js" %%% "scala-js-macrotask-executor" % scalaJsMacrotaskExecutorVersion,
