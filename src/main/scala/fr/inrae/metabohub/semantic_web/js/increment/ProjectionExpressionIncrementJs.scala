@@ -1,4 +1,6 @@
-package fr.inrae.metabohub.semantic_web
+package fr.inrae.metabohub.semantic_web.js.increment
+
+import fr.inrae.metabohub.semantic_web.js.SWTransactionJs
 
 import scala.scalajs._
 import scala.scalajs.js.JSConverters._

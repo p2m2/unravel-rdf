@@ -1,8 +1,10 @@
-package fr.inrae.metabohub.semantic_web
-import scala.scalajs.js.JSConverters._
+package fr.inrae.metabohub.semantic_web.js
+
 import fr.inrae.metabohub.data.DataTestFactory
-import utest.{TestSuite, Tests, test}
 import fr.inrae.metabohub.semantic_web.configuration._
+import utest.{TestSuite, Tests, test}
+
+import scala.scalajs.js.JSConverters._
 
 object SWDiscoveryJsTest extends TestSuite{
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global

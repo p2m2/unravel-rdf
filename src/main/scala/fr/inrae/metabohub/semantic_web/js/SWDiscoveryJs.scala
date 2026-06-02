@@ -1,9 +1,11 @@
-package fr.inrae.metabohub.semantic_web
+package fr.inrae.metabohub.semantic_web.js
 
+import fr.inrae.metabohub.semantic_web.{SWDiscovery, SWTransaction}
 import fr.inrae.metabohub.semantic_web.node.Node
 import fr.inrae.metabohub.semantic_web.rdf.{IRI, SparqlDefinition, URI}
 import fr.inrae.metabohub.semantic_web.configuration._
 import fr.inrae.metabohub.semantic_web.exception._
+import fr.inrae.metabohub.semantic_web.js.increment._
 import fr.inrae.metabohub.semantic_web.view.HtmlView
 
 import scala.scalajs._

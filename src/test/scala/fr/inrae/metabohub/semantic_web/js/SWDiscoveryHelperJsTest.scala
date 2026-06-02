@@ -1,8 +1,8 @@
-package fr.inrae.metabohub.semantic_web
+package fr.inrae.metabohub.semantic_web.js
 
 import fr.inrae.metabohub.data.DataTestFactory
-import fr.inrae.metabohub.semantic_web.rdf.URI
 import fr.inrae.metabohub.semantic_web.configuration._
+import fr.inrae.metabohub.semantic_web.rdf.URI
 import utest.{TestSuite, Tests, test}
 
 import scala.scalajs.js

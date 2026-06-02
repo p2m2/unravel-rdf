@@ -1,5 +1,6 @@
-package fr.inrae.metabohub.semantic_web
+package fr.inrae.metabohub.semantic_web.js
 
+import fr.inrae.metabohub.semantic_web.SWDiscovery
 import fr.inrae.metabohub.semantic_web.rdf.URI
 
 import scala.scalajs.js

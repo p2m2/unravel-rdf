@@ -1,4 +1,7 @@
-package fr.inrae.metabohub.semantic_web
+package fr.inrae.metabohub.semantic_web.js
+
+import fr.inrae.metabohub.semantic_web.SWTransaction
+import fr.inrae.metabohub.semantic_web.js.increment.ProjectionExpressionIncrementJs
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.JSRichFutureNonThenable
