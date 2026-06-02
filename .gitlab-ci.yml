@@ -1,0 +1,69 @@
+stages:
+  - test
+
+default:
+  image: eclipse-temurin:17-jdk
+  cache:
+    key: "${CI_PROJECT_NAME}"
+    paths:
+      - .ivy2/cache
+      - .sbt
+      - .cache/coursier
+      - node_modules/
+      - target/
+  variables:
+    SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
+    COURSIER_CACHE: ".cache/coursier"
+    IVY_HOME: ".ivy2"
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+    VIRTUOSO_URL: "http://virtuoso:8890/sparql"
+    VIRTUOSO_ISQL_PORT: "1111"
+    VIRTUOSO_HOST: "virtuoso"
+    VIRTUOSO_USER: "dba"
+    VIRTUOSO_PASSWORD: "dba"
+
+scala_js_tests:
+  stage: test
+  image: node:20-bookworm
+  services:
+    - name: tenforce/virtuoso:virtuoso7.2.5
+      alias: virtuoso
+      variables:
+        DBA_PASSWORD: "dba"
+        SPARQL_UPDATE: "true"
+        DEFAULT_GRAPH: "graph:test:discovery:default:"
+        VIRT_Parameters_NumberOfBuffers: "51000"
+        VIRT_Parameters_MaxDirtyBuffers: "37500"
+        VIRT_Parameters_TN_MAX_memory: "4000000"
+        VIRT_Parameters_TransactionAfterImageLimit: "500000"
+        VIRT_SPARQL_ResultSetMaxRows: "1000"
+        VIRT_SPARQL_MaxDataSourceSize: "10000"
+        VIRT_SPARQL_MaxQueryCostEstimationTime: "0"
+        VIRT_SPARQL_MaxQueryExecutionTime: "0"
+  before_script:
+    - apt-get update
+    - apt-get install -y curl openjdk-17-jdk
+    - java -version
+    - node --version
+    - npm --version
+    - |
+      echo "Waiting for Virtuoso..."
+      for i in $(seq 1 60); do
+        if curl -fsS "http://virtuoso:8890/sparql" >/dev/null; then
+          echo "Virtuoso is ready"
+          break
+        fi
+        echo "Virtuoso not ready yet ($i/60)"
+        sleep 2
+      done
+    - test -f build.sbt
+  script:
+    - sbt clean test
+  artifacts:
+    when: always
+    paths:
+      - target/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
