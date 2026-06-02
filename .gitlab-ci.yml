@@ -70,6 +70,9 @@ scala_js_tests:
         echo "Virtuoso not ready yet ($i/60)"
         sleep 2
       done
+      echo "========================================"
+      echo "Virtuoso Ready ========================="
+      echo "========================================"
   script:
     - sbt clean test
   artifacts:
