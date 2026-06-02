@@ -15,9 +15,9 @@ object SWDiscoveryConfigurationBuilderTest extends TestSuite {
     }
 
     test("urlfile") {
-      val s = SWDiscoveryConfiguration.init().urlFile(s"$turtleBase:8080/animals.ttl")
+      val s = SWDiscoveryConfiguration.init().urlFile(s"$turtleBase/animals.ttl")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == s"$turtleBase:8080/animals.ttl")
+      assert(s.sources.last.path == s"$turtleBase/animals.ttl")
       assert(s.sources.last.mimetype == "text/turtle")
     }
 
@@ -82,7 +82,7 @@ object SWDiscoveryConfigurationBuilderTest extends TestSuite {
       val content= ":some :some2 :some3."
 
       val s = SWDiscoveryConfiguration.init()
-        .urlFile(s"$turtleBase:8080/animals.ttl")
+        .urlFile(s"$turtleBase/animals.ttl")
         .sparqlEndpoint(s"https://$turtleBase/sparql")
         .localFile("/localhost/animals.ttl")
         .rdfContent(content)
