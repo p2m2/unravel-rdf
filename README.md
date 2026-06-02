@@ -1,105 +1,102 @@
 # Discovery
 
-[![p2m2](https://circleci.com/gh/p2m2/discovery.svg?style=shield)](https://app.circleci.com/pipelines/github/p2m2)
-[![codecov](https://codecov.io/gh/p2m2/discovery/branch/develop/graph/badge.svg)](https://codecov.io/gh/p2m2/discovery)
-[![CodeFactor](https://www.codefactor.io/repository/github/p2m2/discovery/badge)](https://www.codefactor.io/repository/github/p2m2/discovery)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8d8ecb66f9ff4963a22efab3c693b629)](https://www.codacy.com/gh/p2m2/discovery/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=p2m2/discovery&amp;utm_campaign=Badge_Grade)
-[![javadoc](https://javadoc.io/badge2/com.github.p2m2/discovery_2.13/javadoc.svg)](https://javadoc.io/doc/com.github.p2m2/discovery_2.13)
-[![Npm package version](https://shields.io/npm/v/@p2m2/discovery)](https://www.npmjs.com/package/@p2m2/discovery)
-[![Docker Image Version (tag latest semver)](https://img.shields.io/docker/automated/inraep2m2/service-discovery-proxy)](https://hub.docker.com/repository/docker/inraep2m2/service-discovery-proxy)
-![Maven Central](https://img.shields.io/maven-central/v/com.github.p2m2/discovery_2.13)
+Discovery is a Scala.js library for building and executing SPARQL queries against RDF data sources in JavaScript environments.
+The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/discovery).
 
-## What is discovery
+Discovery is developed within the P2M2 community and contributes to FAIR knowledge extraction workflows for metabolomics and related semantic data integration use cases.
 
-discovery is a software library which aims to ease the development of decision support tools exploiting [omics](https://en.wikipedia.org/wiki/Multiomics) RDF databases.
-The library offers a dedicated query language that can be used in several runtime environments (Browser/JS, Node/JS, JVM/Scala).
+## Overview
 
-discovery is developed as part of the work package "Creating FAIR e-resources for knowledge mining" for [the
-national infrastructure for metabolomics and fluxomics - MetaboHUB](https://www.metabohub.fr/home.html)
+Discovery provides a dedicated query DSL to simplify the development of decision-support tools working on RDF and SPARQL-based data.
+The project now targets JavaScript runtimes through Scala.js, including browser and Node.js usage.
 
-## features
+## Features
 
-- Programming/building request with immutables objects
-- Querying several RDF content (SPARQL Endpoint, RDF File, RDF content)
-- Federated Query
-- Handling lazy page results
-- Subscribe to SPARQL query status events
-- Stringify request and configuration to ease transport
-- Decorating the building nodes with additional information
+- Immutable query-building API
+- Querying RDF content from SPARQL endpoints, RDF files, and RDF content
+- Federated query support
+- Lazy page result handling
+- SPARQL query status event subscription
+- Query and configuration serialization for transport and reuse
+- Query node decoration with additional metadata
 
-## Dependencies - RDF Software libraries
+## Project location
 
-this software development is based on [RDFJS (RDF JavaScript Libraries)](https://rdf.js.org/) and [RDF4J](https://rdf4j.org/)
+The canonical project repository is hosted on Forge INRAE:
+
+- [https://forge.inrae.fr/p2m2/discovery](https://forge.inrae.fr/p2m2/discovery)
+
+## Technical basis
+
+Discovery is implemented with Scala.js and integrates JavaScript RDF tooling.
+The build currently relies on Scala.js, Scala.js Bundler, and npm dependencies such as `axios`, `@comunica/query-sparql`, `n3`, and `rdfxml-streaming-parser`.
 
 ## Documentation
 
-further information and documentation, visit https://p2m2.github.io/discovery/
+Additional documentation is available here:
 
-## Html/Js example
+- [https://p2m2.github.io/discovery/](https://p2m2.github.io/discovery/)
 
-### Html import 
+## Installation
 
-```html 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/p2m2/discovery@develop/dist/discovery-web.min.js"> </script> 
-<script>
-      var config = SWDiscoveryConfiguration
-                    .init()
-                    .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql");
-
-      SWDiscovery(config)
-          .prefix("obo","http://purl.obolibrary.org/obo/")
-          .prefix("metabolights","https://www.ebi.ac.uk/metabolights/property#")
-          .prefix("rdfs","http://www.w3.org/2000/01/rdf-schema#")
-          .something()
-            .set(URI("obo:CHEBI_4167"))
-              .isObjectOf(URI("metabolights:Xref"),"study")
-                .datatype(URI("rdfs:label"),"label")
-          .select("study","label")
-             .commit()
-             .raw()
-             .then((response) => {
-                  for (let i=0;i<response.results.bindings.length;i++) {
-                    let study=response.results.bindings[i]["study"].value;
-                    let label=response.results.datatypes["label"][study][0].value; 
-                    console.log(study+"-->"+label);
-                  }
-            }).catch( (error) => {
-              console.error(" -- catch exception --")
-              console.error(error)
-            } );
- </script>
- ```
-
-[js fiddle example](https://jsfiddle.net/xv3d4Lte/1/)
-
-## Install
-
-### sbt
-
-```sbt
-libraryDependencies += "com.github.p2m2" %% "discovery" % "0.4.0"
-```
-
-### scalajs
-
-```sbt
-libraryDependencies += "com.github.p2m2" %%% "discovery" % "0.4.0"
-```
 ### npm
 
 ```bash
-npm i @p2m2/discovery
+npm install @p2m2/discovery
 ```
 
-### Running docker proxy image
+The npm package is the primary distribution channel for JavaScript usage.
 
-### docker command
+## Build from source
+
+```bash
+sbt fastOptJS
+sbt fullOptJS
+```
+
+The project is built as a Scala.js library.
+The optimized production artifact is generated through the Scala.js linker with CommonJS module output enabled for `fullOptJS`.
+
+## Browser example
+
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/p2m2/discovery@develop/dist/discovery-web.min.js"></script>
+<script>
+  var config = SWDiscoveryConfiguration
+    .init()
+    .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql");
+
+  SWDiscovery(config)
+    .prefix("obo", "http://purl.obolibrary.org/obo/")
+    .prefix("metabolights", "https://www.ebi.ac.uk/metabolights/property#")
+    .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+    .something()
+      .set(URI("obo:CHEBI_4167"))
+      .isObjectOf(URI("metabolights:Xref"), "study")
+      .datatype(URI("rdfs:label"), "label")
+    .select("study", "label")
+    .commit()
+    .raw()
+    .then((response) => {
+      for (let i = 0; i < response.results.bindings.length; i++) {
+        let study = response.results.bindings[i]["study"].value;
+        let label = response.results.datatypes["label"][study][0].value;
+        console.log(study + "-->" + label);
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+</script>
+```
+
+## Docker proxy
+
+A Docker image is also available for the discovery proxy service:
 
 ```bash
 docker run -d --network host -t inraep2m2/service-discovery-proxy:latest
 ```
-
-### docker-compose file
 
 ```yaml
 version: '3.9'
@@ -110,4 +107,3 @@ services:
     network_mode: "host"
     restart: on-failure
 ```
-
