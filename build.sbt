@@ -43,10 +43,13 @@ def renderPackageJson(
                      ): String = {
   val dependenciesJson =
     if (dependencies.isEmpty) ""
-    else dependencies.map { case (dep, ver) => s"""    "${dep}": "${ver}""" }.mkString(",\n")
+    else dependencies.map { case (dep, ver) =>
+      val safeVer = ver.replace("\"", "\\\"")
+      s"""    "$dep": "$safeVer""""
+    }.mkString(",\n")
 
   val filesJson =
-    includedFiles.map(f => s"""    "${f}"""").mkString(",\n")
+    includedFiles.map(f => s"""    "$f"""").mkString(",\n")
 
   s"""{
      |  "name": "$packageName",
@@ -115,11 +118,6 @@ def prepareNpmDir(
   if (!optimized && sourceMap.exists()) {
     IO.copyFile(sourceMap, npmDir / s"${projectName}.js.map")
     includedFiles = includedFiles :+ s"${projectName}.js.map"
-  }
-
-  if (readmeFile.exists()) {
-    IO.copyFile(readmeFile, npmDir / "README.md")
-    includedFiles = includedFiles :+ "README.md"
   }
 
   val packageJsonContent = renderPackageJson(
