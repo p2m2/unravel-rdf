@@ -73,6 +73,14 @@ scala_js_tests:
       echo "========================================"
       echo "Virtuoso Ready ========================="
       echo "========================================"
+    - |
+      echo "Starting HTTP server for test resources..."
+      cd src/test/resources && python3 -m http.server 8080 &
+      sleep 1
+      curl -fsS "http://localhost:8080/animals_basic.ttl" >/dev/null \
+        && echo "HTTP server ready on port 8080" \
+        || echo "WARNING: HTTP server not responding"
+      cd $CI_PROJECT_DIR
   script:
     - sbt clean test
   artifacts:

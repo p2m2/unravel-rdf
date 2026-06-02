@@ -42,7 +42,7 @@ object SWDiscoveryConfigurationTest extends TestSuite {
                "pageSize" : 10
              },
              "proxy" : {
-                "url"    : "http://${turtleBase}:8081",
+                "url"    : "${turtleBase}",
                 "method" : "post"
              }
             }
