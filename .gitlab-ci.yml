@@ -1,6 +1,7 @@
 stages:
   - test
 
+# Bloc global minimal, sans variables
 default:
   image: eclipse-temurin:17-jdk
   cache:
@@ -11,16 +12,6 @@ default:
       - .cache/coursier
       - node_modules/
       - target/
-  variables:
-    SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
-    COURSIER_CACHE: ".cache/coursier"
-    IVY_HOME: ".ivy2"
-    npm_config_cache: "$CI_PROJECT_DIR/.npm"
-    VIRTUOSO_URL: "http://virtuoso:8890/sparql"
-    VIRTUOSO_ISQL_PORT: "1111"
-    VIRTUOSO_HOST: "virtuoso"
-    VIRTUOSO_USER: "dba"
-    VIRTUOSO_PASSWORD: "dba"
 
 scala_js_tests:
   stage: test
@@ -40,6 +31,16 @@ scala_js_tests:
         VIRT_SPARQL_MaxDataSourceSize: "10000"
         VIRT_SPARQL_MaxQueryCostEstimationTime: "0"
         VIRT_SPARQL_MaxQueryExecutionTime: "0"
+  variables:
+    SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
+    COURSIER_CACHE: ".cache/coursier"
+    IVY_HOME: ".ivy2"
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+    VIRTUOSO_URL: "http://virtuoso:8890/sparql"
+    VIRTUOSO_ISQL_PORT: "1111"
+    VIRTUOSO_HOST: "virtuoso"
+    VIRTUOSO_USER: "dba"
+    VIRTUOSO_PASSWORD: "dba"
   before_script:
     - apt-get update
     - apt-get install -y curl openjdk-17-jdk
