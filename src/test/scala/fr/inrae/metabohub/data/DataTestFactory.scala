@@ -9,10 +9,10 @@ final case class DataTestFactoryException(private val message: String = "",
 
 object DataTestFactory  {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
-  val urlEndpoint = "http://localhost:8890/sparql"
+  val urlEndpoint: String = sys.env.getOrElse("VIRTUOSO_URL", "http://localhost:8890/sparql")
 
-  def graph1(classname: String) = "graph:test:discovery:virtuoso1:" + classname.replace("$","")
-  def graph2(classname: String) = "graph:test:discovery:virtuoso2:" + classname.replace("$","")
+  def graph1(classname: String): String = "graph:test:discovery:virtuoso1:" + classname.replace("$","")
+  def graph2(classname: String): String = "graph:test:discovery:virtuoso2:" + classname.replace("$","")
 
   private def insert(data : String,
                      graph: String,
