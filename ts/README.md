@@ -6,5 +6,7 @@ npm link
 cd ts/tests
 npm link @p2m2/discovery
 
-npx tsx github.issues.test.ts
+npm install --save-dev jest ts-jest @types/jest
+npx jest github.issues.test.ts
+
 
