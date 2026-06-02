@@ -7,4 +7,3 @@ addSbtPlugin("ch.epfl.scala"      % "sbt-scalajs-bundler"           % "0.21.1")
 addSbtPlugin("io.crashbox"        % "sbt-gpg"                       % "0.2.1")
 addSbtPlugin("com.eed3si9n"       % "sbt-assembly"                  % "2.3.1")
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter"        % "1.0.0-beta45")
-libraryDependencies += "org.scala-js" %% "scalajs-env-nodejs" % "1.6.0"

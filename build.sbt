@@ -175,14 +175,7 @@ description := "Ease SPARQL requests to semantic databases."
       ),
 
       Test / parallelExecution := false,
-
-      Test / jsEnv := {
-        val virtuosoUrl = sys.env.getOrElse("VIRTUOSO_URL", "http://localhost:8890/sparql")
-        new NodeJSEnv(
-          NodeJSEnv.Config().withEnv(Map("VIRTUOSO_URL" -> virtuosoUrl))
-        )
-      },
-
+      
       webpackBundlingMode := BundlingMode.LibraryOnly(),
 
       libraryDependencies ++= Seq(
