@@ -1,5 +1,6 @@
 package fr.inrae.metabohub.semantic_web
 
+import fr.inrae.metabohub.data.NodeEnv
 import fr.inrae.metabohub.semantic_web.rdf.URI
 import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, test}
@@ -7,12 +8,13 @@ import utest.{TestSuite, Tests, test}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Fix126UrlFileUnusedVariable extends TestSuite {
+  val turtleBase: String = NodeEnv.get("TURTLE_BASE_URL", "http://localhost:8080")
   val config: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
-    """
+    s"""
         {
          "sources" : [{
            "id"       : "file_turtle",
-           "path"     : "http://localhost:8080/animals_basic.ttl",
+           "path"     : "$turtleBase/animals_basic.ttl",
            "mimetype" : "text/turtle"
          }],
          "settings" : {

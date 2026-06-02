@@ -1,5 +1,6 @@
 package fr.inrae.metabohub.semantic_web.configuration
 
+import fr.inrae.metabohub.data.NodeEnv
 import fr.inrae.metabohub.semantic_web.exception.SWStatementConfigurationException
 import utest._
 import wvlet.log.LogLevel
@@ -7,6 +8,7 @@ import wvlet.log.LogLevel
 import scala.util.{Failure, Try}
 
 object SWDiscoveryConfigurationTest extends TestSuite {
+  val turtleBase: String = NodeEnv.get("TURTLE_BASE_URL", "http://localhost:8080")
   val configBase: String = """
             {
              "sources" : [{
@@ -25,7 +27,7 @@ object SWDiscoveryConfigurationTest extends TestSuite {
             }
             """.stripMargin
 
-  val configBaseProxy: String = """
+  val configBaseProxy: String = s"""
             {
              "sources" : [{
                "id"  : "dbpedia",
@@ -40,7 +42,7 @@ object SWDiscoveryConfigurationTest extends TestSuite {
                "pageSize" : 10
              },
              "proxy" : {
-                "url"    : "http://localhost:8081",
+                "url"    : "http://${turtleBase}:8081",
                 "method" : "post"
              }
             }

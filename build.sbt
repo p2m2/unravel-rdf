@@ -175,7 +175,7 @@ description := "Ease SPARQL requests to semantic databases."
       ),
 
       Test / parallelExecution := false,
-      
+
       webpackBundlingMode := BundlingMode.LibraryOnly(),
 
       libraryDependencies ++= Seq(

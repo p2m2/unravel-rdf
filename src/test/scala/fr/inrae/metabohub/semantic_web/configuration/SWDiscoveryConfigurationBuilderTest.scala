@@ -1,62 +1,65 @@
 package fr.inrae.metabohub.semantic_web.configuration
 
+import fr.inrae.metabohub.data.NodeEnv
 import utest.{TestSuite, Tests, test}
 import wvlet.log.LogLevel
 
 import scala.util.Try
 
 object SWDiscoveryConfigurationBuilderTest extends TestSuite {
+  val turtleBase: String = NodeEnv.get("TURTLE_BASE_URL", "https://localhost:8080")
+
   def tests: Tests = Tests {
     test("default") {
       assert(Try(SWDiscoveryConfiguration.init()).isSuccess)
     }
 
     test("urlfile") {
-      val s = SWDiscoveryConfiguration.init().urlFile("http://localhost:8080/animals.ttl")
+      val s = SWDiscoveryConfiguration.init().urlFile(s"$turtleBase:8080/animals.ttl")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == "http://localhost:8080/animals.ttl")
+      assert(s.sources.last.path == s"$turtleBase:8080/animals.ttl")
       assert(s.sources.last.mimetype == "text/turtle")
     }
 
     test("sparqlEndpoint") {
-      val s = SWDiscoveryConfiguration.init().sparqlEndpoint("http://localhost/sparql")
+      val s = SWDiscoveryConfiguration.init().sparqlEndpoint(s"$turtleBase/sparql")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == "http://localhost/sparql")
+      assert(s.sources.last.path == s"$turtleBase/sparql")
       assert(s.sources.last.mimetype == "application/sparql-query")
     }
 
     test("sparqlEndpoint auth=basic") {
-      val s = SWDiscoveryConfiguration.init().sparqlEndpoint("http://localhost/sparql",auth="basic")
+      val s = SWDiscoveryConfiguration.init().sparqlEndpoint(s"$turtleBase/sparql",auth="basic")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == "http://localhost/sparql")
+      assert(s.sources.last.path == s"$turtleBase/sparql")
       assert(s.sources.last.mimetype == "application/sparql-query")
     }
 
     test("sparqlEndpoint login=xxxx") {
-      val s = SWDiscoveryConfiguration.init().sparqlEndpoint("http://localhost/sparql",login="xxxxx")
+      val s = SWDiscoveryConfiguration.init().sparqlEndpoint(s"$turtleBase/sparql",login="xxxxx")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == "http://localhost/sparql")
+      assert(s.sources.last.path == s"$turtleBase/sparql")
       assert(s.sources.last.mimetype == "application/sparql-query")
     }
 
     test("sparqlEndpoint password=xxxx") {
-      val s = SWDiscoveryConfiguration.init().sparqlEndpoint("http://localhost/sparql",password="xxxxx")
+      val s = SWDiscoveryConfiguration.init().sparqlEndpoint(s"$turtleBase/sparql",password="xxxxx")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == "http://localhost/sparql")
+      assert(s.sources.last.path == s"$turtleBase/sparql")
       assert(s.sources.last.mimetype == "application/sparql-query")
     }
 
     test("sparqlEndpoint login=xxxx,password=xxxx") {
-      val s = SWDiscoveryConfiguration.init().sparqlEndpoint("http://localhost/sparql",login="xxxxx",password="xxxxx")
+      val s = SWDiscoveryConfiguration.init().sparqlEndpoint(s"$turtleBase/sparql",login="xxxxx",password="xxxxx")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == "http://localhost/sparql")
+      assert(s.sources.last.path == s"$turtleBase/sparql")
       assert(s.sources.last.mimetype == "application/sparql-query")
     }
 
     test("sparqlEndpoint token=xxxx") {
-      val s = SWDiscoveryConfiguration.init().sparqlEndpoint("http://localhost/sparql",token="xxxxx")
+      val s = SWDiscoveryConfiguration.init().sparqlEndpoint(s"$turtleBase/sparql",token="xxxxx")
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == "http://localhost/sparql")
+      assert(s.sources.last.path == s"$turtleBase/sparql")
       assert(s.sources.last.mimetype == "application/sparql-query")
     }
 
@@ -79,8 +82,8 @@ object SWDiscoveryConfigurationBuilderTest extends TestSuite {
       val content= ":some :some2 :some3."
 
       val s = SWDiscoveryConfiguration.init()
-        .urlFile("http://localhost:8080/animals.ttl")
-        .sparqlEndpoint("http://localhost/sparql")
+        .urlFile(s"$turtleBase:8080/animals.ttl")
+        .sparqlEndpoint(s"https://$turtleBase/sparql")
         .localFile("/localhost/animals.ttl")
         .rdfContent(content)
 
