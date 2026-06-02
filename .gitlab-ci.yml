@@ -1,5 +1,6 @@
 stages:
   - test
+  - publish
 
 default:
   image: node:20-bookworm
@@ -11,6 +12,24 @@ default:
       - .cache/coursier
       - node_modules/
       - target/
+
+.setup_java_sbt: &setup_java_sbt
+  - apt-get update -y
+  - apt-get install -y curl gnupg ca-certificates
+  - apt-get install -y openjdk-17-jdk
+  - java -version
+  - node --version
+  - npm --version
+  - |
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list
+    curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" \
+      | gpg --dearmor \
+      | tee /etc/apt/trusted.gpg.d/scalasbt-release.gpg >/dev/null
+    apt-get update -y
+    apt-get install -y sbt
+    sbt sbtVersion
+  - test -f build.sbt
 
 scala_js_tests:
   stage: test
@@ -40,22 +59,7 @@ scala_js_tests:
     VIRTUOSO_USER: "dba"
     VIRTUOSO_PASSWORD: "dba"
   before_script:
-    - apt-get update -y
-    - apt-get install -y curl gnupg ca-certificates
-    - apt-get install -y openjdk-17-jdk
-    - java -version
-    - node --version
-    - npm --version
-    # install sbt (repo officiel)
-    - |
-      echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list
-      echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list
-      curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" \
-        | gpg --dearmor \
-        | tee /etc/apt/trusted.gpg.d/scalasbt-release.gpg >/dev/null
-      apt-get update -y
-      apt-get install -y sbt
-      sbt sbtVersion
+    - *setup_java_sbt
     - |
       echo "Waiting for Virtuoso..."
       for i in $(seq 1 60); do
@@ -66,7 +70,6 @@ scala_js_tests:
         echo "Virtuoso not ready yet ($i/60)"
         sleep 2
       done
-    - test -f build.sbt
   script:
     - sbt clean test
   artifacts:
@@ -77,3 +80,53 @@ scala_js_tests:
   rules:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
+
+publish_npm_release:
+  stage: publish
+  needs: ["scala_js_tests"]
+  variables:
+    SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
+    COURSIER_CACHE: ".cache/coursier"
+    IVY_HOME: ".ivy2"
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+    DISCOVERY_VERSION: "$CI_COMMIT_TAG"
+  before_script:
+    - *setup_java_sbt
+  script:
+    - sbt clean fullOptJS npmPrepareRelease
+    - cd target/npm
+    - echo "@p2m2:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+    - npm publish --tag latest
+  artifacts:
+    when: always
+    paths:
+      - target/npm/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /-debug$/'
+
+publish_npm_debug:
+  stage: publish
+  needs: ["scala_js_tests"]
+  variables:
+    SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
+    COURSIER_CACHE: ".cache/coursier"
+    IVY_HOME: ".ivy2"
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+    DISCOVERY_VERSION: "$CI_COMMIT_TAG"
+  before_script:
+    - *setup_java_sbt
+  script:
+    - sbt clean fastOptJS npmPrepareDebugRelease
+    - cd target/npm-debug
+    - echo "@p2m2:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+    - npm publish --tag debug
+  artifacts:
+    when: always
+    paths:
+      - target/npm-debug/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /-debug$/'

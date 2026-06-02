@@ -6,6 +6,8 @@ val staticVersionBuild = "0.4.4"
 val versionBuild = scala.util.Properties.envOrElse("DISCOVERY_VERSION", staticVersionBuild)
 
 val generateSWDiscoveryVersionFile = taskKey[Unit]("Generate SWDiscovery version file")
+val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
+val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
 
 lazy val lihaoyiUtestVersion = "0.8.5"
 lazy val lihaoyiUpickleVersion = "4.2.1"
@@ -21,6 +23,119 @@ lazy val npmN3Version = "1.26.0"
 lazy val npmRdfxmlStreamingParserVersion = "3.0.1"
 lazy val npmTypesNodeVersion = "18.11.18"
 lazy val npmTypescriptVersion = "6.0.3"
+
+def bundledArtifact(base: File, scalaBinary: String, projectName: String, optimized: Boolean): File = {
+  val suffix = if (optimized) "opt" else "fastopt"
+  base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"${projectName}-$suffix.js"
+}
+
+def bundledSourceMap(base: File, scalaBinary: String, projectName: String): File =
+  base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"${projectName}-fastopt.js.map"
+
+def renderPackageJson(
+                       packageName: String,
+                       description: String,
+                       version: String,
+                       mainFile: String,
+                       includedFiles: Seq[String],
+                       dependencies: Seq[(String, String)],
+                       registryUrl: String
+                     ): String = {
+  val dependenciesJson =
+    if (dependencies.isEmpty) ""
+    else dependencies.map { case (dep, ver) => s"""    "${dep}": "${ver}""" }.mkString(",\n")
+
+  val filesJson =
+    includedFiles.map(f => s"""    "${f}"""").mkString(",\n")
+
+  s"""{
+     |  "name": "$packageName",
+     |  "description": "$description",
+     |  "version": "$version",
+     |  "main": "$mainFile",
+     |  "files": [
+     |$filesJson
+     |  ],
+     |  "repository": {
+     |    "type": "git",
+     |    "url": "https://forge.inrae.fr/p2m2/discovery.git"
+     |  },
+     |  "keywords": [
+     |    "sparql",
+     |    "rdf",
+     |    "scalajs",
+     |    "semantic-web",
+     |    "metabolomics"
+     |  ],
+     |  "author": "Olivier Filangi",
+     |  "license": "MIT",
+     |  "bugs": {
+     |    "url": "https://forge.inrae.fr/p2m2/discovery/-/issues"
+     |  },
+     |  "homepage": "https://forge.inrae.fr/p2m2/discovery",
+     |  "publishConfig": {
+     |    "registry": "$registryUrl"
+     |  },
+     |  "dependencies": {
+     |$dependenciesJson
+     |  }
+     |}
+     |""".stripMargin
+}
+
+def prepareNpmDir(
+                   base: File,
+                   scalaBinary: String,
+                   projectName: String,
+                   orgName: String,
+                   projectVersion: String,
+                   projectDescription: String,
+                   npmDeps: Seq[(String, String)],
+                   optimized: Boolean,
+                   outputDirName: String,
+                   log: Logger
+                 ): File = {
+  val bundledJs = bundledArtifact(base, scalaBinary, projectName, optimized)
+  val sourceMap = bundledSourceMap(base, scalaBinary, projectName)
+  val npmDir = base / "target" / outputDirName
+  val outputJs = npmDir / s"${projectName}.js"
+  val outputPackageJson = npmDir / "package.json"
+  val readmeFile = base / "README.md"
+  val registryUrl = s"https://forge.inrae.fr/api/v4/projects/${sys.env.getOrElse("CI_PROJECT_ID", "YOUR_PROJECT_ID")}/packages/npm/"
+
+  if (!bundledJs.exists())
+    sys.error(s"Missing bundled artifact: ${bundledJs.getAbsolutePath}. Run the appropriate Scala.js task first.")
+
+  IO.delete(npmDir)
+  IO.createDirectory(npmDir)
+  IO.copyFile(bundledJs, outputJs)
+
+  var includedFiles = Seq(s"${projectName}.js")
+
+  if (!optimized && sourceMap.exists()) {
+    IO.copyFile(sourceMap, npmDir / s"${projectName}.js.map")
+    includedFiles = includedFiles :+ s"${projectName}.js.map"
+  }
+
+  if (readmeFile.exists()) {
+    IO.copyFile(readmeFile, npmDir / "README.md")
+    includedFiles = includedFiles :+ "README.md"
+  }
+
+  val packageJsonContent = renderPackageJson(
+    packageName = s"@${orgName}/${projectName}",
+    description = projectDescription,
+    version = projectVersion,
+    mainFile = s"./${projectName}.js",
+    includedFiles = includedFiles,
+    dependencies = npmDeps,
+    registryUrl = registryUrl
+  )
+
+  IO.write(outputPackageJson, packageJsonContent)
+  log.info(s"Prepared npm package in ${npmDir.getAbsolutePath}")
+  npmDir
+}
 
 generateSWDiscoveryVersionFile := {
   val file =
@@ -96,7 +211,33 @@ lazy val root = (project in file("."))
 
     Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
 
-    Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false).withModuleKind(ModuleKind.CommonJSModule) }
+    Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false).withModuleKind(ModuleKind.CommonJSModule) },
+
+    npmPrepareRelease := prepareNpmDir(
+      base = baseDirectory.value,
+      scalaBinary = scalaBinaryVersion.value,
+      projectName = name.value,
+      orgName = organizationName.value,
+      projectVersion = version.value,
+      projectDescription = description.value,
+      npmDeps = (Compile / npmDependencies).value,
+      optimized = true,
+      outputDirName = "npm",
+      log = streams.value.log
+    ),
+
+    npmPrepareDebugRelease := prepareNpmDir(
+      base = baseDirectory.value,
+      scalaBinary = scalaBinaryVersion.value,
+      projectName = name.value,
+      orgName = organizationName.value,
+      projectVersion = version.value,
+      projectDescription = description.value,
+      npmDeps = (Compile / npmDependencies).value,
+      optimized = false,
+      outputDirName = "npm-debug",
+      log = streams.value.log
+    )
   )
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
