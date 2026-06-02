@@ -1,24 +1,25 @@
-import sbt._
-import sbt.Keys._
-import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import org.scalajs.jsenv.nodejs.NodeJSEnv
+import sbt.*
+import sbt.Keys.*
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.*
 
-val staticVersionBuild = "0.4.4"
+val staticVersionBuild = "local.build"
 val versionBuild = scala.util.Properties.envOrElse("DISCOVERY_VERSION", staticVersionBuild)
 
 val generateSWDiscoveryVersionFile = taskKey[Unit]("Generate SWDiscovery version file")
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
 val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
 
-lazy val lihaoyiUtestVersion = "0.8.5"
-lazy val lihaoyiUpickleVersion = "4.2.1"
+lazy val lihaoyiUtestVersion = "0.9.5"
+lazy val lihaoyiUpickleVersion = "4.4.3"
 lazy val airframeLogVersion = "2025.1.12"
 lazy val scalaUriVersion = "4.0.3"
 lazy val scalaJsDomVersion = "2.1.0"
 lazy val scalaJsMacrotaskExecutorVersion = "1.1.1"
 
-lazy val npmAxiosVersion = "1.8.4"
+lazy val npmAxiosVersion = "1.16.1"
 lazy val npmShowdownVersion = "2.1.0"
-lazy val npmComunicaVersion = "4.3.0"
+lazy val npmComunicaVersion = "4.5.0"
 lazy val npmN3Version = "1.26.0"
 lazy val npmRdfxmlStreamingParserVersion = "3.0.1"
 lazy val npmTypesNodeVersion = "18.11.18"
@@ -154,7 +155,7 @@ organization := "fr.inrae.metabohub.p2m2"
 organizationName := "p2m2"
 name := "discovery"
 version := versionBuild
-scalaVersion := "2.13.16"
+scalaVersion := "2.13.18"
 organizationHomepage := Some(url("https://www6.inrae.fr/p2m2"))
 licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php"))
 homepage := Some(url("https://forge.inrae.fr/p2m2/discovery"))
@@ -177,7 +178,7 @@ description := "Ease SPARQL requests to semantic databases."
 
       Test / jsEnv := {
         val virtuosoUrl = sys.env.getOrElse("VIRTUOSO_URL", "http://localhost:8890/sparql")
-        NodeJSEnv(
+        new NodeJSEnv(
           NodeJSEnv.Config().withEnv(Map("VIRTUOSO_URL" -> virtuosoUrl))
         )
       },
