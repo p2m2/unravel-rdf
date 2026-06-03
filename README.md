@@ -49,13 +49,13 @@ No manual OFFSET/LIMIT management:
 
 ```js
 session
-    .selectByPage("study", "label")
-    .then(([totalCount, fetchPage]) => {
-        console.log(`${totalCount} results`)
+  .selectByPage("study", "label")
+  .then(([totalCount, fetchPage]) => {
+    console.log(`${totalCount} results`)
 
-        // Fetch page 0 on demand
-        fetchPage(0).then(page => renderTable(page))
-    })
+    // Fetch page 0 on demand
+    fetchPage(0).then(page => renderTable(page))
+  })
 ```
 
 ### Query progression and events
@@ -64,16 +64,16 @@ Long-running SPARQL queries report progress — useful for updating a loading in
 
 ```js
 session
-    .select("study", "label")
-    .commit()
-    .progression((percent) => {
-        updateProgressBar(percent)
-    })
-    .requestEvent((event) => {
-        console.log("SPARQL event:", event)
-    })
-    .raw()
-    .then(response => render(response))
+  .select("study", "label")
+  .commit()
+  .progression((percent) => {
+    updateProgressBar(percent)
+  })
+  .requestEvent((event) => {
+    console.log("SPARQL event:", event)
+  })
+  .raw()
+  .then(response => render(response))
 ```
 
 ### Node decorations
@@ -82,7 +82,7 @@ Attach arbitrary metadata to any node in the query graph:
 
 ```js
 session
-    .something("compound")
+  .something("compound")
     .setDecoration("label", "Chemical compound")
     .setDecoration("attributes", JSON.stringify({ visible: true }))
 ```
@@ -96,12 +96,12 @@ Traverse the internal query graph client-side to build dynamic UI elements:
 ```js
 // Build column definitions from visible node attributes
 const columns = session.browse((node, depth) => {
-    if (node.decorations?.attributes) {
-        return Object.values(JSON.parse(node.decorations.attributes))
-            .filter(attr => attr.visible)
-            .map(attr => ({ label: attr.label, field: attr.id }))
-    }
-    return []
+  if (node.decorations?.attributes) {
+    return Object.values(JSON.parse(node.decorations.attributes))
+      .filter(attr => attr.visible)
+      .map(attr => ({ label: attr.label, field: attr.id }))
+  }
+  return []
 }).filter(cols => cols.length > 0).flat()
 ```
 
@@ -133,16 +133,16 @@ Load the library directly in any HTML page — no npm, no bundler:
 
 ```html
 <!-- Latest stable -->
-<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/latest/unravel-rdf.min.js"></script>
+<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/latest/unravel-rdf.min.js"></script>
 
 <!-- Pinned version (recommended for production) -->
-<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/v1.2.3/unravel-rdf.min.js"></script>
+<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/v1.2.3/unravel-rdf.min.js"></script>
 ```
 
 All exports are available under the global `window.UnravelRdf`:
 
 ```html
-<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/latest/unravel-rdf.min.js"></script>
+<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/latest/unravel-rdf.min.js"></script>
 <script>
   const { SWDiscovery, SWDiscoveryConfiguration, URI } = window.UnravelRdf
 
@@ -161,7 +161,7 @@ All exports are available under the global `window.UnravelRdf`:
 </script>
 ```
 
-Available versions: [cdn/versions.json](https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/versions.json)
+Available versions: [cdn/versions.json](https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/versions.json)
 
 ---
 
@@ -208,7 +208,7 @@ Live demo: [https://p2m2.github.io/unravel-rdf-queryview](https://p2m2.github.io
 
 ## Documentation
 
-Full API documentation: [https://p2m2.pages-forge.inrae.fr/unravel-rdf](https://p2m2.pages.forge.inrae.fr/unravel-rdf/)
+Full API documentation: [https://unravel-rdf-5df20c.pages-forge.inrae.fr](https://unravel-rdf-5df20c.pages-forge.inrae.fr/)
 
 ---
 
