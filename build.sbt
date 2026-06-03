@@ -3,12 +3,15 @@ import sbt.*
 import sbt.Keys.*
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.*
 
+import scala.sys.process.Process
+
 val staticVersionBuild = "local.build"
 val versionBuild = scala.util.Properties.envOrElse("DISCOVERY_VERSION", staticVersionBuild)
 
 val generateSWDiscoveryVersionFile = taskKey[Unit]("Generate SWDiscovery version file")
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
 val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
+val cdnPrepare = taskKey[File]("Build a browser-ready UMD bundle in target/cdn")
 
 
 lazy val lihaoyiUtestVersion = "0.9.5"
@@ -25,6 +28,7 @@ lazy val npmN3Version = "1.26.0"
 lazy val npmRdfxmlStreamingParserVersion = "3.0.1"
 lazy val npmTypesNodeVersion = "18.11.18"
 lazy val npmTypescriptVersion = "6.0.3"
+lazy val npmQsVersion = "6.15.2"
 
 def bundledArtifact(base: File, scalaBinary: String, projectName: String, optimized: Boolean): File = {
   val suffix = if (optimized) "opt" else "fastopt"
@@ -41,8 +45,16 @@ def renderPackageJson(
                        mainFile: String,
                        includedFiles: Seq[String],
                        dependencies: Seq[(String, String)],
-                       registryUrl: String
+                       registryUrl: String,
+                       cdnFile: Option[String] = None
                      ): String = {
+
+  val cdnFields = cdnFile.map { f =>
+    s"""  "browser": "$f",
+       |  "unpkg": "$f",
+       |  "jsdelivr": "$f",""".stripMargin
+  }.getOrElse("")
+
   val dependenciesJson =
     if (dependencies.isEmpty) ""
     else dependencies.map { case (dep, ver) =>
@@ -58,6 +70,7 @@ def renderPackageJson(
      |  "description": "$description",
      |  "version": "$version",
      |  "main": "$mainFile",
+     |$cdnFields
      |  "files": [
      |$filesJson
      |  ],
@@ -98,15 +111,15 @@ def prepareNpmDir(
                    npmDeps: Seq[(String, String)],
                    optimized: Boolean,
                    outputDirName: String,
-                   log: Logger
+                   log: Logger,
+                   cdnFile: Option[String] = None
                  ): File = {
   val bundledJs = bundledArtifact(base, scalaBinary, projectName, optimized)
   val sourceMap = bundledSourceMap(base, scalaBinary, projectName)
   val npmDir = base / "target" / outputDirName
   val outputJs = npmDir / s"$projectName.js"
   val outputPackageJson = npmDir / "package.json"
-  val readmeFile = base / "README.md"
-  val registryUrl = s"https://forge.inrae.fr/api/v4/projects/${sys.env.getOrElse("CI_PROJECT_ID", "YOUR_PROJECT_ID")}/packages/npm/"
+  val registryUrl = s"https://forge.inrae.fr/api/v4/projects/${sys.env.getOrElse("CI_PROJECT_ID", "unravel-rdf")}/packages/npm/"
 
   if (!bundledJs.exists())
     sys.error(s"Missing bundled artifact: ${bundledJs.getAbsolutePath}. Run the appropriate Scala.js task first.")
@@ -129,7 +142,8 @@ def prepareNpmDir(
     mainFile = s"./$projectName.js",
     includedFiles = includedFiles,
     dependencies = npmDeps,
-    registryUrl = registryUrl
+    registryUrl = registryUrl,
+    cdnFile = cdnFile
   )
 
   IO.write(outputPackageJson, packageJsonContent)
@@ -196,7 +210,8 @@ lazy val root = (project in file("."))
       "n3" -> npmN3Version,
       "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
       "@types/node" -> npmTypesNodeVersion,
-      "typescript" -> npmTypescriptVersion
+      "typescript" -> npmTypescriptVersion,
+      "qs" -> npmQsVersion
     ),
 
     Test / npmDependencies ++= Seq(
@@ -206,7 +221,8 @@ lazy val root = (project in file("."))
       "n3" -> npmN3Version,
       "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
       "@types/node" -> npmTypesNodeVersion,
-      "typescript" -> npmTypescriptVersion
+      "typescript" -> npmTypescriptVersion,
+      "qs" -> npmQsVersion
     ),
 
     Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
@@ -223,7 +239,8 @@ lazy val root = (project in file("."))
       npmDeps = (Compile / npmDependencies).value,
       optimized = true,
       outputDirName = "npm",
-      log = streams.value.log
+      log = streams.value.log,
+      cdnFile = Some(s"./${name.value}.js")
     ),
 
     npmPrepareDebugRelease := prepareNpmDir(
@@ -237,7 +254,30 @@ lazy val root = (project in file("."))
       optimized = false,
       outputDirName = "npm-debug",
       log = streams.value.log
-    )
+    ),
+
+    cdnPrepare := {
+      val npmDir = npmPrepareRelease.value  // génère target/npm/ avec package.json + unravel-rdf.js
+      val cdnDir = baseDirectory.value / "target" / "cdn"
+      val webpackConfig = (baseDirectory.value / "webpack.cdn.config.js").getAbsolutePath
+      val log = streams.value.log
+
+      // npm install dans target/npm/ — isole les deps du scope test
+      log.info(s"Installing npm dependencies in ${npmDir.getAbsolutePath}...")
+      val installResult = Process("npm install", npmDir).!(log)
+      if (installResult != 0) sys.error("npm install failed in target/npm")
+
+      // webpack depuis target/npm/ — node_modules local résolu automatiquement
+      log.info("Running webpack CDN bundle...")
+      val bundleResult = Process(
+        Seq("npx", "webpack-cli", "--config", webpackConfig, "--no-cache"),
+        npmDir
+      ).!(log)
+      if (bundleResult != 0) sys.error("webpack CDN bundle failed")
+
+      log.info(s"CDN bundle ready in ${cdnDir.getAbsolutePath}")
+      cdnDir
+    }
   )
 
 Global / onChangedBuildSource := ReloadOnSourceChanges

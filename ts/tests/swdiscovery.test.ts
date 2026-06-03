@@ -1,4 +1,4 @@
-import { SWDiscoveryConfiguration , SWDiscovery } from "@p2m2/discovery";
+import { SWDiscoveryConfiguration , SWDiscovery } from "@p2m2/unravel-rdf";
 
 describe("SWDiscovery", () => {
     
@@ -76,9 +76,9 @@ describe("SWDiscovery", () => {
                           return n.$type + " : " + p;
                          });
     expect(results).toStrictEqual([
-      "fr.inrae.metabohub.semantic_web.node.Root : 0",
-      "fr.inrae.metabohub.semantic_web.node.Something : 1",
-      "fr.inrae.metabohub.semantic_web.node.ObjectOf : 2" ]);
+      "Root : 0",
+      "Something : 1",
+      "ObjectOf : 2" ]);
     })
 
      test("setDecoration/getDecoration", () => {

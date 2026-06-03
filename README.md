@@ -26,11 +26,11 @@ A Unravel RDF session can be serialized to a string and restored exactly:
 import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/unravel-rdf'
 
 const config = SWDiscoveryConfiguration
-  .init()
-  .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql")
+    .init()
+    .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql")
 
 const session = SWDiscovery(config)
-  .something("study")
+    .something("study")
     .isA(URI("metabolights:Study"))
     .datatype(URI("rdfs:label"), "label")
 
@@ -49,13 +49,13 @@ No manual OFFSET/LIMIT management:
 
 ```js
 session
-  .selectByPage("study", "label")
-  .then(([totalCount, fetchPage]) => {
-    console.log(`${totalCount} results`)
+    .selectByPage("study", "label")
+    .then(([totalCount, fetchPage]) => {
+        console.log(`${totalCount} results`)
 
-    // Fetch page 0 on demand
-    fetchPage(0).then(page => renderTable(page))
-  })
+        // Fetch page 0 on demand
+        fetchPage(0).then(page => renderTable(page))
+    })
 ```
 
 ### Query progression and events
@@ -64,16 +64,16 @@ Long-running SPARQL queries report progress — useful for updating a loading in
 
 ```js
 session
-  .select("study", "label")
-  .commit()
-  .progression((percent) => {
-    updateProgressBar(percent)
-  })
-  .requestEvent((event) => {
-    console.log("SPARQL event:", event)
-  })
-  .raw()
-  .then(response => render(response))
+    .select("study", "label")
+    .commit()
+    .progression((percent) => {
+        updateProgressBar(percent)
+    })
+    .requestEvent((event) => {
+        console.log("SPARQL event:", event)
+    })
+    .raw()
+    .then(response => render(response))
 ```
 
 ### Node decorations
@@ -82,7 +82,7 @@ Attach arbitrary metadata to any node in the query graph:
 
 ```js
 session
-  .something("compound")
+    .something("compound")
     .setDecoration("label", "Chemical compound")
     .setDecoration("attributes", JSON.stringify({ visible: true }))
 ```
@@ -96,12 +96,12 @@ Traverse the internal query graph client-side to build dynamic UI elements:
 ```js
 // Build column definitions from visible node attributes
 const columns = session.browse((node, depth) => {
-  if (node.decorations?.attributes) {
-    return Object.values(JSON.parse(node.decorations.attributes))
-      .filter(attr => attr.visible)
-      .map(attr => ({ label: attr.label, field: attr.id }))
-  }
-  return []
+    if (node.decorations?.attributes) {
+        return Object.values(JSON.parse(node.decorations.attributes))
+            .filter(attr => attr.visible)
+            .map(attr => ({ label: attr.label, field: attr.id }))
+    }
+    return []
 }).filter(cols => cols.length > 0).flat()
 ```
 
@@ -129,14 +129,36 @@ npm install @p2m2/unravel-rdf
 
 ### CDN (browser, no build step)
 
-**Latest stable:**
+Load the library directly in any HTML page — no npm, no bundler:
+
 ```html
-<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/latest/unravel-rdf.js"></script>
+<!-- Latest stable -->
+<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/latest/unravel-rdf.min.js"></script>
+
+<!-- Pinned version (recommended for production) -->
+<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/v1.2.3/unravel-rdf.min.js"></script>
 ```
 
-**Pinned version (recommended for production):**
+All exports are available under the global `window.UnravelRdf`:
+
 ```html
-<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/v1.2.3/unravel-rdf.js"></script>
+<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/latest/unravel-rdf.min.js"></script>
+<script>
+  const { SWDiscovery, SWDiscoveryConfiguration, URI } = window.UnravelRdf
+
+  const config = SWDiscoveryConfiguration
+    .init()
+    .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql")
+
+  SWDiscovery(config)
+    .something("study")
+      .isA(URI("metabolights:Study"))
+      .datatype(URI("rdfs:label"), "label")
+    .select("study", "label")
+    .commit()
+    .raw()
+    .then(console.log)
+</script>
 ```
 
 Available versions: [cdn/versions.json](https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/versions.json)
@@ -193,9 +215,31 @@ Full API documentation: [https://p2m2.pages-forge.inrae.fr/unravel-rdf](https://
 ## Build from source
 
 ```bash
-sbt fastOptJS           # development build with source maps
-sbt fullOptJS           # optimized production build (Closure Compiler)
-sbt npmPrepareRelease   # assemble target/npm/ for publication
+sbt fastOptJS             # development build with source maps
+sbt fullOptJS             # optimized production build
+sbt npmPrepareRelease     # assemble target/npm/ for npm publication
+sbt npmPrepareDebugRelease # assemble target/npm-debug/ with source maps
+sbt "fullOptJS; cdnPrepare" # build browser-ready UMD bundle → target/cdn/unravel-rdf.min.js
+```
+
+### CDN bundle
+
+`cdnPrepare` produces a self-contained UMD bundle suitable for direct `<script>` inclusion:
+
+1. Compiles Scala.js to CommonJS (`fullOptJS`)
+2. Assembles `target/npm/` with all npm dependencies declared
+3. Runs `npm install` in `target/npm/` to resolve the dependency tree
+4. Bundles everything with webpack into `target/cdn/unravel-rdf.min.js`
+
+The bundle exposes all exports under `window.UnravelRdf` in the browser.
+
+To test locally:
+
+```bash
+sbt "fullOptJS; cdnPrepare"
+cd target/cdn
+python3 -m http.server 8080
+# open http://localhost:8080/test.html
 ```
 
 ---
@@ -207,26 +251,6 @@ Unravel RDF is built with [Scala.js](https://www.scala-js.org/) and integrates t
 - [`n3`](https://github.com/rdfjs/N3.js) — RDF parsing and in-memory store
 - [`rdfxml-streaming-parser`](https://github.com/rubensworks/rdfxml-streaming-parser.js) — RDF/XML support
 - [`axios`](https://axios-http.com/) — HTTP transport
-
----
-
-## Docker proxy
-
-A Docker image is available for the Unravel RDF proxy service:
-
-```bash
-docker run -d --network host -t inraep2m2/service-unravel-rdf-proxy:latest
-```
-
-```yaml
-version: '3.9'
-services:
-  service-unravel-rdf-proxy:
-    image: inraep2m2/service-unravel-rdf-proxy:latest
-    command: ./mill -w app.runBackground --port 8085 --verbose
-    network_mode: "host"
-    restart: on-failure
-```
 
 ---
 

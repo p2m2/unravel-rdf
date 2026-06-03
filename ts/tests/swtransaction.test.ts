@@ -1,4 +1,4 @@
-import { SWDiscoveryConfiguration , SWDiscovery } from "@p2m2/discovery"
+import { SWDiscoveryConfiguration , SWDiscovery } from "@p2m2/unravel-rdf"
 
 describe("SWDiscovery", () => {
     

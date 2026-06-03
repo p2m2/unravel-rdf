@@ -1,4 +1,4 @@
-import { SWDiscoveryConfiguration , SWDiscovery, URI } from "@p2m2/discovery";
+import { SWDiscoveryConfiguration , SWDiscovery, URI } from "@p2m2/unravel-rdf";
 
 describe("-- GITHUB ISSUES -- ", () => {
           
