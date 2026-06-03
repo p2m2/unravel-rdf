@@ -237,3 +237,4 @@ pages:
     # Pas d'expire_in sur pages : GitLab Pages gère sa propre rétention
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /-debug$/'
+    - if: '$CI_COMMIT_BRANCH == "devel-2026"'   
