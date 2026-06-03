@@ -53,4 +53,3 @@ services:
       DEBUG: "true"
     ports:
       - 8080:8080
-  

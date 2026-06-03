@@ -193,9 +193,7 @@ description := "Ease SPARQL requests to semantic databases."
       "showdown" -> npmShowdownVersion,
       "@comunica/query-sparql" -> npmComunicaVersion,
       "n3" -> npmN3Version,
-      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
-      "@types/node" -> npmTypesNodeVersion,
-      "typescript" -> npmTypescriptVersion
+      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion
     ),
 
     Test / npmDependencies ++= Seq(
@@ -203,14 +201,13 @@ description := "Ease SPARQL requests to semantic databases."
       "showdown" -> npmShowdownVersion,
       "@comunica/query-sparql" -> npmComunicaVersion,
       "n3" -> npmN3Version,
-      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
-      "@types/node" -> npmTypesNodeVersion,
-      "typescript" -> npmTypescriptVersion
+      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion
     ),
 
-    Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
 
-    Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false).withModuleKind(ModuleKind.CommonJSModule) },
+      Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
+      Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(true).withModuleKind(ModuleKind.CommonJSModule) },
+      Compile / fullOptJS / webpackConfigFile := Some(baseDirectory.value / "webpack.config.js"),
 
     npmPrepareRelease := prepareNpmDir(
       base = baseDirectory.value,

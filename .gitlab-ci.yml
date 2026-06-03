@@ -1,22 +1,15 @@
 stages:
   - test
+  - build
   - publish
+  - pages
 
-default:
-  image: node:20-bookworm
-  cache:
-    key: "${CI_PROJECT_NAME}"
-    paths:
-      - .ivy2/cache
-      - .sbt
-      - .cache/coursier
-      - node_modules/
-      - target/
-
+# ─────────────────────────────────────────────
+# Ancre : installation Java + sbt
+# ─────────────────────────────────────────────
 .setup_java_sbt: &setup_java_sbt
   - apt-get update -y
-  - apt-get install -y curl gnupg ca-certificates
-  - apt-get install -y openjdk-17-jdk
+  - apt-get install -y curl gnupg ca-certificates openjdk-17-jdk
   - java -version
   - node --version
   - npm --version
@@ -31,6 +24,31 @@ default:
     sbt sbtVersion
   - test -f build.sbt
 
+# ─────────────────────────────────────────────
+# Ancre : configuration npm registry GitLab
+# ─────────────────────────────────────────────
+.setup_npm_registry: &setup_npm_registry
+  - |
+    echo "@p2m2:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
+    echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
+
+# ─────────────────────────────────────────────
+# Image et cache communs
+# ─────────────────────────────────────────────
+default:
+  image: node:20-bookworm
+  cache:
+    key: "${CI_PROJECT_NAME}"
+    paths:
+      - .ivy2/cache
+      - .sbt
+      - .cache/coursier
+      - node_modules/
+      - target/
+
+# ═════════════════════════════════════════════
+# STAGE : test
+# ═════════════════════════════════════════════
 scala_js_tests:
   stage: test
   services:
@@ -70,9 +88,6 @@ scala_js_tests:
         echo "Virtuoso not ready yet ($i/60)"
         sleep 2
       done
-      echo "========================================"
-      echo "Virtuoso Ready ========================="
-      echo "========================================"
     - |
       echo "Starting HTTP server for test resources..."
       cd src/test/resources && python3 -m http.server 8080 &
@@ -92,8 +107,13 @@ scala_js_tests:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
 
-publish_npm_release:
-  stage: publish
+# ═════════════════════════════════════════════
+# STAGE : build
+# ═════════════════════════════════════════════
+
+# Build optimisé (release) : fullOptJS + minification Terser
+build_release:
+  stage: build
   needs: ["scala_js_tests"]
   variables:
     SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
@@ -104,11 +124,19 @@ publish_npm_release:
   before_script:
     - *setup_java_sbt
   script:
-    - sbt clean fullOptJS npmPrepareRelease
-    - cd target/npm
-    - echo "@p2m2:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
-    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
-    - npm publish --tag latest
+    # fullOptJS : Closure Compiler Scala.js + webpack bundle
+    - sbt fullOptJS npmPrepareRelease
+    # Minification Terser sur le bundle final
+    - npm install -g terser
+    - |
+      echo "Bundle size before minification: $(du -sh target/npm/discovery.js | cut -f1)"
+      terser target/npm/discovery.js \
+        --compress \
+        --mangle \
+        --output target/npm/discovery.min.js
+      echo "Bundle size after minification:  $(du -sh target/npm/discovery.min.js | cut -f1)"
+    # Le fichier principal du package devient le bundle minifié
+    - cp target/npm/discovery.min.js target/npm/discovery.js
   artifacts:
     when: always
     paths:
@@ -117,8 +145,9 @@ publish_npm_release:
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /-debug$/'
 
-publish_npm_debug:
-  stage: publish
+# Build debug : fastOptJS + source maps
+build_debug:
+  stage: build
   needs: ["scala_js_tests"]
   variables:
     SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
@@ -129,11 +158,7 @@ publish_npm_debug:
   before_script:
     - *setup_java_sbt
   script:
-    - sbt clean fastOptJS npmPrepareDebugRelease
-    - cd target/npm-debug
-    - echo "@p2m2:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
-    - echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
-    - npm publish --tag debug
+    - sbt fastOptJS npmPrepareDebugRelease
   artifacts:
     when: always
     paths:
@@ -141,3 +166,80 @@ publish_npm_debug:
     expire_in: 1 week
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /-debug$/'
+
+# ═════════════════════════════════════════════
+# STAGE : publish (npm registry GitLab)
+# ═════════════════════════════════════════════
+
+publish_npm_release:
+  stage: publish
+  needs: ["build_release"]
+  variables:
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  script:
+    - cd target/npm
+    - *setup_npm_registry
+    - npm publish --tag latest
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /-debug$/'
+
+publish_npm_debug:
+  stage: publish
+  needs: ["build_debug"]
+  variables:
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  script:
+    - cd target/npm-debug
+    - *setup_npm_registry
+    - npm publish --tag debug
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /-debug$/'
+
+# ═════════════════════════════════════════════
+# STAGE : pages (CDN + documentation Jekyll)
+# ═════════════════════════════════════════════
+
+pages:
+  stage: pages
+  needs: ["build_release"]
+  variables:
+    DISCOVERY_VERSION: "$CI_COMMIT_TAG"
+  before_script:
+    # Jekyll pour la documentation
+    - apt-get update -y && apt-get install -y ruby-full build-essential
+    - gem install bundler jekyll jekyll-target-blank
+  script:
+    # ── 1. Documentation Jekyll ──────────────────────────────────────────
+    - |
+      cd docs
+      jekyll build --destination ../public
+      cd ..
+
+    # ── 2. CDN : version épinglée ────────────────────────────────────────
+    - mkdir -p public/cdn/${CI_COMMIT_TAG}
+    - cp target/npm/discovery.js public/cdn/${CI_COMMIT_TAG}/discovery.js
+
+    # ── 3. CDN : alias "latest" ──────────────────────────────────────────
+    - mkdir -p public/cdn/latest
+    - cp target/npm/discovery.js public/cdn/latest/discovery.js
+
+    # ── 4. CDN : index des versions disponibles (JSON) ───────────────────
+    - |
+      VERSIONS=$(ls public/cdn/ | grep -v latest | sort -V | tr '\n' ',' | sed 's/,$//')
+      echo "{\"latest\":\"${CI_COMMIT_TAG}\",\"versions\":[${VERSIONS}]}" \
+        > public/cdn/versions.json
+
+    # ── 5. Résumé des URLs publiées ──────────────────────────────────────
+    - |
+      echo "================================================"
+      echo "Documentation : https://${CI_PAGES_DOMAIN}/"
+      echo "CDN latest    : https://${CI_PAGES_DOMAIN}/cdn/latest/discovery.js"
+      echo "CDN version   : https://${CI_PAGES_DOMAIN}/cdn/${CI_COMMIT_TAG}/discovery.js"
+      echo "Index versions: https://${CI_PAGES_DOMAIN}/cdn/versions.json"
+      echo "================================================"
+  artifacts:
+    paths:
+      - public
+    # Pas d'expire_in sur pages : GitLab Pages gère sa propre rétention
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /-debug$/'
