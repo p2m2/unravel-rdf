@@ -57,7 +57,7 @@ scala_js_tests:
       variables:
         DBA_PASSWORD: "dba"
         SPARQL_UPDATE: "true"
-        DEFAULT_GRAPH: "graph:test:discovery:default:"
+        DEFAULT_GRAPH: "graph:test:unravel-rdf:default:"
         VIRT_Parameters_NumberOfBuffers: "51000"
         VIRT_Parameters_MaxDirtyBuffers: "37500"
         VIRT_Parameters_TN_MAX_memory: "4000000"
@@ -129,14 +129,14 @@ build_release:
     # Minification Terser sur le bundle final
     - npm install -g terser
     - |
-      echo "Bundle size before minification: $(du -sh target/npm/discovery.js | cut -f1)"
-      terser target/npm/discovery.js \
+      echo "Bundle size before minification: $(du -sh target/npm/unravel-rdf.js | cut -f1)"
+      terser target/npm/unravel-rdf.js \
         --compress \
         --mangle \
-        --output target/npm/discovery.min.js
-      echo "Bundle size after minification:  $(du -sh target/npm/discovery.min.js | cut -f1)"
+        --output target/npm/unravel-rdf.min.js
+      echo "Bundle size after minification:  $(du -sh target/npm/unravel-rdf.min.js | cut -f1)"
     # Le fichier principal du package devient le bundle minifié
-    - cp target/npm/discovery.min.js target/npm/discovery.js
+    - cp target/npm/unravel-rdf.min.js target/npm/unravel-rdf.js
   artifacts:
     when: always
     paths:
@@ -217,11 +217,11 @@ pages:
 
     # ── 2. CDN : version épinglée ────────────────────────────────────────
     - mkdir -p public/cdn/${CI_COMMIT_TAG}
-    - cp target/npm/discovery.js public/cdn/${CI_COMMIT_TAG}/discovery.js
+    - cp target/npm/unravel-rdf.js public/cdn/${CI_COMMIT_TAG}/unravel-rdf.js
 
     # ── 3. CDN : alias "latest" ──────────────────────────────────────────
     - mkdir -p public/cdn/latest
-    - cp target/npm/discovery.js public/cdn/latest/discovery.js
+    - cp target/npm/unravel-rdf.js public/cdn/latest/unravel-rdf.js
 
     # ── 4. CDN : index des versions disponibles (JSON) ───────────────────
     - |
@@ -233,8 +233,8 @@ pages:
     - |
       echo "================================================"
       echo "Documentation : https://${CI_PAGES_DOMAIN}/"
-      echo "CDN latest    : https://${CI_PAGES_DOMAIN}/cdn/latest/discovery.js"
-      echo "CDN version   : https://${CI_PAGES_DOMAIN}/cdn/${CI_COMMIT_TAG}/discovery.js"
+      echo "CDN latest    : https://${CI_PAGES_DOMAIN}/cdn/latest/unravel-rdf.js"
+      echo "CDN version   : https://${CI_PAGES_DOMAIN}/cdn/${CI_COMMIT_TAG}/unravel-rdf.js"
       echo "Index versions: https://${CI_PAGES_DOMAIN}/cdn/versions.json"
       echo "================================================"
   artifacts:

@@ -10,6 +10,7 @@ val generateSWDiscoveryVersionFile = taskKey[Unit]("Generate SWDiscovery version
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
 val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
 
+
 lazy val lihaoyiUtestVersion = "0.9.5"
 lazy val lihaoyiUpickleVersion = "4.4.3"
 lazy val airframeLogVersion = "2025.1.12"
@@ -62,7 +63,7 @@ def renderPackageJson(
      |  ],
      |  "repository": {
      |    "type": "git",
-     |    "url": "https://forge.inrae.fr/p2m2/discovery.git"
+     |    "url": "https://forge.inrae.fr/p2m2/unravel-rdf.git"
      |  },
      |  "keywords": [
      |    "sparql",
@@ -74,9 +75,9 @@ def renderPackageJson(
      |  "author": "Olivier Filangi",
      |  "license": "MIT",
      |  "bugs": {
-     |    "url": "https://forge.inrae.fr/p2m2/discovery/-/issues"
+     |    "url": "https://forge.inrae.fr/p2m2/unravel-rdf/-/issues"
      |  },
-     |  "homepage": "https://forge.inrae.fr/p2m2/discovery",
+     |  "homepage": "https://forge.inrae.fr/p2m2/unravel-rdf",
      |  "publishConfig": {
      |    "registry": "$registryUrl"
      |  },
@@ -153,34 +154,34 @@ generateSWDiscoveryVersionFile := {
 
 organization := "fr.inrae.metabohub.p2m2"
 organizationName := "p2m2"
-name := "discovery"
+name := "unravel-rdf"
 version := versionBuild
 scalaVersion := "2.13.18"
 organizationHomepage := Some(url("https://www6.inrae.fr/p2m2"))
 licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php"))
-homepage := Some(url("https://forge.inrae.fr/p2m2/discovery"))
-description := "Ease SPARQL requests to semantic databases."
+homepage := Some(url("https://forge.inrae.fr/p2m2/unravel-rdf"))
+description := "Unravel RDF graphs — interactive SPARQL session management with lazy pagination, serialization, and graph traversal."
 
-  lazy val root = (project in file("."))
-    .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
-    .settings(
-      useYarn := false,
+lazy val root = (project in file("."))
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+  .settings(
+    useYarn := false,
 
-      testFrameworks += new TestFramework("utest.runner.Framework"),
+    testFrameworks += new TestFramework("utest.runner.Framework"),
 
-      scalacOptions ++= Seq(
-        "-deprecation",
-        "-feature",
-        "-P:scalajs:nowarnGlobalExecutionContext"
-      ),
+    scalacOptions ++= Seq(
+      "-deprecation",
+      "-feature",
+      "-P:scalajs:nowarnGlobalExecutionContext"
+    ),
 
-      Test / parallelExecution := false,
+    Test / parallelExecution := false,
 
-      webpackBundlingMode := BundlingMode.LibraryOnly(),
+    webpackBundlingMode := BundlingMode.LibraryOnly(),
 
-      libraryDependencies ++= Seq(
-        "com.lihaoyi" %%% "upickle" % lihaoyiUpickleVersion,
-        "io.lemonlabs" %%% "scala-uri" % scalaUriVersion,
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %%% "upickle" % lihaoyiUpickleVersion,
+      "io.lemonlabs" %%% "scala-uri" % scalaUriVersion,
       "org.wvlet.airframe" %%% "airframe-log" % airframeLogVersion,
       "org.scala-js" %%% "scalajs-dom" % scalaJsDomVersion,
       "org.scala-js" %%% "scala-js-macrotask-executor" % scalaJsMacrotaskExecutorVersion,
@@ -193,7 +194,9 @@ description := "Ease SPARQL requests to semantic databases."
       "showdown" -> npmShowdownVersion,
       "@comunica/query-sparql" -> npmComunicaVersion,
       "n3" -> npmN3Version,
-      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion
+      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
+      "@types/node" -> npmTypesNodeVersion,
+      "typescript" -> npmTypescriptVersion
     ),
 
     Test / npmDependencies ++= Seq(
@@ -201,13 +204,14 @@ description := "Ease SPARQL requests to semantic databases."
       "showdown" -> npmShowdownVersion,
       "@comunica/query-sparql" -> npmComunicaVersion,
       "n3" -> npmN3Version,
-      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion
+      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
+      "@types/node" -> npmTypesNodeVersion,
+      "typescript" -> npmTypescriptVersion
     ),
 
+    Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
 
-      Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
-      Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(true).withModuleKind(ModuleKind.CommonJSModule) },
-      Compile / fullOptJS / webpackConfigFile := Some(baseDirectory.value / "webpack.config.js"),
+    Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false).withModuleKind(ModuleKind.CommonJSModule) },
 
     npmPrepareRelease := prepareNpmDir(
       base = baseDirectory.value,

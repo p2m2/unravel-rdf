@@ -1,18 +1,18 @@
-# Discovery
+# Unravel RDF
 
-Discovery is a JavaScript/TypeScript library for building **interactive RDF exploration sessions** against SPARQL endpoints and RDF data sources.
+Unravel RDF is a JavaScript/TypeScript library for building **interactive RDF exploration sessions** against SPARQL endpoints and RDF data sources.
 It is implemented in Scala.js and published as an npm package.
 
-The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/discovery).  
-Discovery is developed within the [P2M2](https://www6.inrae.fr/p2m2) community and contributes to FAIR knowledge extraction workflows for metabolomics and semantic data integration.
+The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/unravel-rdf).  
+Unravel RDF is developed within the [P2M2](https://www6.inrae.fr/p2m2) community and contributes to FAIR knowledge extraction workflows for metabolomics and semantic data integration.
 
 ---
 
-## Why Discovery
+## Why Unravel RDF
 
-Writing SPARQL from a web application is painful: prefix management, pagination with OFFSET/LIMIT, result binding traversal, federation across endpoints. Discovery replaces all of this with a **fluent query DSL** that models an RDF exploration session as a navigable, serializable object.
+Writing SPARQL from a web application is painful: prefix management, pagination with OFFSET/LIMIT, result binding traversal, federation across endpoints. Unravel RDF replaces all of this with a **fluent query DSL** that models an RDF exploration session as a navigable, serializable object.
 
-The core idea: a Discovery session is not just a query — it is a **stateful graph of RDF nodes** you can traverse, decorate, filter, paginate, serialize, and restore. This makes it natural to build interfaces where users explore a knowledge graph step by step without writing any SPARQL.
+The core idea: an Unravel RDF session is not just a query — it is a **stateful graph of RDF nodes** you can traverse, decorate, filter, paginate, serialize, and restore. This makes it natural to build interfaces where users explore a knowledge graph step by step without writing any SPARQL.
 
 ---
 
@@ -20,10 +20,10 @@ The core idea: a Discovery session is not just a query — it is a **stateful gr
 
 ### Immutable, serializable sessions
 
-A Discovery session can be serialized to a string and restored exactly:
+A Unravel RDF session can be serialized to a string and restored exactly:
 
 ```js
-import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/discovery'
+import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/unravel-rdf'
 
 const config = SWDiscoveryConfiguration
   .init()
@@ -124,29 +124,29 @@ const previous = SWDiscovery().setSerializedString(history.pop())
 ### npm
 
 ```bash
-npm install @p2m2/discovery
+npm install @p2m2/unravel-rdf
 ```
 
 ### CDN (browser, no build step)
 
 **Latest stable:**
 ```html
-<script src="https://p2m2.pages.forge.inrae.fr/discovery/cdn/latest/discovery.js"></script>
+<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/latest/unravel-rdf.js"></script>
 ```
 
 **Pinned version (recommended for production):**
 ```html
-<script src="https://p2m2.pages.forge.inrae.fr/discovery/cdn/v1.2.3/discovery.js"></script>
+<script src="https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/v1.2.3/unravel-rdf.js"></script>
 ```
 
-Available versions: [cdn/versions.json](https://p2m2.pages.forge.inrae.fr/discovery/cdn/versions.json)
+Available versions: [cdn/versions.json](https://p2m2.pages.forge.inrae.fr/unravel-rdf/cdn/versions.json)
 
 ---
 
 ## Complete example — query a SPARQL endpoint
 
 ```js
-import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/discovery'
+import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/unravel-rdf'
 
 const config = SWDiscoveryConfiguration
   .init()
@@ -177,16 +177,16 @@ SWDiscovery(config)
 
 ## Demo application
 
-[discovery-queryview](https://github.com/p2m2/discovery-queryview) is a full Vue.js + D3.js application built on top of Discovery.  
-It demonstrates graph-based RDF exploration with node navigation, attribute filtering, lazy-paginated result tables, and session history — all driven by the Discovery API.
+[unravel-rdf-queryview](https://github.com/p2m2/unravel-rdf-queryview) is a full Vue.js + D3.js application built on top of Unravel RDF.  
+It demonstrates graph-based RDF exploration with node navigation, attribute filtering, lazy-paginated result tables, and session history — all driven by the Unravel RDF API.
 
-Live demo: [https://p2m2.github.io/discovery-queryview](https://p2m2.github.io/discovery-queryview)
+Live demo: [https://p2m2.github.io/unravel-rdf-queryview](https://p2m2.github.io/unravel-rdf-queryview)
 
 ---
 
 ## Documentation
 
-Full API documentation: [https://p2m2.pages.forge.inrae.fr/discovery/](https://p2m2.pages.forge.inrae.fr/discovery/)
+Full API documentation: [https://p2m2.pages.forge.inrae.fr/unravel-rdf/](https://p2m2.pages.forge.inrae.fr/unravel-rdf/)
 
 ---
 
@@ -202,7 +202,7 @@ sbt npmPrepareRelease   # assemble target/npm/ for publication
 
 ## Technical basis
 
-Discovery is built with [Scala.js](https://www.scala-js.org/) and integrates the JavaScript RDF ecosystem:
+Unravel RDF is built with [Scala.js](https://www.scala-js.org/) and integrates the JavaScript RDF ecosystem:
 - [`@comunica/query-sparql`](https://comunica.dev/) — SPARQL query execution
 - [`n3`](https://github.com/rdfjs/N3.js) — RDF parsing and in-memory store
 - [`rdfxml-streaming-parser`](https://github.com/rubensworks/rdfxml-streaming-parser.js) — RDF/XML support
@@ -212,17 +212,17 @@ Discovery is built with [Scala.js](https://www.scala-js.org/) and integrates the
 
 ## Docker proxy
 
-A Docker image is available for the Discovery proxy service:
+A Docker image is available for the Unravel RDF proxy service:
 
 ```bash
-docker run -d --network host -t inraep2m2/service-discovery-proxy:latest
+docker run -d --network host -t inraep2m2/service-unravel-rdf-proxy:latest
 ```
 
 ```yaml
 version: '3.9'
 services:
-  service-discovery-proxy:
-    image: inraep2m2/service-discovery-proxy:latest
+  service-unravel-rdf-proxy:
+    image: inraep2m2/service-unravel-rdf-proxy:latest
     command: ./mill -w app.runBackground --port 8085 --verbose
     network_mode: "host"
     restart: on-failure
@@ -232,4 +232,4 @@ services:
 
 ## License
 
-MIT — [Forge INRAE / p2m2/discovery](https://forge.inrae.fr/p2m2/discovery)
+MIT — [Forge INRAE / p2m2/unravel-rdf](https://forge.inrae.fr/p2m2/unravel-rdf)
