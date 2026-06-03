@@ -193,37 +193,15 @@ publish_npm_debug:
 # STAGE : pages (CDN + documentation Jekyll)
 # ═════════════════════════════════════════════
 
-# Job doc seule — déclenché sur push branche (sans CDN)
+# Job pages — déclenché sur tag release (doc Jekyll + CDN)
 pages:
-  stage: pages
-  needs: []
-  before_script:
-    - apt-get update -y && apt-get install -y ruby-full build-essential
-    - cd docs && bundle install && cd ..
-  script:
-    - |
-      cd docs
-      bundle exec jekyll build --destination ../public
-      cd ..
-    - mkdir -p public/cdn/latest
-    - |
-      echo "================================================"
-      echo "Documentation : https://${CI_PAGES_DOMAIN}/"
-      echo "================================================"
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "devel-2026"'
-
-# Job pages complet — déclenché sur tag release (doc + CDN)
-pages_release:
   stage: pages
   needs: ["build_release"]
   variables:
     DISCOVERY_VERSION: "$CI_COMMIT_TAG"
   before_script:
     - apt-get update -y && apt-get install -y ruby-full build-essential
+    - gem install bundler
     - cd docs && bundle install && cd ..
   script:
     # ── 1. Documentation Jekyll ──────────────────────────────────────────
@@ -242,7 +220,7 @@ pages_release:
 
     # ── 4. CDN : index des versions disponibles (JSON) ───────────────────
     - |
-      VERSIONS=$(ls public/cdn/ | grep -v latest | grep -v versions.json | sort -V | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')
+      VERSIONS=$(ls public/cdn/ | grep -v latest | grep -v versions.json | sort -V | sed 's/.*/\"&\"/' | tr '\n' ',' | sed 's/,$//')
       echo "{\"latest\":\"${CI_COMMIT_TAG}\",\"versions\":[${VERSIONS}]}" \
         > public/cdn/versions.json
 
