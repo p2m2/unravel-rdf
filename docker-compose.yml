@@ -14,7 +14,7 @@ services:
       VIRT_SPARQL_MaxQueryExecutionTime: 0
       DBA_PASSWORD: dba
       SPARQL_UPDATE: "true"
-      DEFAULT_GRAPH: "graph:test:discovery:default:"
+      DEFAULT_GRAPH: "graph:test:unravel-rdf:default:"
     ports:
       - "8890:8890"
 

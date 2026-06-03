@@ -5,13 +5,13 @@ import java.io.File
 object app extends ScalaModule {
   def scalaVersion = "2.13.8"
   def version_build : String = {
-    val version_discovery : String = "PROXY-LOCAL-BUILD"
+    val version_unravel_rdf : String = "PROXY-LOCAL-BUILD"
     val dir = System.getProperty("user.dir") + "/.."
 
     val res = Process(
       command="sbt publishLocal",
       cwd=new File(dir),
-      extraEnv="DISCOVERY_VERSION"->version_discovery).!!
+      extraEnv="DISCOVERY_VERSION"->version_unravel_rdf).!!
 
     println(res)
     version_discovery

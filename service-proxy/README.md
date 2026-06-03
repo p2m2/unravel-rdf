@@ -1,4 +1,4 @@
-# service-discovery-proxy
+# service-proxy
 
 ## test
 
