@@ -186,7 +186,7 @@ Live demo: [https://p2m2.github.io/unravel-rdf-queryview](https://p2m2.github.io
 
 ## Documentation
 
-Full API documentation: [https://p2m2.pages.forge.inrae.fr/unravel-rdf/](https://p2m2.pages.forge.inrae.fr/unravel-rdf/)
+Full API documentation: [https://p2m2.pages-forge.inrae.fr/unravel-rdf](https://p2m2.pages.forge.inrae.fr/unravel-rdf/)
 
 ---
 

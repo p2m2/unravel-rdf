@@ -1,4 +1,2 @@
-title: Discovery
-description: ease the development of decision support tools exploiting RDF databases
-plugins:
-  - jekyll-target-blank
+title: unravel-rdf
+description: unravel-rdf provides a powerful toolset for developers who are looking to build UIs using RDF data in an a robust software development process
