@@ -1,41 +1,123 @@
 # Discovery
 
-Discovery is a Scala.js library for building and executing SPARQL queries against RDF data sources in JavaScript environments.
-The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/discovery).
+Discovery is a JavaScript/TypeScript library for building **interactive RDF exploration sessions** against SPARQL endpoints and RDF data sources.
+It is implemented in Scala.js and published as an npm package.
 
-Discovery is developed within the P2M2 community and contributes to FAIR knowledge extraction workflows for metabolomics and related semantic data integration use cases.
+The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/discovery).  
+Discovery is developed within the [P2M2](https://www6.inrae.fr/p2m2) community and contributes to FAIR knowledge extraction workflows for metabolomics and semantic data integration.
 
-## Overview
+---
 
-Discovery provides a dedicated query DSL to simplify the development of decision-support tools working on RDF and SPARQL-based data.
-The project now targets JavaScript runtimes through Scala.js, including browser and Node.js usage.
+## Why Discovery
 
-## Features
+Writing SPARQL from a web application is painful: prefix management, pagination with OFFSET/LIMIT, result binding traversal, federation across endpoints. Discovery replaces all of this with a **fluent query DSL** that models an RDF exploration session as a navigable, serializable object.
 
-- Immutable query-building API
-- Querying RDF content from SPARQL endpoints, RDF files, and RDF content
-- Federated query support
-- Lazy page result handling
-- SPARQL query status event subscription
-- Query and configuration serialization for transport and reuse
-- Query node decoration with additional metadata
+The core idea: a Discovery session is not just a query — it is a **stateful graph of RDF nodes** you can traverse, decorate, filter, paginate, serialize, and restore. This makes it natural to build interfaces where users explore a knowledge graph step by step without writing any SPARQL.
 
-## Project location
+---
 
-The canonical project repository is hosted on Forge INRAE:
+## Key concepts
 
-- [https://forge.inrae.fr/p2m2/discovery](https://forge.inrae.fr/p2m2/discovery)
+### Immutable, serializable sessions
 
-## Technical basis
+A Discovery session can be serialized to a string and restored exactly:
 
-Discovery is implemented with Scala.js and integrates JavaScript RDF tooling.
-The build currently relies on Scala.js, Scala.js Bundler, and npm dependencies such as `axios`, `@comunica/query-sparql`, `n3`, and `rdfxml-streaming-parser`.
+```js
+import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/discovery'
 
-## Documentation
+const config = SWDiscoveryConfiguration
+  .init()
+  .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql")
 
-Additional documentation is available here:
+const session = SWDiscovery(config)
+  .something("study")
+    .isA(URI("metabolights:Study"))
+    .datatype(URI("rdfs:label"), "label")
 
-- [https://p2m2.github.io/discovery/](https://p2m2.github.io/discovery/)
+// Serialize — store in URL, localStorage, database
+const saved = session.getSerializedString()
+
+// Restore later — full session, ready to query
+const restored = SWDiscovery().setSerializedString(saved)
+```
+
+This enables undo/redo, shareable URLs, and persistent sessions with no extra infrastructure.
+
+### Automatic lazy pagination
+
+No manual OFFSET/LIMIT management:
+
+```js
+session
+  .selectByPage("study", "label")
+  .then(([totalCount, fetchPage]) => {
+    console.log(`${totalCount} results`)
+
+    // Fetch page 0 on demand
+    fetchPage(0).then(page => renderTable(page))
+  })
+```
+
+### Query progression and events
+
+Long-running SPARQL queries report progress — useful for updating a loading indicator:
+
+```js
+session
+  .select("study", "label")
+  .commit()
+  .progression((percent) => {
+    updateProgressBar(percent)
+  })
+  .requestEvent((event) => {
+    console.log("SPARQL event:", event)
+  })
+  .raw()
+  .then(response => render(response))
+```
+
+### Node decorations
+
+Attach arbitrary metadata to any node in the query graph:
+
+```js
+session
+  .something("compound")
+    .setDecoration("label", "Chemical compound")
+    .setDecoration("attributes", JSON.stringify({ visible: true }))
+```
+
+Decorations are preserved through serialization and can be read back with `.getDecoration(key)`.
+
+### Graph traversal
+
+Traverse the internal query graph client-side to build dynamic UI elements:
+
+```js
+// Build column definitions from visible node attributes
+const columns = session.browse((node, depth) => {
+  if (node.decorations?.attributes) {
+    return Object.values(JSON.parse(node.decorations.attributes))
+      .filter(attr => attr.visible)
+      .map(attr => ({ label: attr.label, field: attr.id }))
+  }
+  return []
+}).filter(cols => cols.length > 0).flat()
+```
+
+### Session history (undo/redo)
+
+Because sessions are serializable, undo/redo is straightforward:
+
+```js
+// Push current state to history
+history.push(session.getSerializedString())
+
+// Restore previous state
+const previous = SWDiscovery().setSerializedString(history.pop())
+```
+
+---
 
 ## Installation
 
@@ -45,54 +127,92 @@ Additional documentation is available here:
 npm install @p2m2/discovery
 ```
 
-The npm package is the primary distribution channel for JavaScript usage.
+### CDN (browser, no build step)
+
+**Latest stable:**
+```html
+<script src="https://p2m2.pages.forge.inrae.fr/discovery/cdn/latest/discovery.js"></script>
+```
+
+**Pinned version (recommended for production):**
+```html
+<script src="https://p2m2.pages.forge.inrae.fr/discovery/cdn/v1.2.3/discovery.js"></script>
+```
+
+Available versions: [cdn/versions.json](https://p2m2.pages.forge.inrae.fr/discovery/cdn/versions.json)
+
+---
+
+## Complete example — query a SPARQL endpoint
+
+```js
+import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/discovery'
+
+const config = SWDiscoveryConfiguration
+  .init()
+  .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql")
+
+SWDiscovery(config)
+  .prefix("obo", "http://purl.obolibrary.org/obo/")
+  .prefix("metabolights", "https://www.ebi.ac.uk/metabolights/property#")
+  .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+  .something()
+    .set(URI("obo:CHEBI_4167"))
+    .isObjectOf(URI("metabolights:Xref"), "study")
+    .datatype(URI("rdfs:label"), "label")
+  .select("study", "label")
+  .commit()
+  .raw()
+  .then((response) => {
+    for (let i = 0; i < response.results.bindings.length; i++) {
+      const study = response.results.bindings[i]["study"].value
+      const label = response.results.datatypes["label"][study][0].value
+      console.log(study + " --> " + label)
+    }
+  })
+  .catch(console.error)
+```
+
+---
+
+## Demo application
+
+[discovery-queryview](https://github.com/p2m2/discovery-queryview) is a full Vue.js + D3.js application built on top of Discovery.  
+It demonstrates graph-based RDF exploration with node navigation, attribute filtering, lazy-paginated result tables, and session history — all driven by the Discovery API.
+
+Live demo: [https://p2m2.github.io/discovery-queryview](https://p2m2.github.io/discovery-queryview)
+
+---
+
+## Documentation
+
+Full API documentation: [https://p2m2.pages.forge.inrae.fr/discovery/](https://p2m2.pages.forge.inrae.fr/discovery/)
+
+---
 
 ## Build from source
 
 ```bash
-sbt fastOptJS
-sbt fullOptJS
+sbt fastOptJS           # development build with source maps
+sbt fullOptJS           # optimized production build (Closure Compiler)
+sbt npmPrepareRelease   # assemble target/npm/ for publication
 ```
 
-The project is built as a Scala.js library.
-The optimized production artifact is generated through the Scala.js linker with CommonJS module output enabled for `fullOptJS`.
+---
 
-## Browser example
+## Technical basis
 
-```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/p2m2/discovery@develop/dist/discovery-web.min.js"></script>
-<script>
-  var config = SWDiscoveryConfiguration
-    .init()
-    .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql");
+Discovery is built with [Scala.js](https://www.scala-js.org/) and integrates the JavaScript RDF ecosystem:
+- [`@comunica/query-sparql`](https://comunica.dev/) — SPARQL query execution
+- [`n3`](https://github.com/rdfjs/N3.js) — RDF parsing and in-memory store
+- [`rdfxml-streaming-parser`](https://github.com/rubensworks/rdfxml-streaming-parser.js) — RDF/XML support
+- [`axios`](https://axios-http.com/) — HTTP transport
 
-  SWDiscovery(config)
-    .prefix("obo", "http://purl.obolibrary.org/obo/")
-    .prefix("metabolights", "https://www.ebi.ac.uk/metabolights/property#")
-    .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-    .something()
-      .set(URI("obo:CHEBI_4167"))
-      .isObjectOf(URI("metabolights:Xref"), "study")
-      .datatype(URI("rdfs:label"), "label")
-    .select("study", "label")
-    .commit()
-    .raw()
-    .then((response) => {
-      for (let i = 0; i < response.results.bindings.length; i++) {
-        let study = response.results.bindings[i]["study"].value;
-        let label = response.results.datatypes["label"][study][0].value;
-        console.log(study + "-->" + label);
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-</script>
-```
+---
 
 ## Docker proxy
 
-A Docker image is also available for the discovery proxy service:
+A Docker image is available for the Discovery proxy service:
 
 ```bash
 docker run -d --network host -t inraep2m2/service-discovery-proxy:latest
@@ -107,3 +227,9 @@ services:
     network_mode: "host"
     restart: on-failure
 ```
+
+---
+
+## License
+
+MIT — [Forge INRAE / p2m2/discovery](https://forge.inrae.fr/p2m2/discovery)
