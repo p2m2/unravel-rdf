@@ -201,12 +201,12 @@ pages:
   before_script:
     # Jekyll pour la documentation
     - apt-get update -y && apt-get install -y ruby-full build-essential
-    - gem install bundler jekyll jekyll-target-blank
+    - cd docs && bundle install && cd ..
   script:
     # ── 1. Documentation Jekyll ──────────────────────────────────────────
     - |
       cd docs
-      jekyll build --destination ../public
+      bundle exec jekyll build --destination ../public
       cd ..
 
     # ── 2. CDN : version épinglée (bundle UMD browser-ready) ─────────────
