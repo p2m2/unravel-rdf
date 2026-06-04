@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.semantic_web.view
 
 import fr.inrae.metabohub.semantic_web.node.pm.{NodeVisitor, SimpleConsole}
-import fr.inrae.metabohub.semantic_web.{SWDiscovery, SWDiscoveryVersionAtBuildTime}
+import fr.inrae.metabohub.semantic_web.{UnravelSession, SWDiscoveryVersionAtBuildTime}
 import org.scalajs.dom.document
 
 import scala.scalajs.js
@@ -9,7 +9,7 @@ import scala.scalajs.js.Dynamic
 
 import facade.npm._
 
-case class HtmlView(sw: SWDiscovery,regex : String = "") {
+case class HtmlView(sw: UnravelSession, regex : String = "") {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val updateElapsedTime = 1000

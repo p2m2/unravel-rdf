@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.semantic_web.driver
 
 import fr.inrae.metabohub.semantic_web.configuration._
-import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
+import fr.inrae.metabohub.semantic_web.exception.UnravelException
 
 object RequestDriverFactory {
   def build() : RequestDriverFactory = {
@@ -43,7 +43,7 @@ case class RequestDriverFactory(lCon : Seq[(RequestDriver, Unit)] = Seq())  {
             source.login,
             source.password)
       case _ =>
-        throw SWDiscoveryException("Bad definition of source configuration :"+source.toString)
+        throw UnravelException("Bad definition of source configuration :"+source.toString)
     }
 
     RequestDriverFactory(Seq( (rq,()) ))

@@ -17,12 +17,12 @@ object Fix71ArgListEmpty extends TestSuite {
       <http://aa> <http://bb> 10 .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   def tests = Tests {
     test("Fix #73") {
       insert_data.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "v")
@@ -36,7 +36,7 @@ object Fix71ArgListEmpty extends TestSuite {
 
     test("Fix #73 - 2") {
       insert_data.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "v")
@@ -50,7 +50,7 @@ object Fix71ArgListEmpty extends TestSuite {
 
     test("Fix #73 - 3") {
       insert_data.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "v")

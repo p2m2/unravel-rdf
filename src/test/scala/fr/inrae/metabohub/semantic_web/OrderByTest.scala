@@ -18,12 +18,12 @@ object OrderByTest extends TestSuite {
       <http://aa> <http://bb> 10 .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   def tests = Tests {
     test("order by") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "v")
@@ -42,7 +42,7 @@ object OrderByTest extends TestSuite {
     }
 
     test("order by with wrong variable") {
-        Try(SWDiscovery(config)
+        Try(UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "v")
@@ -55,7 +55,7 @@ object OrderByTest extends TestSuite {
 
     test("order by with list") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h")
           .isSubjectOf(URI("http://bb"), "v")
@@ -72,7 +72,7 @@ object OrderByTest extends TestSuite {
 
     test("order by desc") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "v")
@@ -89,7 +89,7 @@ object OrderByTest extends TestSuite {
 
     test("order by desc with list") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h")
           .isSubjectOf(URI("http://bb"), "v")
@@ -106,7 +106,7 @@ object OrderByTest extends TestSuite {
 
     test("mix order by asc/desc with list") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h")
           .isSubjectOf(URI("http://bb"), "v")
@@ -123,7 +123,7 @@ object OrderByTest extends TestSuite {
     }
 
     test("order by desc with wrong variable") {
-      Try(SWDiscovery(config)
+      Try(UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
         .something()
         .isSubjectOf(URI("http://bb"), "v")

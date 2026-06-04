@@ -1,88 +1,88 @@
 package fr.inrae.metabohub.semantic_web.js.increment
 
-import fr.inrae.metabohub.semantic_web.js.SWDiscoveryJs
+import fr.inrae.metabohub.semantic_web.js.UnravelSessionJs
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 @JSExportTopLevel("SWFilterIncrement")
-case class FilterIncrementJs(swf: SWDiscoveryJs,negation : Boolean = false) {
+case class FilterIncrementJs(swf: UnravelSessionJs, negation : Boolean = false) {
 
   @JSExport
-  def isLiteral: SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.isLiteral)
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.isLiteral)
+  def isLiteral: UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.isLiteral)
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.isLiteral)
   }
 
   @JSExport
-  def isUri: SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.isUri)
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.isUri)
+  def isUri: UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.isUri)
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.isUri)
   }
 
   @JSExport
-  def isBlank: SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.isBlank)
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.isUri)
+  def isBlank: UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.isBlank)
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.isUri)
   }
 
   @JSExport
-  def regex( pattern : Any, flags : Any = "") : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.regex(pattern,flags))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.regex(pattern,flags))
+  def regex( pattern : Any, flags : Any = "") : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.regex(pattern,flags))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.regex(pattern,flags))
   }
 
   @JSExport
-  def contains(l: Any): SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.contains(l))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.contains(l))
+  def contains(l: Any): UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.contains(l))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.contains(l))
   }
 
   @JSExport
-  def strStarts( string : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.strStarts(string))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.strStarts(string))
+  def strStarts( string : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.strStarts(string))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.strStarts(string))
   }
 
   @JSExport
-  def strEnds( string : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.strEnds(string))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.strEnds(string))
+  def strEnds( string : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.strEnds(string))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.strEnds(string))
   }
 
   @JSExport
-  def equal( value : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.equal(value))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.equal(value))
+  def equal( value : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.equal(value))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.equal(value))
   }
 
   @JSExport
-  def notEqual( value : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.notEqual(value))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.notEqual(value))
+  def notEqual( value : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.notEqual(value))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.notEqual(value))
   }
 
   @JSExport
-  def inf( value : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.inf(value))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.inf(value))
+  def inf( value : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.inf(value))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.inf(value))
   }
 
   @JSExport
-  def infEqual( value : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.infEqual(value))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.infEqual(value))
+  def infEqual( value : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.infEqual(value))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.infEqual(value))
   }
 
   @JSExport
-  def sup( value : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.sup(value))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.sup(value))
+  def sup( value : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.sup(value))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.sup(value))
   }
 
   @JSExport
-  def supEqual( value : Any ) : SWDiscoveryJs = negation match {
-    case true => SWDiscoveryJs(swf.config,swf.sw.filter.not.supEqual(value))
-    case false => SWDiscoveryJs(swf.config,swf.sw.filter.supEqual(value))
+  def supEqual( value : Any ) : UnravelSessionJs = negation match {
+    case true => UnravelSessionJs(swf.config,swf.sw.filter.not.supEqual(value))
+    case false => UnravelSessionJs(swf.config,swf.sw.filter.supEqual(value))
   }
 
   @JSExport

@@ -17,7 +17,7 @@ object RequestsTest extends TestSuite {
       """.stripMargin, this.getClass.getSimpleName)
   val logLevel = "off"
 
-  val config: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config: UnravelConfig = UnravelConfig.setConfigString(
     s"""
         {
          "sources" : [{
@@ -32,7 +32,7 @@ object RequestsTest extends TestSuite {
          }
         """.stripMargin)
 
-  val config2: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config2: UnravelConfig = UnravelConfig.setConfigString(
     s"""
         {
          "sources" : [{
@@ -48,7 +48,7 @@ object RequestsTest extends TestSuite {
          }
         """.stripMargin)
 
-  val config3: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config3: UnravelConfig = UnravelConfig.setConfigString(
     s"""
         {
          "sources" : [{
@@ -84,7 +84,7 @@ object RequestsTest extends TestSuite {
                               |  </rdf:Description>
                               |</rdf:RDF>""".stripMargin.replace("\"","\\\"").replace("\n","")
 
-  val config4: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config4: UnravelConfig = UnravelConfig.setConfigString(
     s"""
         {
          "sources" : [{
@@ -120,7 +120,7 @@ object RequestsTest extends TestSuite {
                              |    ns0:class "Mammal"
                              |  ] .
                              |  """.stripMargin.replace("\"","\\\"").replace("\n","")
-  val config5: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config5: UnravelConfig = UnravelConfig.setConfigString(
     s"""{
          "sources" : [{
            "id"       : "local_content",
@@ -135,7 +135,7 @@ object RequestsTest extends TestSuite {
          }
         """.stripMargin)
 
-  val mixconfig: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val mixconfig: UnravelConfig = UnravelConfig.setConfigString(
     s"""
         {
          "sources" : [
@@ -177,7 +177,7 @@ object RequestsTest extends TestSuite {
 */
     test("inline turtle") {
       insertData.map(_ => {
-        SWDiscovery(config2)
+        UnravelSession(config2)
           .something("h1")
           .isSubjectOf(URI("http://iibbbbbb2"))
           .select(List("h1"))
@@ -192,7 +192,7 @@ object RequestsTest extends TestSuite {
 
     test("inline turtle 2") {
       insertData.map(_ => {
-        SWDiscovery(config3)
+        UnravelSession(config3)
           .something("h1")
           .isSubjectOf(URI("http://bbbbbb2"), "v")
           .select(List("v"))
@@ -210,7 +210,7 @@ object RequestsTest extends TestSuite {
 
     test("inline rdf-xml") {
       insertData.map(_ => {
-        SWDiscovery(config4)
+        UnravelSession(config4)
           .prefix("dc","http://purl.org/dc/elements/1.1/")
           .something("h1")
           .isSubjectOf(URI("dc:title"), "v")
@@ -225,7 +225,7 @@ object RequestsTest extends TestSuite {
 
     test("inline n3") {
       insertData.map(_ => {
-        SWDiscovery(config5)
+        UnravelSession(config5)
           .prefix("ns0","http://www.some-ficticious-zoo.com/rdf#")
           .something("h1")
           .isSubjectOf(URI("ns0:name"), "v")

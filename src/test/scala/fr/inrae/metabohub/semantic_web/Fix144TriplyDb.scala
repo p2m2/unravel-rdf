@@ -6,7 +6,7 @@ import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, test}
 
 object Fix144TriplyDb extends TestSuite {
-  val config: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config: UnravelConfig = UnravelConfig.setConfigString(
     """
         {
           "sources" : [{
@@ -29,7 +29,7 @@ object Fix144TriplyDb extends TestSuite {
 
   def tests = Tests {
     test("Fix Triplydb access #144") {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something("h1")
           .isSubjectOf(URI("a"),"type")
           .filter.contains("Business")

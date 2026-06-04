@@ -5,7 +5,7 @@ import wvlet.log.Logger.rootLogger.debug
 
 import scala.concurrent.Future
 
-case class SWDiscoveryHelper(sw : SWDiscovery) {
+case class UnravelSessionHelper(sw : UnravelSession) {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val regex_avoid_prefix : String = "^("+ List(
@@ -49,7 +49,7 @@ case class SWDiscoveryHelper(sw : SWDiscovery) {
         query)
       .selectByPage(List("_esp___type"))
       .flatMap(  v => {
-        val futurePages : Seq[SWTransaction] = v._2
+        val futurePages : Seq[UnravelQuery] = v._2
 
         if ( futurePages.length > page ) {
           futurePages(page)
@@ -98,7 +98,7 @@ case class SWDiscoveryHelper(sw : SWDiscovery) {
       query)
       .selectByPage(List("_esp___property"))
       .flatMap(  v => {
-        val futurePages : Seq[SWTransaction] = v._2
+        val futurePages : Seq[UnravelQuery] = v._2
         if ( futurePages.length > page ) {
           futurePages(page)
             .distinct
@@ -153,7 +153,7 @@ case class SWDiscoveryHelper(sw : SWDiscovery) {
 
       .selectByPage(List("_esp___property"))
       .flatMap(  v => {
-        val futurePages : Seq[SWTransaction] = v._2
+        val futurePages : Seq[UnravelQuery] = v._2
         if ( futurePages.length > page ) {
           futurePages(page)
             .distinct

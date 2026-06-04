@@ -30,7 +30,7 @@ object SparqlDefinition {
       case string: String if string.contains(":") && string.matches("\\S+") => URI(string)
       case string: String => Literal(string)
 
-      case _ => throw SWDiscoveryException(any.toString + " can not be cast into Sparql Def type.")
+      case _ => throw UnravelException(any.toString + " can not be cast into Sparql Def type.")
     }
 
 

@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.data
 
 import facade.npm.{Axios, AxiosConfig, qs}
-import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
+import fr.inrae.metabohub.semantic_web.exception.UnravelException
 
 import scala.scalajs.js
 
@@ -28,7 +28,7 @@ case object PostRequest {
         response
       }
       .recover { case e: Throwable =>
-        throw SWDiscoveryException(Option(e.getMessage).getOrElse(e.toString))
+        throw UnravelException(Option(e.getMessage).getOrElse(e.toString))
       }
   }
 }

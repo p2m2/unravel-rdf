@@ -7,7 +7,7 @@ import utest.{TestSuite, Tests, test}
 
 import scala.scalajs.js
 
-object SWDiscoveryHelperJsTest extends TestSuite {
+object UnravelSessionHelperJsTest extends TestSuite {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val insertData = DataTestFactory.insertVirtuoso1(
@@ -17,14 +17,14 @@ object SWDiscoveryHelperJsTest extends TestSuite {
        <dd> <datatype_prop> "1" .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
   def startRequest =
-    SWDiscoveryJs(config)
+    UnravelSessionJs(config)
     .graph(DataTestFactory.graph1(this.getClass.getSimpleName))
     .something("h1")
 

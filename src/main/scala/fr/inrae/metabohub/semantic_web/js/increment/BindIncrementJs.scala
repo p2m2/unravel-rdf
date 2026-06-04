@@ -1,39 +1,39 @@
 package fr.inrae.metabohub.semantic_web.js.increment
 
-import fr.inrae.metabohub.semantic_web.js.SWDiscoveryJs
+import fr.inrae.metabohub.semantic_web.js.UnravelSessionJs
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 @JSExportTopLevel("BindIncrement")
-case class BindIncrementJs(swf: SWDiscoveryJs,`var` : String) {
+case class BindIncrementJs(swf: UnravelSessionJs, `var` : String) {
 
   @JSExport
-  def subStr(startingLoc : Any,length : Any ) : SWDiscoveryJs =
-    SWDiscoveryJs(swf.config,swf.sw.bind(`var`).subStr(startingLoc, length))
+  def subStr(startingLoc : Any,length : Any ) : UnravelSessionJs =
+    UnravelSessionJs(swf.config,swf.sw.bind(`var`).subStr(startingLoc, length))
 
   @JSExport
-  def replace(pattern : Any, replacement : Any, flags : Any="") :  SWDiscoveryJs =
-    SWDiscoveryJs(swf.config,swf.sw.bind(`var`).replace(pattern, replacement,flags))
+  def replace(pattern : Any, replacement : Any, flags : Any="") :  UnravelSessionJs =
+    UnravelSessionJs(swf.config,swf.sw.bind(`var`).replace(pattern, replacement,flags))
 
   @JSExport
-  def abs() :  SWDiscoveryJs = SWDiscoveryJs(swf.config,swf.sw.bind(`var`).abs())
+  def abs() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).abs())
 
   @JSExport
-  def round() :  SWDiscoveryJs = SWDiscoveryJs(swf.config,swf.sw.bind(`var`).round())
+  def round() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).round())
 
   @JSExport
-  def ceil() :  SWDiscoveryJs = SWDiscoveryJs(swf.config,swf.sw.bind(`var`).ceil())
+  def ceil() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).ceil())
 
   @JSExport
-  def floor() :  SWDiscoveryJs = SWDiscoveryJs(swf.config,swf.sw.bind(`var`).floor())
+  def floor() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).floor())
 
   @JSExport
-  def rand() :  SWDiscoveryJs = SWDiscoveryJs(swf.config,swf.sw.bind(`var`).rand())
+  def rand() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).rand())
 
   @JSExport
-  def datatype() :  SWDiscoveryJs = SWDiscoveryJs(swf.config,swf.sw.bind(`var`).datatype())
+  def datatype() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).datatype())
 
   @JSExport
-  def str() :  SWDiscoveryJs = SWDiscoveryJs(swf.config,swf.sw.bind(`var`).str())
+  def str() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).str())
 
 }

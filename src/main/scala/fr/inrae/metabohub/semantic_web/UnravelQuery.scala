@@ -13,11 +13,11 @@ import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success, Try}
 
 
-object SWTransaction {
-  implicit val rw: OptionPickler.ReadWriter[SWTransaction] = OptionPickler.macroRW
+object UnravelQuery {
+  implicit val rw: OptionPickler.ReadWriter[UnravelQuery] = OptionPickler.macroRW
 }
 
-case class SWTransaction(sw : SWDiscovery = SWDiscovery())
+case class UnravelQuery(sw : UnravelSession = UnravelSession())
     extends Subscriber[DiscoveryRequestEvent,StrategyRequest]
 {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -34,14 +34,14 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
 
   private var _progressionCallBack = Seq[Double => Unit]()
 
-  def progression(  callBack  : Double => Unit  ): SWTransaction = {
+  def progression(  callBack  : Double => Unit  ): UnravelQuery = {
     _progressionCallBack = _progressionCallBack :+ callBack
     this
   }
 
   private var _requestEventCallBack = Seq[String => Unit]()
 
-  def requestEvent(callBack  : String => Unit  ): SWTransaction = {
+  def requestEvent(callBack  : String => Unit  ): UnravelQuery = {
     _requestEventCallBack = _requestEventCallBack :+ callBack
     this
   }
@@ -63,7 +63,7 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
     */
     currentRequestEvent = DiscoveryStateRequestEvent.ABORTED_BY_THE_USER.toString
 
-    _prom_raw failure SWDiscoveryException("aborted by the user.")
+    _prom_raw failure UnravelException("aborted by the user.")
   }
 
 
@@ -90,7 +90,7 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
 
       trace("filtered URI only : " + onlyUris.toString)
 
-      val tx = SWDiscovery(sw.config)
+      val tx = UnravelSession(sw.config)
         .prefixes(root.getPrefixes)
         .something("val_uri")
         .setList(onlyUris)
@@ -152,14 +152,14 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
     }
 }
 
-  def commit() : SWTransaction = {
+  def commit() : UnravelQuery = {
     notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.START))
 
     val lSelectedVariable : Seq[QueryVariable] = sw.rootNode.getChild(Projection(List(),"")).lastOption match {
       case Some(proj) => proj.variables.distinct
       case None =>
         notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.ERROR_REQUEST_DEFINITION))
-        throw SWDiscoveryException("projection/selected required variables are not defined.")
+        throw UnravelException("projection/selected required variables are not defined.")
     }
 
     val lDatatype: Seq[DatatypeNode] =
@@ -169,7 +169,7 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
     if ( lDatatype.count(datatypeNode => lSelectedVariable.map(_.name).contains(datatypeNode.refNode)) != lDatatype.length )
       {
         notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.ERROR_REQUEST_DEFINITION))
-        throw SWDiscoveryException("The user have to select node of interest before setup a desired datatype ["+lDatatype.map( d=>d.idRef + "->"+d.refNode).mkString(" ,")+"]")
+        throw UnravelException("The user have to select node of interest before setup a desired datatype ["+lDatatype.map(d=>d.idRef + "->"+d.refNode).mkString(" ,")+"]")
       }
 
     
@@ -226,18 +226,18 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
 
   case class ProjectionExpressionIncrement(v : String) {
 
-    def manage(n:AggregateNode,forward : Boolean = false) : SWTransaction = {
+    def manage(n:AggregateNode,forward : Boolean = false) : UnravelQuery = {
       sw.focusManagement(
         ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef()),forward=forward).transaction
     }
 
-    def count(lRef : Seq[String],distinct: Boolean=false) : SWTransaction = manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
+    def count(lRef : Seq[String],distinct: Boolean=false) : UnravelQuery = manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
   //  def countAll(distinct: Boolean=false) : SWTransaction = manage(CountAll(distinct,sw.getUniqueRef()),true)
   }
 
   def aggregate(`var` : String) : ProjectionExpressionIncrement = ProjectionExpressionIncrement(`var`)
 
-  def projection  : SWTransaction = {
+  def projection  : UnravelQuery = {
     /* check if a projection exist or create a new one */
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
       case Some(p) => sw.focus(p.idRef).transaction
@@ -245,7 +245,7 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
     }
   }
 
-  def projection( lRef: Seq[String] )  : SWTransaction = {
+  def projection( lRef: Seq[String] )  : UnravelQuery = {
 
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
       case Some(p) =>
@@ -259,30 +259,30 @@ case class SWTransaction(sw : SWDiscovery = SWDiscovery())
 
   }
 
-  def distinct : SWTransaction = sw.root.focusManagement(Distinct(sw.getUniqueRef()), forward=false).transaction
+  def distinct : UnravelQuery = sw.root.focusManagement(Distinct(sw.getUniqueRef()), forward=false).transaction
 
-  def reduced : SWTransaction = sw.root.focusManagement(Reduced(sw.getUniqueRef()), forward=false).transaction
+  def reduced : UnravelQuery = sw.root.focusManagement(Reduced(sw.getUniqueRef()), forward=false).transaction
 
-  def limit( value : Int ) : SWTransaction = sw.root.focusManagement(Limit(value,sw.getUniqueRef()), forward=false).transaction
+  def limit( value : Int ) : UnravelQuery = sw.root.focusManagement(Limit(value,sw.getUniqueRef()), forward=false).transaction
 
-  def offset( value : Int ) : SWTransaction = sw.root.focusManagement(Offset(value,sw.getUniqueRef()), forward=false).transaction
+  def offset( value : Int ) : UnravelQuery = sw.root.focusManagement(Offset(value,sw.getUniqueRef()), forward=false).transaction
 
-  def orderByAsc( ref: String ) : SWTransaction =
+  def orderByAsc( ref: String ) : UnravelQuery =
     sw.refExist(ref).root.focusManagement(OrderByAsc(Seq(QueryVariable(ref)),sw.getUniqueRef()), forward=false).transaction
 
-  def orderByAsc( lRef: Seq[String] ) : SWTransaction = {
+  def orderByAsc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
     sw.root.focusManagement(OrderByAsc(lRef.map(QueryVariable(_)),sw.getUniqueRef()), forward=false).transaction
   }
 
-  def orderByDesc( ref: String ) : SWTransaction =
+  def orderByDesc( ref: String ) : UnravelQuery =
     sw.refExist(ref).root.focusManagement(OrderByDesc(Seq(QueryVariable(ref)),sw.getUniqueRef()), forward=false).transaction
 
-  def orderByDesc( lRef: Seq[String] ) : SWTransaction = {
+  def orderByDesc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
     sw.root.focusManagement(OrderByDesc(lRef.map(QueryVariable(_)),sw.getUniqueRef()), forward=false).transaction
   }
   def getSerializedString : String = OptionPickler.write(this)
-  def setSerializedString(query : String) : SWTransaction = OptionPickler.read[SWTransaction](query)
-  def console : SWTransaction = sw.console.transaction
+  def setSerializedString(query : String) : UnravelQuery = OptionPickler.read[UnravelQuery](query)
+  def console : UnravelQuery = sw.console.transaction
 }

@@ -7,7 +7,7 @@ import utest._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object SWDiscoveryHelperTest  extends TestSuite  {
+object UnravelSessionHelperTest  extends TestSuite  {
 
   val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
     """
@@ -29,7 +29,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
       <http://OwlClass> a owl:Class .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
@@ -41,7 +41,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
       println("COUNT")
       println(config)
      insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1") //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
           .isSubjectOf(URI("http://bb2"))
@@ -53,7 +53,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
 
     test("count distinct") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1") //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
           .isSubjectOf(URI("http://bb2"))
@@ -65,7 +65,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
 
     test("count with datatype") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1") //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
           .datatype(URI("http://fake/"),"dt1")
@@ -77,7 +77,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
     }
 
     test("findClasses") {
-      val query = SWDiscovery(config)
+      val query = UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
         .something("h1")
         .set(URI("http://aa1"))
@@ -106,7 +106,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
     }
 
     test("findClasses with mother class -> owl:Class") {
-      val query = SWDiscovery(config)
+      val query = UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
         .something("h1")
         .set(URI("http://aa2"))
@@ -145,7 +145,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
 
 
     test("findObjectProperties") {
-      val query = SWDiscovery(config).something("h1")
+      val query = UnravelSession(config).something("h1")
         .set(URI("http://aa"))
         .finder
 
@@ -171,7 +171,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
     }
 
     test("findObjectProperties mother class --> owl:ObjectProperty ") {
-      val query = SWDiscovery(config).something("h1")
+      val query = UnravelSession(config).something("h1")
         .set(URI("http://aa"))
         .finder
 
@@ -192,7 +192,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
     }
 
     test("datatypeProperties") {
-      val query = SWDiscovery(config).something("h1")
+      val query = UnravelSession(config).something("h1")
         .set(URI("http://aa3"))
         .finder
 
@@ -218,7 +218,7 @@ object SWDiscoveryHelperTest  extends TestSuite  {
     }
 
     test("subjectProperties") {
-      val query = SWDiscovery(config).something("h1")
+      val query = UnravelSession(config).something("h1")
         .set(URI("http://cc"))
         .finder
 

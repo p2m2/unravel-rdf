@@ -9,25 +9,25 @@ import scala.language.postfixOps
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
-object SWDiscoveryNodeAddTest extends TestSuite {
+object UnravelSessionNodeAddTest extends TestSuite {
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   def tests: Tests = Tests {
 
     test("something") {
-      SWDiscovery(config).something("h1")
+      UnravelSession(config).something("h1")
     }
 
     test("isSubjectOf on the root") {
-      Try(SWDiscovery(config).isSubjectOf(URI("bb"), "var")) match {
+      Try(UnravelSession(config).isSubjectOf(URI("bb"), "var")) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
     }
 
     test("isSubjectOf") {
-      val s = SWDiscovery(config)
+      val s = UnravelSession(config)
                .something("h1")
                .isSubjectOf(URI("bb"), "var")
 
@@ -40,7 +40,7 @@ object SWDiscoveryNodeAddTest extends TestSuite {
     }
 
     test("isObjectOf on the root") {
-      Try(SWDiscovery(config)
+      Try(UnravelSession(config)
         .isObjectOf(URI("bb"), "var")
         .console) match {
         case Success(_) => assert(false)
@@ -49,7 +49,7 @@ object SWDiscoveryNodeAddTest extends TestSuite {
     }
 
     test("isObjectOf") {
-      val s = SWDiscovery(config)
+      val s = UnravelSession(config)
         .something("h1")
         .isObjectOf(URI("bb"), "var")
 
@@ -63,14 +63,14 @@ object SWDiscoveryNodeAddTest extends TestSuite {
 
     test("isLinkTo on the root") {
 
-      Try(SWDiscovery(config).isLinkTo(URI("bb"), "var")) match {
+      Try(UnravelSession(config).isLinkTo(URI("bb"), "var")) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
     }
 
     test("isLinkTo") {
-      val s = SWDiscovery(config)
+      val s = UnravelSession(config)
         .something("h1")
         .isLinkTo(URI("bb"), "var")
 
@@ -83,14 +83,14 @@ object SWDiscoveryNodeAddTest extends TestSuite {
     }
 
     test("isLinkFrom on the root") {
-      Try(SWDiscovery(config).isLinkFrom(URI("bb"), "var")) match {
+      Try(UnravelSession(config).isLinkFrom(URI("bb"), "var")) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
     }
 
     test("isLinkFrom") {
-      val s = SWDiscovery(config)
+      val s = UnravelSession(config)
         .something("h1")
         .isLinkFrom(URI("bb"), "var")
 
@@ -103,14 +103,14 @@ object SWDiscoveryNodeAddTest extends TestSuite {
     }
 
     test("isA on the root") {
-      Try(SWDiscovery(config).isA(URI("class"))) match {
+      Try(UnravelSession(config).isA(URI("class"))) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
     }
 
     test("isA") {
-      val s = SWDiscovery(config)
+      val s = UnravelSession(config)
         .something("h1")
         .isA(URI("class"))
 

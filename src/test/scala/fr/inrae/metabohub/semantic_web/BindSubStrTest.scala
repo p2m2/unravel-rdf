@@ -17,7 +17,7 @@ object BindSubStrTest extends TestSuite {
       <http://aa1> <http://bb> "defijklm" .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
@@ -26,7 +26,7 @@ object BindSubStrTest extends TestSuite {
   def tests: Tests = Tests {
     test("bind subStr") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"))
@@ -42,7 +42,7 @@ object BindSubStrTest extends TestSuite {
 
     test("bind subStr and test") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"))

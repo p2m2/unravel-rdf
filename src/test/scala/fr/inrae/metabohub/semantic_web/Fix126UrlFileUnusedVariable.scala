@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Fix126UrlFileUnusedVariable extends TestSuite {
   val turtleBase: String = NodeEnv.get("TURTLE_BASE_URL", "http://localhost:8080")
-  val config: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config: UnravelConfig = UnravelConfig.setConfigString(
     s"""
         {
          "sources" : [{
@@ -26,7 +26,7 @@ object Fix126UrlFileUnusedVariable extends TestSuite {
 
   def tests = Tests {
     test("order by") {
-        SWDiscovery(config)
+        UnravelSession(config)
           .prefix("ns0","http://www.some-ficticious-zoo.com/rdf#")
           .something("animal")
           .datatype(URI("ns0:name"),"name")

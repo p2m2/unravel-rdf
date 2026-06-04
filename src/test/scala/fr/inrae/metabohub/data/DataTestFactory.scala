@@ -56,8 +56,8 @@ object DataTestFactory  {
                       url_endpoint : String=urlEndpoint) = delete(graph2(classname),url_endpoint)
 
 
-  def getConfigVirtuoso1() : SWDiscoveryConfiguration = {
-    SWDiscoveryConfiguration.setConfigString(
+  def getConfigVirtuoso1() : UnravelConfig = {
+    UnravelConfig.setConfigString(
       s"""
         {
          "sources" : [{
@@ -73,8 +73,8 @@ object DataTestFactory  {
         """.stripMargin)
   }
 
-  def getConfigVirtuoso2() : SWDiscoveryConfiguration = {
-    SWDiscoveryConfiguration.setConfigString(
+  def getConfigVirtuoso2() : UnravelConfig = {
+    UnravelConfig.setConfigString(
       s"""
         {
          "sources" : [{
@@ -106,8 +106,8 @@ object DataTestFactory  {
             }
             """.stripMargin.stripMargin
 
-  def getDbpediaConfig() : SWDiscoveryConfiguration = {
-    SWDiscoveryConfiguration.setConfigString(dbpedia_config_string)
+  def getDbpediaConfig() : UnravelConfig = {
+    UnravelConfig.setConfigString(dbpedia_config_string)
   }
   //   "driver" : "inrae.semantic_web.driver.JenaRequestDriver",
 }

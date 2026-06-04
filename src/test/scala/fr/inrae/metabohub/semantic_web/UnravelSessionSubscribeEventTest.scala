@@ -8,7 +8,7 @@ import utest._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
-object SWDiscoverySubscribeEventTest extends TestSuite {
+object UnravelSessionSubscribeEventTest extends TestSuite {
 
   DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
 
@@ -18,7 +18,7 @@ object SWDiscoverySubscribeEventTest extends TestSuite {
       <http://aa> <http://datatype> "testdatatype" .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
@@ -44,7 +44,7 @@ object SWDiscoverySubscribeEventTest extends TestSuite {
       assert(percent >=0)
     }
 
-    val sw = SWDiscovery(config)
+    val sw = UnravelSession(config)
 
     val swr = sw.something("h1")
       .isSubjectOf(URI("http://bb"))
@@ -76,8 +76,8 @@ object SWDiscoverySubscribeEventTest extends TestSuite {
     }
 
     test("DiscoveryRequestEvent ERROR_HTTP_REQUEST") {
-      val config: SWDiscoveryConfiguration =
-        SWDiscoveryConfiguration.setConfigString(""" {
+      val config: UnravelConfig =
+        UnravelConfig.setConfigString(""" {
                                |         "sources" : [{
                                |           "id"       : "badtps",
                                |           "path"      : "http://bidon",
@@ -89,7 +89,7 @@ object SWDiscoverySubscribeEventTest extends TestSuite {
       )
 
        val swr =
-        SWDiscovery(config).something("h1")
+        UnravelSession(config).something("h1")
         .isSubjectOf(URI("http://bb"))
         .select(List("h1"))
 
@@ -101,8 +101,8 @@ object SWDiscoverySubscribeEventTest extends TestSuite {
     }
 
     test("MalformedQueryException -  ERROR_HTTP_REQUEST") {
-      val conf : SWDiscoveryConfiguration = SWDiscoveryConfiguration.init().rdfContent("<a> <b> <c> .")
-      SWDiscovery(conf).something("a").isObjectOf("some:toto").select(List("a"))
+      val conf : UnravelConfig = UnravelConfig.init().rdfContent("<a> <b> <c> .")
+      UnravelSession(conf).something("a").isObjectOf("some:toto").select(List("a"))
         .commit().raw
         .map( _=> assert(false))
         .recover( _ => {

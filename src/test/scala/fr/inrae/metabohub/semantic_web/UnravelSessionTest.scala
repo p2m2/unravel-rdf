@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-object SWDiscoveryTest extends TestSuite {
+object UnravelSessionTest extends TestSuite {
 
   val insertData = DataTestFactory.insertVirtuoso1(
     """
@@ -31,22 +31,22 @@ object SWDiscoveryTest extends TestSuite {
       <http://OwlClass> a owl:Class .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
   def startRequest =
-    SWDiscovery(config)
+    UnravelSession(config)
       .graph(DataTestFactory.graph1(this.getClass.getSimpleName))
       .something("h1")
 
   def tests = Tests {
     test("No sources definition") {
       insertData.map(_ => {
-        val config: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(""" { "sources" : [] } """)
-        SWDiscovery(config)
+        val config: UnravelConfig = UnravelConfig.setConfigString(""" { "sources" : [] } """)
+        UnravelSession(config)
           .something("h1")
           .select(List("h1"))
           .commit()
@@ -142,7 +142,7 @@ object SWDiscoveryTest extends TestSuite {
     }
 
     test("focus on the root using focus method") {
-      val disco = SWDiscovery(config)
+      val disco = UnravelSession(config)
       val f = disco.focus()
       assert(Try(disco.focus(f)).isSuccess)
       assert(Try(disco.something("h1").focus(f)).isSuccess)
@@ -176,20 +176,20 @@ object SWDiscoveryTest extends TestSuite {
 
     test("Remove nothing") {
 
-      val sw =  SWDiscovery(config)
+      val sw =  UnravelSession(config)
                   .remove("h1")
       assert(sw.rootNode.idRef == sw.focus())
 
     }
 
     test("Remove root") {
-      val sw =  SWDiscovery(config)
+      val sw =  UnravelSession(config)
       sw.remove(sw.rootNode.idRef)
       assert(sw.rootNode.idRef == sw.focus())
     }
 
     test("Remove branch") {
-      SWDiscovery(config)
+      UnravelSession(config)
           .something("h1")
           .isObjectOf(URI("http://h1"),"h2")
           .isObjectOf(URI("http://h11"),"h22")
@@ -272,21 +272,21 @@ object SWDiscoveryTest extends TestSuite {
     }
 
     test("decoration") {
-      assert(SWDiscovery(config).something("h").setDecoration("test","something").getDecoration("test")
+      assert(UnravelSession(config).something("h").setDecoration("test","something").getDecoration("test")
         == "something")
     }
 
     test("bad decoration") {
-      assert(Try(SWDiscovery(config,rootNode = Root(),fn =  Some("idNotExistInRootNode"))
+      assert(Try(UnravelSession(config,rootNode = Root(),fn =  Some("idNotExistInRootNode"))
         .setDecoration("bad declaration because not node is defined","something")).isFailure)
     }
 
     test("get unknown decoration") {
-      assert(SWDiscovery(config).something("h").getDecoration("test") == "")
+      assert(UnravelSession(config).something("h").getDecoration("test") == "")
     }
 
     test("sparql_get without configuration sources definition") {
-      assert(Try(SWDiscovery(SWDiscoveryConfiguration.init()).sparql_get).isSuccess)
+      assert(Try(UnravelSession(UnravelConfig.init()).sparql_get).isSuccess)
     }
 
   }

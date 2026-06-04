@@ -27,7 +27,7 @@ sealed abstract class Node(
     focusId match {
       case _ if focusId == idRef && accept(n) => copy(children.map( _.addChildren(focusId,n) ) :+ n )
       case _ if focusId == idRef && !accept(n) =>
-        throw SWDiscoveryException(s"cannot add this child [${n.getClass.getSimpleName}] to the current node [${getClass.getSimpleName}]")
+        throw UnravelException(s"cannot add this child [${n.getClass.getSimpleName}] to the current node [${getClass.getSimpleName}]")
       case _ => copy(children.map( _.addChildren(focusId,n) ))
     }
   }

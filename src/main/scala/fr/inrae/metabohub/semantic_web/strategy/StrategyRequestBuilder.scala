@@ -10,9 +10,9 @@ import fr.inrae.metabohub.semantic_web.configuration._
  */
 object StrategyRequestBuilder {
 
-  def build(config: SWDiscoveryConfiguration): StrategyRequest =
+  def build(config: UnravelConfig): StrategyRequest =
     config.sources.length match {
-      case 0 => throw SWDiscoveryException("No sources specified")
+      case 0 => throw UnravelException("No sources specified")
       case 1 => DiscoveryStrategyRequest(config.sources.head)
       case _ => ComunicaFederatedStrategy(config.sources)
     }

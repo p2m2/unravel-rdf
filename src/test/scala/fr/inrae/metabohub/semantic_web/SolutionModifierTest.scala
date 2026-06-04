@@ -19,9 +19,9 @@ object SolutionModifierTest extends TestSuite {
       <http://p3>    <http://xmlns.com/foaf/0.1/mbox>   <mailto:alice.smith@example.com> .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
-  val basereq : SWTransaction = SWDiscovery(config)
+  val basereq : UnravelQuery = UnravelSession(config)
     .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
     .prefix("foaf","http://xmlns.com/foaf/0.1/")
     .something()

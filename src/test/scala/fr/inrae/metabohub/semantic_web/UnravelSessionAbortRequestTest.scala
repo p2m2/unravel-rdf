@@ -8,7 +8,7 @@ import utest._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
-object SWDiscoveryAbortRequestTest extends TestSuite {
+object UnravelSessionAbortRequestTest extends TestSuite {
 
   val insertData = DataTestFactory.insertVirtuoso1(
     """
@@ -16,14 +16,14 @@ object SWDiscoveryAbortRequestTest extends TestSuite {
       <aa> <datatype> "testdatatype" .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
 
   def tests = Tests {
     test("Abort Request steps") {
       insertData.map(_ => {
       val swr =
-        SWDiscovery(config).something("h1")
+        UnravelSession(config).something("h1")
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("h2"),"h3")
           .select(List("h1","h2","h3"))

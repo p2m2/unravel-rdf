@@ -1,8 +1,8 @@
 package fr.inrae.metabohub.app
 
-import fr.inrae.metabohub.semantic_web.configuration.SWDiscoveryConfiguration
+import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
 import fr.inrae.metabohub.semantic_web.sparql.QueryResult
-import fr.inrae.metabohub.semantic_web.{SWDiscovery, SWTransaction}
+import fr.inrae.metabohub.semantic_web.{UnravelSession, UnravelQuery}
 import io.undertow.Undertow
 import ujson.Arr
 import utest.{TestSuite, Tests, test}
@@ -31,9 +31,9 @@ object SWDiscoveryProxyTest extends TestSuite {
     ujson.Obj(varName -> ujson.Obj("type" -> "uri","value"->"http://cc")),
   )
 
-  val config: SWDiscoveryConfiguration = SWDiscoveryConfiguration.init().rdfContent("""<http://aa> <http://bb> <http://cc> .""")
+  val config: UnravelConfig = UnravelConfig.init().rdfContent("""<http://aa> <http://bb> <http://cc> .""")
 
-  val transactionTest: SWTransaction = SWDiscovery(config)
+  val transactionTest: UnravelQuery = UnravelSession(config)
     .something(varName)
     .select(Seq(varName))
 

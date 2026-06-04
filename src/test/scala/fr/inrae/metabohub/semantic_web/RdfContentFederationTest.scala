@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web
 
-import fr.inrae.metabohub.semantic_web.configuration.SWDiscoveryConfiguration
+import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
 import fr.inrae.metabohub.semantic_web.rdf.URI
 import utest.{TestSuite, Tests, test}
 
@@ -33,7 +33,7 @@ object RdfContentFederationTest extends TestSuite {
   def tests: Tests = Tests {
 
     test("prefix with datatype") {
-      val configTurtleContent: SWDiscoveryConfiguration = SWDiscoveryConfiguration
+      val configTurtleContent: UnravelConfig = UnravelConfig
         .init()
         .rdfContent(turtleContent)
         .rdfContent(turtleContent2)
@@ -42,7 +42,7 @@ object RdfContentFederationTest extends TestSuite {
         .setLogLevel("trace")
         .setCache(true)
 
-      SWDiscovery(configTurtleContent)
+      UnravelSession(configTurtleContent)
         .prefix("ns0", "http://www.some-ficticious-zoo.com/rdf#")
         .something("h1")
         .datatype(URI("ns0:color"), "color")

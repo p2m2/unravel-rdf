@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web
 
-import fr.inrae.metabohub.semantic_web.configuration.SWDiscoveryConfiguration
+import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
 import fr.inrae.metabohub.semantic_web.rdf.URI
 import utest.{TestSuite, Tests, assert, test}
 
@@ -28,7 +28,7 @@ object RequestWithPrefixAndDatatypeTest  extends TestSuite  {
 
     test("prefix with datatype") {
 
-      val configTurtleContent : SWDiscoveryConfiguration = SWDiscoveryConfiguration
+      val configTurtleContent : UnravelConfig = UnravelConfig
         .init()
         .rdfContent(turtleContent)
         .setPageSize(5)
@@ -36,8 +36,8 @@ object RequestWithPrefixAndDatatypeTest  extends TestSuite  {
         .setLogLevel("warn")
         .setCache(false);
 
-      SWDiscovery(configTurtleContent)
-      SWDiscovery(configTurtleContent)
+      UnravelSession(configTurtleContent)
+      UnravelSession(configTurtleContent)
         .prefix("v","http://www.some-ficticious-zoo.com/rdf#")
         .something("h1")
           .datatype("v:name","name")

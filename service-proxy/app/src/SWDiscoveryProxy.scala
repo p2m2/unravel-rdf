@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.app
 
 import cask.main.Main
-import fr.inrae.metabohub.semantic_web.{SWDiscoveryVersionAtBuildTime, SWTransaction}
+import fr.inrae.metabohub.semantic_web.{SWDiscoveryVersionAtBuildTime, UnravelQuery}
 import io.undertow.Undertow
 import io.undertow.server.handlers.BlockingHandler
 import ujson.Value
@@ -121,7 +121,7 @@ object SWDiscoveryProxy extends cask.MainRoutes{
 
   def apply(transaction : String): Value = {
     println(transaction)
-    val future : Future[ujson.Value] = SWTransaction().setSerializedString(transaction).commit().raw
+    val future : Future[ujson.Value] = UnravelQuery().setSerializedString(transaction).commit().raw
     Await.result(future, Duration.Inf)
   }
 

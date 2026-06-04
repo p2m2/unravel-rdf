@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web.js
 
-import fr.inrae.metabohub.semantic_web.SWDiscovery
+import fr.inrae.metabohub.semantic_web.UnravelSession
 import fr.inrae.metabohub.semantic_web.rdf.URI
 
 import scala.scalajs.js
@@ -8,8 +8,8 @@ import scala.scalajs.js.Promise
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import scala.scalajs.js.JSConverters._
 
-@JSExportTopLevel(name="SWDiscoveryHelper")
-case class SWDiscoveryHelperJs(sw : SWDiscovery) {
+@JSExportTopLevel(name="UnravelSessionHelper")
+case class UnravelSessionHelperJs(sw : UnravelSession) {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   @JSExport

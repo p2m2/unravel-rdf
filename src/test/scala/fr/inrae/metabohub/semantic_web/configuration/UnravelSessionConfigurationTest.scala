@@ -7,7 +7,7 @@ import wvlet.log.LogLevel
 
 import scala.util.{Failure, Try}
 
-object SWDiscoveryConfigurationTest extends TestSuite {
+object UnravelSessionConfigurationTest extends TestSuite {
   val turtleBase: String = NodeEnv.get("TURTLE_BASE_URL", "http://localhost:8080")
   val configBase: String = """
             {
@@ -52,23 +52,23 @@ object SWDiscoveryConfigurationTest extends TestSuite {
   def tests: Tests = Tests {
 
     test("init") {
-      SWDiscoveryConfiguration.init()
+      UnravelConfig.init()
     }
 
     test("proxy") {
-      SWDiscoveryConfiguration.proxy("http://something")
+      UnravelConfig.proxy("http://something")
     }
 
     test("Create a simple source with string configuration") {
-      SWDiscoveryConfiguration.setConfigString(configBase)
+      UnravelConfig.setConfigString(configBase)
     }
 
     test("Create a string proxy configuration") {
-      SWDiscoveryConfiguration.setConfigString(configBaseProxy)
+      UnravelConfig.setConfigString(configBaseProxy)
     }
 
     test("Get message error") {
-      Try(SWDiscoveryConfiguration.setConfigString("""
+      Try(UnravelConfig.setConfigString("""
             {
             """.stripMargin)) match {
         case Failure(_: SWStatementConfigurationException) => assert(true)
@@ -77,7 +77,7 @@ object SWDiscoveryConfigurationTest extends TestSuite {
     }
 
     test("Get message error - general setting - virgule") {
-      Try(SWDiscoveryConfiguration.setConfigString("""
+      Try(UnravelConfig.setConfigString("""
             {
              "settings" : {
                "cache" : true,
@@ -90,7 +90,7 @@ object SWDiscoveryConfigurationTest extends TestSuite {
     }
 
     test("Get a unknown source") {
-      assert(Try(SWDiscoveryConfiguration.setConfigString(configBase).source("something")).isFailure)
+      assert(Try(UnravelConfig.setConfigString(configBase).source("something")).isFailure)
     }
 
     test("Create a simple source") {
@@ -99,8 +99,8 @@ object SWDiscoveryConfigurationTest extends TestSuite {
       val url = "http://test"
       val mimetype = "application/sparql-query"
 
-      val configDbpediaBasic: SWDiscoveryConfiguration =
-        SWDiscoveryConfiguration(
+      val configDbpediaBasic: UnravelConfig =
+        UnravelConfig(
           settings = GeneralSetting(),
           sources=Seq(Source(id=dbname, path=url, mimetype=mimetype)),
           proxy = None)
@@ -112,28 +112,28 @@ object SWDiscoveryConfigurationTest extends TestSuite {
     }
 
     test("create a proxy with default method") {
-      assert(Try(SWDiscoveryConfiguration(
+      assert(Try(UnravelConfig(
         settings = GeneralSetting(),
         sources=Seq(),
         proxy = Some(ProxyConfiguration("http://something")))).isSuccess)
     }
 
     test("create a proxy with unknown method") {
-      assert(Try(SWDiscoveryConfiguration(
+      assert(Try(UnravelConfig(
         settings = GeneralSetting(),
         sources=Seq(),
         proxy = Some(ProxyConfiguration("http://something","other")))).isFailure)
     }
 
     test("unknown mimetype") {
-      assert(Try(SWDiscoveryConfiguration(
+      assert(Try(UnravelConfig(
         settings = GeneralSetting(),
         sources=Seq(Source(id="dbpedia", path="http://test", mimetype="-")),
         proxy = None)).isFailure)
     }
 
     test("unknown method") {
-      assert(Try(SWDiscoveryConfiguration(
+      assert(Try(UnravelConfig(
         settings = GeneralSetting(),
         sources=
         Seq(Source(id="dbpedia", path="http://test", mimetype="application/sparql-query",method=Some("-"))),
@@ -141,89 +141,89 @@ object SWDiscoveryConfigurationTest extends TestSuite {
     }
 
     test("Create a request config with an unknown log level ") {
-      assert(SWDiscoveryConfiguration
+      assert(UnravelConfig
         .setConfigString(
           configBase.replace("\"info\"",
           "\"hello.world\"")).settings._logLevel == LogLevel.WARN)
     }
 
     test("Create a request config log level debug ") {
-      assert(Try(SWDiscoveryConfiguration
+      assert(Try(UnravelConfig
         .setConfigString(configBase.replace("\"info\"",
           "\"debug\"")).settings._logLevel == LogLevel.DEBUG).isSuccess)
     }
 
     test("Create a request config log level info ") {
 
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase)
       assert(c.settings._logLevel == LogLevel.INFO)
 
     }
     test("Create a request config log level trace ") {
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase.replace("\"info\"",
           "\"trace\""))
       assert(c.settings._logLevel == LogLevel.TRACE)
     }
     test("Create a request config log level warn ") {
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase.replace("\"info\"",
           "\"warn\""))
       assert(c.settings._logLevel == LogLevel.WARN)
     }
 
     test("Create a request config log level error ") {
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase.replace("\"info\"",
           "\"error\""))
       assert(c.settings._logLevel == LogLevel.ERROR)
     }
 
     test("Create a request config log level all ") {
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase.replace("\"info\"",
           "\"all\""))
       assert(c.settings._logLevel == LogLevel.ALL)
     }
 
     test("Create a request config log level off ") {
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase.replace("\"info\"",
           "\"off\""))
       assert(c.settings._logLevel == LogLevel.OFF)
     }
 
     test("pageSize can not be negative") {
-      assert(Try(SWDiscoveryConfiguration
+      assert(Try(UnravelConfig
         .setConfigString(configBase.replace("\"pageSize\" : 10",
           "\"pageSize\" : -1"))).isFailure)
     }
 
     test("pageSize can be equal to zero") {
-      assert(Try(SWDiscoveryConfiguration
+      assert(Try(UnravelConfig
         .setConfigString(configBase.replace("\"pageSize\" : 10",
           "\"pageSize\" : 0"))).isFailure)
     }
     test("pageSize") {
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase.replace("\"pageSize\" : 10",
           "\"pageSize\" : 5"))
       assert(c.settings.pageSize == 5)
     }
 
     test("sizeBatchProcessing can not be negative") {
-      assert(Try(SWDiscoveryConfiguration
+      assert(Try(UnravelConfig
         .setConfigString(configBase.replace("\"sizeBatchProcessing\" : 10",
           "\"sizeBatchProcessing\" : -1"))).isFailure)
     }
     test("sizeBatchProcessing can be equal to zero") {
-      assert(Try(SWDiscoveryConfiguration
+      assert(Try(UnravelConfig
         .setConfigString(configBase.replace("\"sizeBatchProcessing\" : 10",
           "\"sizeBatchProcessing\" : 0"))).isFailure)
     }
     test("sizeBatchProcessing") {
-      val c = SWDiscoveryConfiguration
+      val c = UnravelConfig
         .setConfigString(configBase.replace("\"sizeBatchProcessing\" : 10",
           "\"sizeBatchProcessing\" : 5"))
       assert(c.settings.sizeBatchProcessing == 5)

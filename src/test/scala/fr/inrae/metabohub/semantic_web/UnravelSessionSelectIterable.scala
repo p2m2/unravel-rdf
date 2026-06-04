@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-object SWDiscoverySelectIterable extends TestSuite {
+object UnravelSessionSelectIterable extends TestSuite {
 
   val data = """
       <http://aa> <http://bb> 1 .
@@ -35,7 +35,7 @@ object SWDiscoverySelectIterable extends TestSuite {
 
   val nblock = (nbValues / pageSize) + 1
 
-  val config: SWDiscoveryConfiguration = SWDiscoveryConfiguration.setConfigString(
+  val config: UnravelConfig = UnravelConfig.setConfigString(
     s"""
         {
          "sources" : [{
@@ -59,7 +59,7 @@ object SWDiscoverySelectIterable extends TestSuite {
 
     test("something") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(URI("http://aa"))
@@ -85,7 +85,7 @@ object SWDiscoverySelectIterable extends TestSuite {
 
     test("selectByPage with fake") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(URI("http://aa"))
@@ -94,7 +94,7 @@ object SWDiscoverySelectIterable extends TestSuite {
           .selectByPage( List("obj","fake"))
           .map(args => {
             val nSolutions : Int = args._1
-            val lLaziestPages : Seq[SWTransaction] = args._2
+            val lLaziestPages : Seq[UnravelQuery] = args._2
             assert( nSolutions > 0 )
             assert( lLaziestPages != List() )
           })
@@ -103,7 +103,7 @@ object SWDiscoverySelectIterable extends TestSuite {
 
     test("empty selectByPage") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(URI("http://aa"))
@@ -111,7 +111,7 @@ object SWDiscoverySelectIterable extends TestSuite {
           .selectByPage( List("fake"))
           .map(args => {
             val nSolutions : Int = args._1
-            val lLaziestPages : Seq[SWTransaction] = args._2
+            val lLaziestPages : Seq[UnravelQuery] = args._2
             assert( nSolutions == 0 )
             assert( lLaziestPages == List() )
           })
@@ -120,7 +120,7 @@ object SWDiscoverySelectIterable extends TestSuite {
 
     test("empty selectDistinctByPage") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(URI("http://aa"))
@@ -128,7 +128,7 @@ object SWDiscoverySelectIterable extends TestSuite {
           .selectDistinctByPage( List("fake"))
           .map(args => {
             val nSolutions : Int = args._1
-            val lLaziestPages : Seq[SWTransaction] = args._2
+            val lLaziestPages : Seq[UnravelQuery] = args._2
             assert( nSolutions == 0 )
             assert( lLaziestPages == List() )
           })

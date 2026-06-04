@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-object SWDiscoveryFilterTest extends TestSuite {
+object UnravelSessionFilterTest extends TestSuite {
 
 
   val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
@@ -41,13 +41,13 @@ object SWDiscoveryFilterTest extends TestSuite {
 
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   def tests: Tests = Tests {
 
     test("SW Filter isLiteral") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("prop"))
@@ -65,7 +65,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter isUri") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("prop"))
@@ -82,7 +82,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter isBlank") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("prop"))
@@ -101,7 +101,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter contains") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something("x")
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("http://propContains"))
@@ -117,7 +117,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter not contains") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("http://propContains"))
@@ -133,7 +133,7 @@ object SWDiscoveryFilterTest extends TestSuite {
     }
     test("SW Filter not contains 2") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("propContains"))
@@ -151,7 +151,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter strStarts") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("prop"))
@@ -168,7 +168,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter strEnds") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("prop"))
@@ -185,7 +185,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter equal") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("prop"), "value")
@@ -202,7 +202,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter notEqual") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(QueryVariable("prop"), "v")
@@ -218,7 +218,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter inf") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("http://propNum"), "value")
@@ -234,7 +234,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter inf 2") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("http://propDate"), "value")
@@ -250,7 +250,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter infEqual") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("http://propNum"), "value")
@@ -266,7 +266,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter Sup") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("http://propNum"), "value")
@@ -282,7 +282,7 @@ object SWDiscoveryFilterTest extends TestSuite {
 
     test("SW Filter SupEqual") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .something()
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .isSubjectOf(URI("http://propNum"), "value")

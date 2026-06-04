@@ -8,16 +8,16 @@ import utest._
 
 import scala.language.postfixOps
 
-object SWDiscoveryDecorationTest extends TestSuite {
+object UnravelSessionDecorationTest extends TestSuite {
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
   def startRequest =
-    SWDiscovery(config)
+    UnravelSession(config)
       .graph(DataTestFactory.graph1(this.getClass.getSimpleName))
       .something("h1")
 
@@ -120,7 +120,7 @@ object SWDiscoveryDecorationTest extends TestSuite {
     }
 
     test("setDecoratingAttribute/getDecoration using datatype") {
-      assert(SWDiscovery(config)
+      assert(UnravelSession(config)
         .setDecoration("someKeyRoot","someValueRoot")
         .something("start")
         .datatype("http://something","d")

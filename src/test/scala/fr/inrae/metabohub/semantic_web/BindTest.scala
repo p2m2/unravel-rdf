@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.semantic_web
 
 import fr.inrae.metabohub.data.DataTestFactory
-import fr.inrae.metabohub.semantic_web.configuration.SWDiscoveryConfiguration
+import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
 import fr.inrae.metabohub.semantic_web.rdf.{IRI, Literal, SparqlBuilder, URI}
 import utest.{TestSuite, Tests, test}
 
@@ -16,7 +16,7 @@ object BindTest extends TestSuite {
       <http://aa1> <http://bb> "defijklm" .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
@@ -27,7 +27,7 @@ object BindTest extends TestSuite {
 
     test("filter regex") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "r")
@@ -44,7 +44,7 @@ object BindTest extends TestSuite {
     test("bind replace") {
       val pat = "defg"
       val repl = "aaaaa"
-      val req = SWDiscovery(config)
+      val req = UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
         .something()
         .isSubjectOf(URI("http://bb"), "r")
@@ -62,7 +62,7 @@ object BindTest extends TestSuite {
       }).flatten
 
       insertData.map(_ => {
-        SWDiscovery().setSerializedString(req.getSerializedString)
+        UnravelSession().setSerializedString(req.getSerializedString)
           .select(Seq("rep"))
           .distinct
           .commit()
@@ -75,7 +75,7 @@ object BindTest extends TestSuite {
 
     test("bind abs") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
@@ -90,7 +90,7 @@ object BindTest extends TestSuite {
 
     test("bind abs with something linked") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
@@ -106,7 +106,7 @@ object BindTest extends TestSuite {
 
     test("bind round") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
@@ -120,7 +120,7 @@ object BindTest extends TestSuite {
     }
     test("bind ceil") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
@@ -135,7 +135,7 @@ object BindTest extends TestSuite {
 
     test("bind floor") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
@@ -149,7 +149,7 @@ object BindTest extends TestSuite {
     }
     test("bind rand") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .bind("new_value").rand()
@@ -163,7 +163,7 @@ object BindTest extends TestSuite {
     }
     test("datatype") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isSubjectOf(URI("http://bb"), "r")
@@ -180,7 +180,7 @@ object BindTest extends TestSuite {
     }
     test("str") {
       insertData.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something()
           .isObjectOf(URI("http://bb"), "r")

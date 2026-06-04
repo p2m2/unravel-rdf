@@ -4,7 +4,7 @@ import facade.npm._
 import fr.inrae.metabohub.semantic_web.configuration.SourcePath
 import fr.inrae.metabohub.semantic_web.configuration.SourcePath.SourcePath
 import fr.inrae.metabohub.semantic_web.driver.ComunicaRequestDriver.SourceComunica
-import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
+import fr.inrae.metabohub.semantic_web.exception.UnravelException
 import fr.inrae.metabohub.semantic_web.sparql.QueryResult
 
 import scala.concurrent.{Future, Promise}
@@ -36,7 +36,7 @@ object ComunicaRequestDriver {
     val format = mimetype match {
       case "text/turtle" => N3FormatOption.Turtle
       case "text/n3"     => N3FormatOption.N3
-      case _             => throw SWDiscoveryException(s"$mimetype format is not managed")
+      case _             => throw UnravelException(s"$mimetype format is not managed")
     }
 
     println("==== sourceFromContentN3Parser ====")
@@ -72,7 +72,7 @@ object ComunicaRequestDriver {
           println(msg)
           println("=========================")
 
-          p.tryFailure(SWDiscoveryException(msg))
+          p.tryFailure(UnravelException(msg))
         } else if (js.isUndefined(quad) || quad == null) {
           println("==== N3 PARSER END ====")
           println(s"quadCount = $quadCount")
@@ -116,7 +116,7 @@ object ComunicaRequestDriver {
       })
       .on("error", (elt: js.Any) => {
         val error = elt.asInstanceOf[String]
-        p.tryFailure(SWDiscoveryException(error))
+        p.tryFailure(UnravelException(error))
       })
       .on("end", (_: js.Any) => {
         p.trySuccess(store)
@@ -217,7 +217,7 @@ object ComunicaRequestDriver {
             .on(
               "error",
               js.Any.fromFunction1 { (err: Any) =>
-                p.tryFailure(SWDiscoveryException(err.toString))
+                p.tryFailure(UnravelException(err.toString))
               }
             )
             .on(
@@ -240,7 +240,7 @@ object ComunicaRequestDriver {
         }
     } match {
       case Success(result) => result
-      case Failure(e)      => throw SWDiscoveryException(e.toString)
+      case Failure(e)      => throw UnravelException(e.toString)
     }
   }
 }

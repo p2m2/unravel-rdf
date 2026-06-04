@@ -13,22 +13,22 @@ import java.util.UUID.randomUUID
 import scala.concurrent.Future
 import io.lemonlabs.uri.{QueryString, Url}
 
-object SWDiscovery {
+object UnravelSession {
 
   private val version : String = SWDiscoveryVersionAtBuildTime.version
 
-  implicit val rw: OptionPickler.ReadWriter[SWDiscovery] = OptionPickler.macroRW
+  implicit val rw: OptionPickler.ReadWriter[UnravelSession] = OptionPickler.macroRW
 
   info(" --------------------------------------------------" )
-  info(" ---- Discovery :"+ SWDiscovery.version + "         -----------" )
+  info(" ---- Discovery :"+ UnravelSession.version + "         -----------" )
   info(" --------------------------------------------------" )
 
 }
 
-case class SWDiscovery(
-                        val config: SWDiscoveryConfiguration=SWDiscoveryConfiguration.init(),
-                        val rootNode : Root = Root(),
-                        val fn : Option[String] = None)
+case class UnravelSession(
+                           val config: UnravelConfig=UnravelConfig.init(),
+                           val rootNode : Root = Root(),
+                           val fn : Option[String] = None)
 {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
@@ -39,29 +39,29 @@ case class SWDiscovery(
 
   case class FilterIncrement(negation : Boolean = false) {
 
-    def manageFilter(n:Node,forward : Boolean = false) : SWDiscovery = focusManagement(n,forward)
+    def manageFilter(n:Node,forward : Boolean = false) : UnravelSession = focusManagement(n,forward)
 
-    def isLiteral : SWDiscovery = manageFilter(
+    def isLiteral : UnravelSession = manageFilter(
       fr.inrae.metabohub.semantic_web.node.isLiteral(this.negation,getUniqueRef()))
-    def isUri : SWDiscovery = manageFilter(
+    def isUri : UnravelSession = manageFilter(
       fr.inrae.metabohub.semantic_web.node.isURI(this.negation,getUniqueRef()))
-    def isBlank : SWDiscovery = manageFilter(
+    def isBlank : UnravelSession = manageFilter(
       fr.inrae.metabohub.semantic_web.node.isBlank(this.negation,getUniqueRef()))
 
     /* strings */
-    def regex( pattern : SparqlDefinition, flags : SparqlDefinition="" ) : SWDiscovery =
+    def regex( pattern : SparqlDefinition, flags : SparqlDefinition="" ) : UnravelSession =
       manageFilter(Regex(pattern,flags,this.negation,getUniqueRef()))
-    def contains( string : SparqlDefinition ) : SWDiscovery = manageFilter(Contains(string,this.negation,getUniqueRef()))
-    def strStarts( string : SparqlDefinition ) : SWDiscovery = manageFilter(StrStarts(string,this.negation,getUniqueRef()))
-    def strEnds( string : SparqlDefinition ) : SWDiscovery = manageFilter(StrEnds(string,this.negation,getUniqueRef()))
+    def contains( string : SparqlDefinition ) : UnravelSession = manageFilter(Contains(string,this.negation,getUniqueRef()))
+    def strStarts( string : SparqlDefinition ) : UnravelSession = manageFilter(StrStarts(string,this.negation,getUniqueRef()))
+    def strEnds( string : SparqlDefinition ) : UnravelSession = manageFilter(StrEnds(string,this.negation,getUniqueRef()))
 
     /* numeric */
-    def equal( value : SparqlDefinition ) : SWDiscovery = manageFilter(Equal(value,this.negation,getUniqueRef()))
-    def notEqual( value : SparqlDefinition ) : SWDiscovery = manageFilter(NotEqual(value,this.negation,getUniqueRef()))
-    def inf( value : SparqlDefinition ) : SWDiscovery = manageFilter(Inf(value,this.negation,getUniqueRef()))
-    def infEqual( value : SparqlDefinition ) : SWDiscovery = manageFilter(InfEqual(value,this.negation,getUniqueRef()))
-    def sup( value : SparqlDefinition ) : SWDiscovery = manageFilter(Sup(value,this.negation,getUniqueRef()))
-    def supEqual( value : SparqlDefinition ) : SWDiscovery = manageFilter(SupEqual(value,this.negation,getUniqueRef()))
+    def equal( value : SparqlDefinition ) : UnravelSession = manageFilter(Equal(value,this.negation,getUniqueRef()))
+    def notEqual( value : SparqlDefinition ) : UnravelSession = manageFilter(NotEqual(value,this.negation,getUniqueRef()))
+    def inf( value : SparqlDefinition ) : UnravelSession = manageFilter(Inf(value,this.negation,getUniqueRef()))
+    def infEqual( value : SparqlDefinition ) : UnravelSession = manageFilter(InfEqual(value,this.negation,getUniqueRef()))
+    def sup( value : SparqlDefinition ) : UnravelSession = manageFilter(Sup(value,this.negation,getUniqueRef()))
+    def supEqual( value : SparqlDefinition ) : UnravelSession = manageFilter(SupEqual(value,this.negation,getUniqueRef()))
 
     def not : FilterIncrement = { FilterIncrement(true) }
   }
@@ -69,26 +69,26 @@ case class SWDiscovery(
   def filter : FilterIncrement = FilterIncrement()
 
   case class BindIncrement(`var` : String) {
-    def manage(n:ExpressionNode,forward : Boolean = true) : SWDiscovery =
+    def manage(n:ExpressionNode,forward : Boolean = true) : UnravelSession =
       // focusManagement(Bind(n,`var`),forward).root.something(`var`).focus(`var`)
       focusManagement(Bind(n,`var`),forward)
     /* primary expression */
 
     /* String fun */
-    def subStr(startingLoc : SparqlDefinition,length : SparqlDefinition ) : SWDiscovery = manage(SubStr(startingLoc,length,getUniqueRef()))
-    def replace(pattern : SparqlDefinition, replacement : SparqlDefinition, flags : SparqlDefinition="") : SWDiscovery =
+    def subStr(startingLoc : SparqlDefinition,length : SparqlDefinition ) : UnravelSession = manage(SubStr(startingLoc,length,getUniqueRef()))
+    def replace(pattern : SparqlDefinition, replacement : SparqlDefinition, flags : SparqlDefinition="") : UnravelSession =
       manage(Replace(pattern,replacement,flags,getUniqueRef()))
 
     /* Numeric  fun */
-    def abs() : SWDiscovery = manage(Abs(getUniqueRef()))
-    def round() : SWDiscovery = manage(Round(getUniqueRef()))
-    def ceil() : SWDiscovery = manage(Ceil(getUniqueRef()))
-    def floor() : SWDiscovery = manage(Floor(getUniqueRef()))
-    def rand() : SWDiscovery = manage(Rand(getUniqueRef()))
+    def abs() : UnravelSession = manage(Abs(getUniqueRef()))
+    def round() : UnravelSession = manage(Round(getUniqueRef()))
+    def ceil() : UnravelSession = manage(Ceil(getUniqueRef()))
+    def floor() : UnravelSession = manage(Floor(getUniqueRef()))
+    def rand() : UnravelSession = manage(Rand(getUniqueRef()))
 
     /* uri fun */
-    def datatype() : SWDiscovery = manage(Datatype(getUniqueRef()))
-    def str() : SWDiscovery = manage(Str(QueryVariable(`var`),getUniqueRef()))
+    def datatype() : UnravelSession = manage(Datatype(getUniqueRef()))
+    def str() : UnravelSession = manage(Str(QueryVariable(`var`),getUniqueRef()))
   }
 
   def bind(`var` : String) : BindIncrement = BindIncrement(`var`)
@@ -98,46 +98,46 @@ case class SWDiscovery(
   Logger.setDefaultLogLevel(config.settings._logLevel)
 
   /* set focus on root */
-  def root: SWDiscovery  = SWDiscovery(config,rootNode,Some(rootNode.reference()))
+  def root: UnravelSession  = UnravelSession(config,rootNode,Some(rootNode.reference()))
 
-  def finder : SWDiscoveryHelper = SWDiscoveryHelper(this)
+  def finder : UnravelSessionHelper = UnravelSessionHelper(this)
 
   /* configuration */
-  def setConfig(newConfig : SWDiscoveryConfiguration) : SWDiscovery =
-    SWDiscovery(newConfig,rootNode,Some(focusNode))
+  def setConfig(newConfig : UnravelConfig) : UnravelSession =
+    UnravelSession(newConfig,rootNode,Some(focusNode))
 
-  def getConfig : SWDiscoveryConfiguration = config
+  def getConfig : UnravelConfig = config
 
   /* get current focus */
   def focus() : String = focusNode
 
   /* set the current focus on the select node */
-  def focus(ref : String) : SWDiscovery = {
+  def focus(ref : String) : UnravelSession = {
     if ( ref == focusNode ) {
-      SWDiscovery(config,rootNode,fn)
+      UnravelSession(config,rootNode,fn)
     } else if (ref == rootNode.idRef) {
       root
     } else {
       pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption match {
-        case Some(node) => SWDiscovery(config,rootNode,Some(node.reference()))
-        case None => throw SWDiscoveryException(s"$ref does not exist.")
+        case Some(node) => UnravelSession(config,rootNode,Some(node.reference()))
+        case None => throw UnravelException(s"$ref does not exist.")
       }
     }
   }
 
-  def refExist(ref:String) : SWDiscovery = {
+  def refExist(ref:String) : UnravelSession = {
 
     pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption match {
-      case Some(_) => SWDiscovery(config,rootNode,Some(focusNode))
-      case None => throw SWDiscoveryException(s"$ref does not exist.")
+      case Some(_) => UnravelSession(config,rootNode,Some(focusNode))
+      case None => throw UnravelException(s"$ref does not exist.")
     }
   }
 
-  def prefix(short : String, long : IRI ) : SWDiscovery = SWDiscovery(config,rootNode.addPrefix(short , long ),Some(focusNode))
+  def prefix(short : String, long : IRI ) : UnravelSession = UnravelSession(config,rootNode.addPrefix(short , long ),Some(focusNode))
 
-  def directive(directive : String) : SWDiscovery = SWDiscovery(config,rootNode.addDirective(directive),Some(focusNode))
+  def directive(directive : String) : UnravelSession = UnravelSession(config,rootNode.addDirective(directive),Some(focusNode))
 
-  def prefixes( lPrefixes : Map[String,IRI] ) : SWDiscovery =
+  def prefixes( lPrefixes : Map[String,IRI] ) : UnravelSession =
     (lPrefixes map {case (key, value) => prefix(key, value)
     }).toSeq match {
       case l if l.length>0 => l(l.length-1)
@@ -148,21 +148,21 @@ case class SWDiscovery(
 
   def getPrefixes() : Map[String,IRI] = rootNode.getPrefixes
 
-  def graph(graph : IRI) : SWDiscovery = SWDiscovery(config,rootNode.addDefaultGraph(graph),Some(focusNode))
+  def graph(graph : IRI) : UnravelSession = UnravelSession(config,rootNode.addDefaultGraph(graph),Some(focusNode))
 
-  def namedGraph(graph : IRI ) : SWDiscovery = SWDiscovery(config,rootNode.addNamedGraph(graph),Some(focusNode))
+  def namedGraph(graph : IRI ) : UnravelSession = UnravelSession(config,rootNode.addNamedGraph(graph),Some(focusNode))
 
-  def checkQueryVariable(term : SparqlDefinition): SWDiscovery = {
+  def checkQueryVariable(term : SparqlDefinition): UnravelSession = {
     /* Check if QueryVariable is referenced with Element.
      *  add a Something element otherwise */
     term match {
         case qv : QueryVariable if NodeVisitor.getNodeWithRef(qv.name,rootNode).length == 0  =>
-          SWDiscovery(config,rootNode.addChildren(rootNode.reference(),Something(qv.name)),Some(focusNode))
+          UnravelSession(config,rootNode.addChildren(rootNode.reference(),Something(qv.name)),Some(focusNode))
         case _ => this
       }
   }
 
-  def focusManagement(n : Node, forward: Boolean = true) : SWDiscovery = {
+  def focusManagement(n : Node, forward: Boolean = true) : UnravelSession = {
     // get all node
     val current = rootNode.getChild[Node](rootNode.asInstanceOf[Node]).filter( _.idRef == focusNode )
 
@@ -170,12 +170,12 @@ case class SWDiscovery(
       val newRootNode = rootNode.addChildren(focusNode,n)
       /* current node is the focusNode */
       if (forward) {
-        SWDiscovery(config,newRootNode,Some(n.reference()))
+        UnravelSession(config,newRootNode,Some(n.reference()))
       }  else {
-        SWDiscovery(config,newRootNode,Some(focusNode))
+        UnravelSession(config,newRootNode,Some(focusNode))
       }
     } else {
-        throw SWDiscoveryException(s"Can not add this node [$n]at the current focus[$current]")
+        throw UnravelException(s"Can not add this node [$n]at the current focus[$current]")
       }
   }
 
@@ -192,31 +192,31 @@ case class SWDiscovery(
   }
 
   /* start a request with a variable */
-  def something( ref : String = getUniqueRef("something") ) : SWDiscovery = {
+  def something( ref : String = getUniqueRef("something") ) : UnravelSession = {
     debug(" -- something -- ")
     focusManagement(Something(ref))
   }
 
   /* create node which focus is the subject : ?focusId <uri> ?target */
-  def isSubjectOf( term : SparqlDefinition , ref : String = getUniqueRef("object")  ) : SWDiscovery =
+  def isSubjectOf( term : SparqlDefinition , ref : String = getUniqueRef("object")  ) : UnravelSession =
     checkQueryVariable(term).focusManagement(SubjectOf(ref,term))
 
 
   /* create node which focus is the subject : ?target <uri> ?focusId */
-  def isObjectOf( term : SparqlDefinition , ref : String = getUniqueRef("subject")  ) : SWDiscovery =
+  def isObjectOf( term : SparqlDefinition , ref : String = getUniqueRef("subject")  ) : UnravelSession =
     checkQueryVariable(term).focusManagement(ObjectOf(ref,term))
 
   /* create node which focus is the properties :
   ?focusId ?target <uri>|literal
   */
-  def isLinkTo(term : SparqlDefinition, ref : String = getUniqueRef("linkTo") ) : SWDiscovery =
+  def isLinkTo(term : SparqlDefinition, ref : String = getUniqueRef("linkTo") ) : UnravelSession =
     checkQueryVariable(term).focusManagement(LinkTo(ref,term))
 
 
   /* create node which focus is typed with <uri>:
   ?focusId a <uri>
   */
-  def isA( term : SparqlDefinition  ) : SWDiscovery =
+  def isA( term : SparqlDefinition  ) : UnravelSession =
     checkQueryVariable(term)
     .isSubjectOf(URI("a"))
     .set(term)
@@ -225,7 +225,7 @@ case class SWDiscovery(
   /* create node which focus is the properties :
      <uri> ?target ?focusId
   */
-  def isLinkFrom( term : SparqlDefinition, ref : String = getUniqueRef("linkFrom")  ) : SWDiscovery =
+  def isLinkFrom( term : SparqlDefinition, ref : String = getUniqueRef("linkFrom")  ) : UnravelSession =
     checkQueryVariable(term).focusManagement(LinkFrom(ref,term))
 
   /*
@@ -234,20 +234,20 @@ case class SWDiscovery(
   Attribute value is optional
   */
 
-  def datatype( uri : URI, ref : String ) : SWDiscovery =
-    SWDiscovery(
+  def datatype( uri : URI, ref : String ) : UnravelSession =
+    UnravelSession(
       config,
       root.focusManagement(DatatypeNode(focusNode,SubjectOf(ref,uri),ref), false).rootNode,
       Some(focusNode))
 
 
-  def set( term : SparqlDefinition ) : SWDiscovery =
+  def set( term : SparqlDefinition ) : UnravelSession =
     checkQueryVariable(term).focusManagement(Value(term),forward = false)
 
-  def setList( terms : Seq[SparqlDefinition] ) : SWDiscovery = focusManagement(ListValues(terms),forward = false)
+  def setList( terms : Seq[SparqlDefinition] ) : UnravelSession = focusManagement(ListValues(terms),forward = false)
 
-  def remove( focus : String ) : SWDiscovery =
-    SWDiscovery(config,RemoveNode.run(rootNode,focus),
+  def remove( focus : String ) : UnravelSession =
+    UnravelSession(config,RemoveNode.run(rootNode,focus),
       Some(
         NodeVisitor.getAncestorsRef(focusNode,rootNode) match {
           case l if l.length>1 => l(l.length - 2)
@@ -256,10 +256,10 @@ case class SWDiscovery(
 
   def getSerializedString : String = OptionPickler.write(this)
 
-  def setSerializedString(query : String) : SWDiscovery = OptionPickler.read[SWDiscovery](query)
+  def setSerializedString(query : String) : UnravelSession = OptionPickler.read[UnravelSession](query)
 
 
-  def console : SWDiscovery = {
+  def console : UnravelSession = {
     debug(" -- console -- ")
     println("USER REQUEST\n" +
       pm.SimpleConsole().get(rootNode) + "\n" +
@@ -297,7 +297,7 @@ case class SWDiscovery(
    * Discovery request
    *
    */
-  def transaction = SWTransaction(this)
+  def transaction = UnravelQuery(this)
   /**
    * Return solutions as Future corresponding with the current Node request.
    * @param lRef : selected variables
@@ -305,7 +305,7 @@ case class SWDiscovery(
    * @param offset : solution are generated after this offset
    * @return
    */
-  def select(lRef: Seq[String] = List("*"), limit : Int = 0, offset : Int = 0) : SWTransaction =
+  def select(lRef: Seq[String] = List("*"), limit : Int = 0, offset : Int = 0) : UnravelQuery =
         transaction
         .limit(limit)
         .offset(offset)
@@ -316,10 +316,10 @@ case class SWDiscovery(
    * @param lRef
    * @return iterable on select function
    */
-  def selectByPage(lRef: Seq[String] = List("*"))  : Future[(Int,Seq[SWTransaction])] = {
+  def selectByPage(lRef: Seq[String] = List("*"))  : Future[(Int,Seq[UnravelQuery])] = {
     // remove datatype node ref
     val lDatatypeRef = rootNode.lDatatypeNode.map(ldn => ldn.idRef )
-    SWDiscoveryHelper(this).count(lRef.filter( ! lDatatypeRef.contains(_)) ).map {
+    UnravelSessionHelper(this).count(lRef.filter( ! lDatatypeRef.contains(_)) ).map {
       case nSolutions if nSolutions == 0 => (nSolutions, Seq())
       case nSolutions =>        val nit: Int = (nSolutions + config.settings.pageSize - 1) / config.settings.pageSize
         (nSolutions,(0 to nit).map( p =>{
@@ -336,10 +336,10 @@ case class SWDiscovery(
    * @param lRef : selected variables
    * @return iterable on select function
    */
-  def selectDistinctByPage(lRef: Seq[String] = List("*"))  : Future[(Int,Seq[SWTransaction])] = {
+  def selectDistinctByPage(lRef: Seq[String] = List("*"))  : Future[(Int,Seq[UnravelQuery])] = {
     val lDatatypeRef = rootNode.lDatatypeNode.map(ldn => ldn.idRef )
 
-    SWDiscoveryHelper(this).count(lRef.filter(!lDatatypeRef.contains(_)), true).map {
+    UnravelSessionHelper(this).count(lRef.filter(!lDatatypeRef.contains(_)), true).map {
       case nSolutions if nSolutions == 0 => (nSolutions, Seq())
       case nSolutions =>
         val nit: Int = (nSolutions + config.settings.pageSize - 1) / config.settings.pageSize
@@ -354,19 +354,19 @@ case class SWDiscovery(
 
   def browse[A](visitor : (Node, Integer) => A ) : Seq[A] = NodeVisitor.map(rootNode,0,visitor)
 
-  def setDecoration(key : String, value : String) : SWDiscovery = {
+  def setDecoration(key : String, value : String) : UnravelSession = {
       rootNode
         .getChild[Node](rootNode.asInstanceOf[Node])
         .filter( _.idRef == focusNode )
         .lastOption match {
           case Some(n) if n.isInstanceOf[Root]  => {
-            SWDiscovery(config,rootNode.addDecoratingAttribute(key,value).asInstanceOf[Root],Some(rootNode.reference()))
+            UnravelSession(config,rootNode.addDecoratingAttribute(key,value).asInstanceOf[Root],Some(rootNode.reference()))
           }
           case Some(n) => {
             val sw = remove(focusNode)
             sw.focusManagement(n.addDecoratingAttribute(key,value))
           }
-          case None => throw SWDiscoveryException(s"Can not reach current node -- $focusNode --]")
+          case None => throw UnravelException(s"Can not reach current node -- $focusNode --]")
         }
   }
 

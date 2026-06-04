@@ -11,17 +11,17 @@ import fr.inrae.metabohub.semantic_web.exception._
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import scala.util.{Failure, Success}
 
-@JSExportTopLevel(name="SWDiscoveryConfiguration")
-object SWDiscoveryConfiguration {
-  implicit val rw: OptionPickler.ReadWriter[SWDiscoveryConfiguration] = OptionPickler.macroRW
+@JSExportTopLevel(name="UnravelConfig")
+object UnravelConfig {
+  implicit val rw: OptionPickler.ReadWriter[UnravelConfig] = OptionPickler.macroRW
 
   /**
    * set a config using string configuration
    * @param json_conf : configuration in json format
    */
   @JSExport
-  def setConfigString(json_conf: String) : SWDiscoveryConfiguration = {
-    util.Try(OptionPickler.read[SWDiscoveryConfiguration](json_conf))
+  def setConfigString(json_conf: String) : UnravelConfig = {
+    util.Try(OptionPickler.read[UnravelConfig](json_conf))
     match {
       case Success(v) => v
       case Failure(e) => throw SWStatementConfigurationException(e.getMessage)
@@ -29,15 +29,15 @@ object SWDiscoveryConfiguration {
   }
 
   @JSExport
-  def init() : SWDiscoveryConfiguration = SWDiscoveryConfiguration(
+  def init() : UnravelConfig = UnravelConfig(
     settings = GeneralSetting(),
     sources = Seq(),
     proxy = None
   )
 
   @JSExport
-  def proxy(urlProxy : String , method : String = "post" ) : SWDiscoveryConfiguration = {
-    SWDiscoveryConfiguration(
+  def proxy(urlProxy : String , method : String = "post" ) : UnravelConfig = {
+    UnravelConfig(
       settings = GeneralSetting(),
       sources = Seq(),
       proxy = Some(ProxyConfiguration(urlProxy,method))
@@ -45,7 +45,7 @@ object SWDiscoveryConfiguration {
   }
 }
 
-case class SWDiscoveryConfiguration(
+case class UnravelConfig(
                                      settings : GeneralSetting = new GeneralSetting(),
                                      sources : Seq[Source] = Seq(),
                                      proxy : Option[ProxyConfiguration] = None
@@ -67,7 +67,7 @@ case class SWDiscoveryConfiguration(
                auth : String     = "",
                login : String    = "" ,
                password : String = "",
-               token : String    = "") : SWDiscoveryConfiguration = _url(filename,mimetype,method,auth,login,password,token)
+               token : String    = "") : UnravelConfig = _url(filename,mimetype,method,auth,login,password,token)
 
   @JSExport
   def sparqlEndpoint( url : String,
@@ -75,15 +75,15 @@ case class SWDiscoveryConfiguration(
                       auth : String     = "",
                       login : String    = "" ,
                       password : String = "",
-                      token : String    = "" ) : SWDiscoveryConfiguration =
+                      token : String    = "" ) : UnravelConfig =
     _url(url,"application/sparql-query",method,auth,login,password,token)
 
   // Not managed for node/js
   //@JSExport
   def localFile(
                  filename : String ,
-                 mimetype : String = "text/turtle") : SWDiscoveryConfiguration =
-    SWDiscoveryConfiguration(
+                 mimetype : String = "text/turtle") : UnravelConfig =
+    UnravelConfig(
       settings,
       sources :+ Source(
         id=filename,
@@ -97,8 +97,8 @@ case class SWDiscoveryConfiguration(
   @JSExport
   def rdfContent(
                   content : String ,
-                  mimetype : String = "text/turtle") : SWDiscoveryConfiguration =
-    SWDiscoveryConfiguration(
+                  mimetype : String = "text/turtle") : UnravelConfig =
+    UnravelConfig(
       settings,
       sources :+ Source(
         id=content.hashCode.toString,
@@ -113,7 +113,7 @@ case class SWDiscoveryConfiguration(
   def sourcesSize: Int = sources.length
 
   @JSExport
-  def setPageSize(pageSize : Int) : SWDiscoveryConfiguration = SWDiscoveryConfiguration(
+  def setPageSize(pageSize : Int) : UnravelConfig = UnravelConfig(
     settings.copy(pageSize=pageSize),
     sources,proxy)
 
@@ -121,7 +121,7 @@ case class SWDiscoveryConfiguration(
   def pageSize: Int  = settings.pageSize
 
   @JSExport
-  def setSizeBatchProcessing(sizeBatchProcessing : Int)  : SWDiscoveryConfiguration = SWDiscoveryConfiguration(
+  def setSizeBatchProcessing(sizeBatchProcessing : Int)  : UnravelConfig = UnravelConfig(
     settings.copy(sizeBatchProcessing=sizeBatchProcessing),
     sources,proxy)
 
@@ -129,7 +129,7 @@ case class SWDiscoveryConfiguration(
   def sizeBatchProcessing: Int  = settings.sizeBatchProcessing
 
   @JSExport
-  def setLogLevel(logLevel : String) : SWDiscoveryConfiguration = SWDiscoveryConfiguration(
+  def setLogLevel(logLevel : String) : UnravelConfig = UnravelConfig(
     settings.copy(logLevel=logLevel),
     sources,proxy)
 
@@ -137,7 +137,7 @@ case class SWDiscoveryConfiguration(
   def logLevel: String = settings.logLevel
 
   @JSExport
-  def setCache(cache : Boolean) : SWDiscoveryConfiguration = SWDiscoveryConfiguration(
+  def setCache(cache : Boolean) : UnravelConfig = UnravelConfig(
     settings.copy(cache=cache),
     sources,proxy)
 
@@ -151,8 +151,8 @@ case class SWDiscoveryConfiguration(
                           auth : String     = "",
                           login : String    = "" ,
                           password : String = "",
-                          token : String    = "") : SWDiscoveryConfiguration =
-    SWDiscoveryConfiguration(
+                          token : String    = "") : UnravelConfig =
+    UnravelConfig(
       settings,
       sources :+ Source(
         id=path,

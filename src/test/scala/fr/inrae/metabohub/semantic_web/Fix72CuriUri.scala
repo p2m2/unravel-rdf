@@ -14,7 +14,7 @@ object Fix72CuriUri extends TestSuite {
       <http://aa> <http://test#dd> "test" .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
@@ -23,7 +23,7 @@ object Fix72CuriUri extends TestSuite {
   def tests = Tests {
     test("Fix #73") {
       insert_data.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .prefix("test","http://test#")
           .something("h1")

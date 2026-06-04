@@ -17,12 +17,12 @@ object Fix83PrefixUnknownTest extends TestSuite {
       <http://aa> <http://bb> 10 .
       """.stripMargin, this.getClass.getSimpleName)
 
-  val config: SWDiscoveryConfiguration = DataTestFactory.getConfigVirtuoso1()
+  val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   def tests = Tests {
     test("order by") {
       insert_data.map(_ => {
-        SWDiscovery(config)
+        UnravelSession(config)
           .prefix("skos", "http://www.w3.org/2004/02/skos/core#")
           .graph("https://forum.semantic-metabolomics.org/EnrichmentAnalysis/CID_MESH/2020")
           .graph("https://forum.semantic-metabolomics.org/EnrichmentAnalysis/CHEBI_MESH/2020")

@@ -3,7 +3,7 @@ package fr.inrae.metabohub.semantic_web.driver
 import facade.npm.{Axios, AxiosConfig, qs}
 
 import fr.inrae.metabohub.semantic_web.event.{DiscoveryRequestEvent, DiscoveryStateRequestEvent}
-import fr.inrae.metabohub.semantic_web.exception.SWDiscoveryException
+import fr.inrae.metabohub.semantic_web.exception.UnravelException
 import fr.inrae.metabohub.semantic_web.sparql.QueryResult
 import wvlet.log.Logger.rootLogger.debug
 
@@ -34,7 +34,7 @@ case class AxiosRequestDriver(
 
   private def handleError(e: Throwable): Nothing = {
     publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.ERROR_HTTP_REQUEST))
-    throw SWDiscoveryException(Option(e.getMessage).getOrElse(e.toString))
+    throw UnravelException(Option(e.getMessage).getOrElse(e.toString))
   }
 
   def get(query: String): Future[QueryResult] = {
