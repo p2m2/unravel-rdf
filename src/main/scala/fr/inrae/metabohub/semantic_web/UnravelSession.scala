@@ -124,9 +124,13 @@ case class UnravelSession(
   }
 
   private def positionOn(ref: String): UnravelSession = {
-    val node = pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption
-      .getOrElse(throw UnravelException(s"$ref does not exist."))
-    UnravelSession(config, rootNode, Some(node.reference()))
+    if ( ref == root.rootNode.idRef)
+      UnravelSession(config, rootNode, Some(root.rootNode.idRef))
+    else {
+      val node = pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption
+        .getOrElse(throw UnravelException(s"$ref does not exist."))
+      UnravelSession(config, rootNode, Some(node.reference()))
+    }
   }
 
   def from(ref: String, f: UnravelSession => UnravelSession = identity): UnravelSession =

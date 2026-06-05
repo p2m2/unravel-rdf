@@ -70,8 +70,9 @@ object UnravelSessionTest extends TestSuite {
     test("isSubjectOf") {
       insertData.map(_ => {
         startRequest
-          .set(URI("http://aa"))
-          .isSubjectOf(URI("http://bb"), "var")
+          .from("h1",
+            _.set(URI("http://aa"))
+             .isSubjectOf(URI("http://bb"), "var"))
           .select(List("var"))
           .commit()
           .raw
@@ -84,8 +85,9 @@ object UnravelSessionTest extends TestSuite {
     test("datatype 1") {
       insertData.map(_ => {
         startRequest
-          .set(URI("http://aa3"))
-          .datatype(URI("http://propDatatype"), "d")
+          .from("h1",
+            _.set(URI("http://aa3"))
+             .datatype(URI("http://propDatatype"), "d"))
           .select(List("h1","d"))
           .commit()
           .raw
@@ -101,8 +103,9 @@ object UnravelSessionTest extends TestSuite {
     test("datatype 2") {
       insertData.map(_ => {
         startRequest
-          .set(URI("http://aa3"))
-          .datatype(URI("http://propDatatype"), "d")
+          .from("h1",
+            _.set(URI("http://aa3"))
+             .datatype(URI("http://propDatatype"), "d"))
           .select(List("d","h1"))
           .commit()
           .raw
@@ -117,8 +120,9 @@ object UnravelSessionTest extends TestSuite {
     test("datatype 3") {
         Try(
           startRequest
-          .set(URI("http://aa3"))
-          .datatype(URI("http://propDatatype"), "d")
+            .from("h1",
+              _.set(URI("http://aa3"))
+              .datatype(URI("http://propDatatype"), "d"))
           .select(List("d"))
           .commit()) match {
             case Success(_) => assert(false)
@@ -129,8 +133,8 @@ object UnravelSessionTest extends TestSuite {
     test("datatype 4") {
       insertData.map(_ => {
         startRequest
-          .set(URI("http://aa3"))
-          .datatype(URI("http://propDatatype"), "d")
+          .from("h1",_.set(URI("http://aa3"))
+          .datatype(URI("http://propDatatype"), "d"))
           .select(List("h1"))
           .commit()
           .raw
@@ -142,7 +146,7 @@ object UnravelSessionTest extends TestSuite {
       }).flatten
     }
 
-    test("focus/from on the root using focus method") {
+    test("focus") {
       val disco = UnravelSession(config)
       val f = disco.current()
       assert(Try(disco.from(f)).isSuccess)
@@ -154,11 +158,11 @@ object UnravelSessionTest extends TestSuite {
     }
 
     test("use named graph") {
-      assert(Try(startRequest.isSubjectOf(URI("http://bb2"))).isSuccess)
+      assert(Try(startRequest.from("h1",_.isSubjectOf(URI("http://bb2")))).isSuccess)
     }
 
     test("test console") {
-      assert(Try(startRequest.isSubjectOf(URI("http://bb2")).console).isSuccess)
+      assert(Try(startRequest.from("h1",_.isSubjectOf(URI("http://bb2"))).console).isSuccess)
     }
 
     test("refExist") {
@@ -172,7 +176,7 @@ object UnravelSessionTest extends TestSuite {
     test("remove Something h1") {
       val sw = startRequest.remove("h1")
       assert(sw.rootNode.idRef == sw.current())
-      assert(sw.something("h").current() == "h")
+      sw.something("h",h=>{assert(h.current() == "h");h})
     }
 
     test("Remove nothing") {
@@ -191,13 +195,13 @@ object UnravelSessionTest extends TestSuite {
 
     test("Remove branch") {
       UnravelSession(config)
-          .something("h1")
-          .isObjectOf(URI("http://h1"),"h2")
-          .isObjectOf(URI("http://h11"),"h22")
-          .root
-          .something("d1")
-          .isObjectOf(URI("http://d1"),"d2")
-          .isObjectOf(URI("http://d11"),"d22")
+          .something("h1",
+            _.isObjectOf(URI("http://h1"),"h2")
+             .isObjectOf(URI("http://h11"),"h22")
+          )
+          .something("d1",
+             _.isObjectOf(URI("http://d1"),"d2")
+              .isObjectOf(URI("http://d11"),"d22"))
             .remove("h1")
           .browse( (n: Node,d:Integer) => {
             n match {
@@ -210,7 +214,7 @@ object UnravelSessionTest extends TestSuite {
     test("browse") {
       val listBrowse : Seq[String] =
         startRequest
-        .isSubjectOf("http://test","h2")
+          .something("h1",_.isSubjectOf("http://test","h2"))
          .browse( (n : Node, p:Integer) => { n.idRef} )
       assert( listBrowse.contains("h1") )
       assert( listBrowse.contains("h2") )
@@ -218,13 +222,13 @@ object UnravelSessionTest extends TestSuite {
 
     test("sparql get") {
        assert(startRequest
-         .isSubjectOf("http://test", "h2")
+         .from("h1",_.isSubjectOf("http://test", "h2"))
          .sparql_get.nonEmpty)
     }
 
     test("sparql curl") {
       assert(startRequest
-        .isSubjectOf("http://test", "h2")
+        .from("h1",_.isSubjectOf("http://test", "h2"))
         .sparql_curl.nonEmpty)
     }
 
@@ -259,7 +263,7 @@ object UnravelSessionTest extends TestSuite {
       assert(
         startRequest
         .setConfig(DataTestFactory.getConfigVirtuoso2())
-         .isObjectOf("http://test11")
+         .from("h1",_.isObjectOf("http://test11"))
           .getConfig.sources.head.id == DataTestFactory.getConfigVirtuoso2().sources.head.id )
     }
 
