@@ -27,8 +27,7 @@ object Fix83PrefixUnknownTest extends TestSuite {
           .graph("https://forum.semantic-metabolomics.org/EnrichmentAnalysis/CID_MESH/2020")
           .graph("https://forum.semantic-metabolomics.org/EnrichmentAnalysis/CHEBI_MESH/2020")
           .graph("https://forum.semantic-metabolomics.org/EnrichmentAnalysis/CHEMONT_MESH/2020")
-          .something("compound")
-          .set(URI("CID:CID33698"))
+          .something("compound",_.set(URI("CID:CID33698")))
           .select(Seq("compound"))
           .commit()
           .raw.map(r => {
