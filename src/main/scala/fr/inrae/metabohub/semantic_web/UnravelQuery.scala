@@ -222,8 +222,13 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   case class ProjectionExpressionIncrement(v : String) {
 
     def manage(n:AggregateNode) : UnravelQuery = {
-      sw.focusManagement(
-        ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef())).transaction
+      // get the Last Proejection Node
+      sw.rootNode.lSolutionSequenceModifierNode.lastOption match {
+        case Some(proj) =>
+          sw.copy(fn = Some(proj.idRef)) // on se position sur le nodeu Projection des SolutionSequenceModifier
+            .focusManagement(ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef())).transaction
+        case None => throw UnravelException(s"Can not find Project node int the RootNode :: $sw")
+      }
     }
 
     def count(lRef : Seq[String],distinct: Boolean=false) : UnravelQuery = manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
@@ -235,7 +240,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   def projection  : UnravelQuery = {
     /* check if a projection exist or create a new one */
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
-      case Some(p) => sw.from(p.idRef).transaction
+      case Some(p) => sw.focus(p.idRef).transaction
       case None => sw.root.focusManagement(Projection(Seq(),sw.getUniqueRef())).transaction
     }
   }

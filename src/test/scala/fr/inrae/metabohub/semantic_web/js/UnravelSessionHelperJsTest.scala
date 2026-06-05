@@ -32,139 +32,153 @@ object UnravelSessionHelperJsTest extends TestSuite {
   def tests = Tests {
     test("count") {
       insertData.map(_ => {
-        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+        val session = startRequest.from("h1",
+            _.isSubjectOf(URI("<bb>"), "h1_obj"))
+
         session
-          .from("h1_obj")
-          .finder
-          .count(js.Array("h1_obj"))
-          .toFuture
-          .map( (count : Int) => { assert( count == 2 ) })
-      }).flatten
+          .from("h1_obj",
+            {s => s.finder
+            .count(js.Array("h1_obj"))
+            .toFuture
+            .map( (count : Int) => {
+              assert( count == 2 )
+            });s})
+
+      })
     }
 
     test("classes 1") {
       insertData.map(_ => {
-        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+        val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
         session
-          .from("h1_obj")
-          .finder
+          .from("h1_obj",
+          {s => s.finder
             .classes()
             .toFuture
             .map( (lUris : js.Array[URI]) => {
               assert( lUris.toList == List(URI("ee")) )
-            })
-      }).flatten
+            });s})
+      })
     }
+
     test("classes 2") {
         insertData.map(_ => {
-          val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+          val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
           session
-            .from("h1_obj")
-            .finder
+            .from("h1_obj",
+            { s => s.finder
             .classes()
             .toFuture
             .map((lUris: js.Array[URI]) => {
               assert(lUris.toList == List())
-            })
-        }).flatten
-      }
-      test("classes 3") {
-        insertData.map(_ => {
-          startRequest
-            .finder
-            .classes()
-            .toFuture
-            .map( (lUris : js.Array[URI]) => {
-              assert( lUris.toList == List(URI("ee")) )
-            })
-        }).flatten
+            });s})
+        })
       }
 
-    test("objectProperties 1") {
-      insertData.map(_ => {
-        startRequest
-          .finder
-          .objectProperties()
-          .toFuture
-          .map( (lUris : js.Array[URI]) => {
-            assert( lUris.toList == List(URI("bb")) )
-          })
-      }).flatten
-    }
-    test("objectProperties 2") {
-      insertData.map(_ => {
-        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
-        session
-          .from("h1_obj")
-          .finder
-          .objectProperties()
-          .toFuture
-          .map( (lUris : js.Array[URI]) => {
-            assert( lUris.toList == List() )
-          })
-      }).flatten
-    }
-    test("subjectProperties 1") {
-      insertData.map(_ => {
-        startRequest
-          .finder
-          .subjectProperties()
-          .toFuture
-          .map( (lUris : js.Array[URI]) => {
-            assert( lUris.toList.contains(URI("bb")) )
-            assert( lUris.toList.contains(URI("datatype_prop")) )
-          })
-      }).flatten
-    }
-    test("subjectProperties 2") {
-      insertData.map(_ => {
-        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
-        session
-          .from("h1_obj")
-          .finder
-          .subjectProperties()
-          .toFuture
-          .map( (lUris : js.Array[URI]) => {
-            assert( lUris.toList == List(URI("bb")) )
-          })
-      }).flatten
-    }
-    test("datatypeProperties 1") {
-      insertData.map(_ => {
-        startRequest
-          .finder
-          .datatypeProperties()
-          .toFuture
-          .map((lUris: js.Array[URI]) => {
-            assert(lUris.toList == List(URI("datatype_prop")))
-          })
-      }).flatten
-    }
-    test("datatypeProperties 2") {
-      insertData.map(_ => {
-        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
-        session
-          .from("h1_obj")
-          .finder
-          .datatypeProperties()
-          .toFuture
-          .map( (lUris : js.Array[URI]) => {
-            assert( lUris.toList == List(URI("datatype_prop")) )
-          })
-      }).flatten
-    }
-    test("datatypeProperties 3") {
-      insertData.map(_ => {
-        val session = startRequest.isObjectOf(URI("<bb>"), "h1_sub")
-        session
-          .from("h1_sub")
-          .finder
-          .datatypeProperties()
-          .toFuture
-          .map( (lUris : js.Array[URI]) => {
-            assert( lUris.toList == List() )
-          })
-      }).flatten
-    }
+
+   test("classes 3") {
+     insertData.map(_ => {
+       startRequest.from("h1",
+         s => { s.finder
+         .classes()
+         .toFuture
+         .map( (lUris : js.Array[URI]) => {
+           assert( lUris.toList == List(URI("ee")) )
+         });s})
+     })
+   }
+
+   test("objectProperties 1") {
+     insertData.map(_ => {
+       startRequest.from("h1",
+         s => { s.finder
+         .objectProperties()
+         .toFuture
+         .map( (lUris : js.Array[URI]) => {
+           assert( lUris.toList == List(URI("bb")) )
+         });s})
+     })
+   }
+   test("objectProperties 2") {
+     insertData.map(_ => {
+       val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+       session
+         .from("h1_obj",
+           {
+             s => s.finder
+              .objectProperties()
+                .toFuture
+             .map( (lUris : js.Array[URI]) => {
+               assert( lUris.toList == List() )
+             });s})
+     })
+   }
+     test("subjectProperties 1") {
+       insertData.map(_ => {
+         startRequest.from("h1",
+           s => {
+             s.finder
+           .subjectProperties()
+           .toFuture
+           .map( (lUris : js.Array[URI]) => {
+             assert( lUris.toList.contains(URI("bb")) )
+             assert( lUris.toList.contains(URI("datatype_prop")) )
+           });s})
+       })
+     }
+     test("subjectProperties 2") {
+       insertData.map(_ => {
+         val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+         session
+           .from("h1_obj",
+             {
+               s =>
+                 s.finder
+               .subjectProperties()
+               .toFuture
+               .map( (lUris : js.Array[URI]) => {
+                 assert( lUris.toList == List(URI("bb")) )
+               });s})
+       })
+     }
+     test("datatypeProperties 1") {
+       insertData.map(_ => {
+         startRequest.from("h1",
+           s => {
+             s.finder
+           .datatypeProperties()
+           .toFuture
+           .map((lUris: js.Array[URI]) => {
+             assert(lUris.toList == List(URI("datatype_prop")))
+           });s})
+       })
+     }
+     test("datatypeProperties 2") {
+       insertData.map(_ => {
+         val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+         session
+           .from("h1_obj",
+             {
+               s =>
+                 s.finder
+               .datatypeProperties()
+               .toFuture
+               .map( (lUris : js.Array[URI]) => {
+                 assert( lUris.toList == List(URI("datatype_prop")) )
+               });s})
+       })
+     }
+     test("datatypeProperties 3") {
+       insertData.map(_ => {
+         startRequest.from("h1",
+             _.isObjectOf(URI("<bb>"), "h1_sub")
+           .from("h1_sub", s => {s.finder
+           .datatypeProperties()
+           .toFuture
+           .map( (lUris : js.Array[URI]) => {
+             assert( lUris.toList == List() )
+           });s}))
+       })
+     }
   }
 }

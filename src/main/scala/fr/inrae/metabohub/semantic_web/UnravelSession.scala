@@ -182,7 +182,6 @@ case class UnravelSession(
   def focusManagement(n : Node) : UnravelSession = {
     // get all node
     val current = rootNode.getChild[Node](rootNode.asInstanceOf[Node]).filter( _.idRef == focusNode )
-
     if ( current.lastOption.exists(_.accept(n))) {
       val newRootNode = rootNode.addChildren(focusNode,n)
       /* current node is the focusNode */
@@ -345,7 +344,7 @@ case class UnravelSession(
 
   def sparql_get : String =
     (config.sources.length match {
-      case 1 => config.sources(0).path
+      case 1 => config.sources.head.path
       case _ => ""
     }) + Url(path="", query=QueryString.fromPairs(
       "query"-> sparql,
@@ -354,7 +353,7 @@ case class UnravelSession(
 
   def sparql_curl : String =
     "curl -H \"Accept: application/json\" -G " +  (config.sources.length match {
-        case 1 => config.sources(0).path
+        case 1 => config.sources.head.path
         case _ => ""
       }) + " --data-urlencode query='" + sparql + "'"
 
@@ -404,7 +403,7 @@ case class UnravelSession(
   def selectDistinctByPage(lRef: Seq[String] = List("*"))  : Future[(Int,Seq[UnravelQuery])] = {
     val lDatatypeRef = rootNode.lDatatypeNode.map(ldn => ldn.idRef )
 
-    UnravelSessionHelper(this).count(lRef.filter(!lDatatypeRef.contains(_)), true).map {
+    UnravelSessionHelper(this).count(lRef.filter(!lDatatypeRef.contains(_)), distinct = true).map {
       case nSolutions if nSolutions == 0 => (nSolutions, Seq())
       case nSolutions =>
         val nit: Int = (nSolutions + config.settings.pageSize - 1) / config.settings.pageSize
@@ -424,13 +423,11 @@ case class UnravelSession(
         .getChild[Node](rootNode.asInstanceOf[Node])
         .filter( _.idRef == focusNode )
         .lastOption match {
-          case Some(n) if n.isInstanceOf[Root]  => {
+          case Some(n) if n.isInstanceOf[Root]  =>
             UnravelSession(config,rootNode.addDecoratingAttribute(key,value).asInstanceOf[Root],Some(rootNode.reference()))
-          }
-          case Some(n) => {
+          case Some(n) =>
             val sw = remove(focusNode)
             sw.focusManagement(n.addDecoratingAttribute(key,value))
-          }
           case None => throw UnravelException(s"Can not reach current node -- $focusNode --]")
         }
   }
@@ -440,9 +437,8 @@ case class UnravelSession(
       .getChild[Node](rootNode.asInstanceOf[Node])
       .filter( _.idRef == focusNode )
       .lastOption match {
-      case Some(n)  => {
+      case Some(n)  =>
         n.decorations.getOrElse(key,"")
-      }
       case None => ""
     }
   }
