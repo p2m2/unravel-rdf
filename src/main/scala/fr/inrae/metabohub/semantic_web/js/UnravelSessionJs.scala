@@ -15,162 +15,248 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 @JSExportTopLevel(name="UnravelSession")
 case class UnravelSessionJs(
-                          config: UnravelConfig=UnravelConfig(),
-                          swArg: UnravelSession = null
-                        ) {
+                             config: UnravelConfig=UnravelConfig(),
+                             swArg: UnravelSession = null
+                           ) {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val sw: UnravelSession = swArg match {
     case null => UnravelSession(config)
-    case v =>v
+    case v => v
   }
 
-  def toIRI(any:Any) : IRI = any match {
-    case v : IRI => v
-    case v : URI => IRI(v.sparql)
-    case string : String => string
-    case _ => throw UnravelException(any.toString + " can not be cast into IRI.")
+  def toIRI(any: Any): IRI = any match {
+    case v: IRI    => v
+    case v: URI    => IRI(v.sparql)
+    case s: String => s
+    case _         => throw UnravelException(any.toString + " can not be cast into IRI.")
   }
 
-  def toURI(any:Any): URI = any match {
-    case v : URI => v
-    case string : String => string
-    case _ => throw UnravelException(any.toString + " can not be cast into IRI.")
+  def toURI(any: Any): URI = any match {
+    case v: URI    => v
+    case s: String => s
+    case _         => throw UnravelException(any.toString + " can not be cast into URI.")
   }
+
+  /** Adapte une closure JS (UnravelSessionJs => UnravelSessionJs)
+   *  en closure Scala (UnravelSession => UnravelSession). */
+  private def wrap(f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSession => UnravelSession =
+    inner => f(UnravelSessionJs(config, inner)).sw
+
+  // ------------------------------------------------------------------ //
+  //  Accesseurs / configuration                                          //
+  // ------------------------------------------------------------------ //
 
   @JSExport
   val filter: FilterIncrementJs = FilterIncrementJs(this)
 
   @JSExport
-  def helper(regex : String = ""): UnravelSessionJs = { HtmlView(sw,regex) ; UnravelSessionJs(config,sw) }
+  def helper(regex: String = ""): UnravelSessionJs = { HtmlView(sw, regex); UnravelSessionJs(config, sw) }
 
   @JSExport
-  def bind(`var` : String) : BindIncrementJs = BindIncrementJs(this,`var`)
+  def bind(`var`: String): BindIncrementJs = BindIncrementJs(this, `var`)
 
   @JSExport
-  def finder :UnravelSessionHelperJs = UnravelSessionHelperJs(sw)
+  def finder: UnravelSessionHelperJs = UnravelSessionHelperJs(sw)
 
   @JSExport
-  def setConfig(newConfig : UnravelConfig) : UnravelSessionJs = UnravelSessionJs(newConfig,sw.setConfig(newConfig))
+  def setConfig(newConfig: UnravelConfig): UnravelSessionJs = UnravelSessionJs(newConfig, sw.setConfig(newConfig))
 
   @JSExport
-  def getConfig() : UnravelConfig = sw.getConfig
+  def getConfig(): UnravelConfig = sw.getConfig
 
   @JSExport
-  def focus(ref : String) : UnravelSessionJs = UnravelSessionJs(config,sw.focus(ref))
+  def prefix(short: String, long: Any): UnravelSessionJs = UnravelSessionJs(config, sw.prefix(short, toIRI(long)))
 
   @JSExport
-  def prefix(short : String, long : Any ) : UnravelSessionJs = UnravelSessionJs(config,sw.prefix(short,toIRI(long)))
+  def getPrefix(short: String): Any = sw.getPrefix(short)
 
   @JSExport
-  def getPrefix(short : String) : Any = sw.getPrefix(short)
+  def directive(directive: String): UnravelSessionJs = UnravelSessionJs(config, sw.directive(directive))
 
   @JSExport
-  def directive(directive : String) : UnravelSessionJs = UnravelSessionJs(config,sw.directive(directive))
+  def graph(graph: Any): UnravelSessionJs = UnravelSessionJs(config, sw.graph(toIRI(graph)))
 
   @JSExport
-  def graph(graph : Any) : UnravelSessionJs = UnravelSessionJs(config,sw.graph(toIRI(graph)))
+  def root(): UnravelSessionJs = UnravelSessionJs(config, sw.root)
 
   @JSExport
-  def root(): UnravelSessionJs = UnravelSessionJs(config,sw.root)
+  def current(): String = sw.focusNode
 
   @JSExport
-  def focus() : String = sw.focusNode
+  def namedGraph(graph: Any): UnravelSessionJs = UnravelSessionJs(config, sw.namedGraph(toIRI(graph)))
+
+  // ------------------------------------------------------------------ //
+  //  Navigation : focus (deprecated) / from                             //
+  // ------------------------------------------------------------------ //
 
   @JSExport
-  def namedGraph(graph : Any ) : UnravelSessionJs = UnravelSessionJs(config,sw.namedGraph(toIRI(graph)))
-  /* start a request */
-  @JSExport
-  def something( ref : String = sw.getUniqueRef("something") ) : UnravelSessionJs = UnravelSessionJs(config,sw.something(ref))
+  @deprecated("Use from() instead", "0.5")
+  def focus(ref: String): UnravelSessionJs = UnravelSessionJs(config, sw.from(ref))
 
-  /* create node which focus is the subject : ?focusId <uri> ?target */
+  /** Positionne le curseur sur ref (sans closure). */
   @JSExport
-  def isSubjectOf( uri : Any , ref : String = sw.getUniqueRef("object") ) : UnravelSessionJs =
-    UnravelSessionJs(config,sw.isSubjectOf(uri,ref))
+  def from(ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.from(ref))
 
-  /* create node which focus is the subject : ?focusId <uri> ?target */
+  /** Positionne le curseur sur ref, applique la closure, restaure le focus parent. */
   @JSExport
-  def isObjectOf( uri : Any , ref : String = sw.getUniqueRef("subject") ) : UnravelSessionJs = UnravelSessionJs(config,sw.isObjectOf(uri,ref))
+  def from(ref: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.from(ref, wrap(f)))
 
-  @JSExport
-  def isLinkTo( uri : Any , ref : String = sw.getUniqueRef("linkTo") ) : UnravelSessionJs = UnravelSessionJs(config,sw.isLinkTo(uri,ref))
-
-  @JSExport
-  def isA( term : Any ) : UnravelSessionJs = UnravelSessionJs(config,sw.isA(term))
+  // ------------------------------------------------------------------ //
+  //  Traversée                                                           //
+  // ------------------------------------------------------------------ //
 
   @JSExport
-  def isLinkFrom( uri : String , ref : String = sw.getUniqueRef("linkFrom") ) : UnravelSessionJs = UnravelSessionJs(config,sw.isLinkFrom(uri,ref))
-  /* set */
-  @JSExport
-  def set( term : Any ) : UnravelSessionJs = UnravelSessionJs(config,sw.set(term))
+  def something(ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.something(ref))
 
   @JSExport
-  def setList( terms : Any* ) : UnravelSessionJs = UnravelSessionJs(config,sw.setList(terms.map(SparqlDefinition.fromAny)))
+  def something(ref: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.something(ref, wrap(f)))
 
   @JSExport
-  def datatype( uri : Any, ref : String ) : UnravelSessionJs = UnravelSessionJs(config,sw.datatype(toURI(uri),ref))
+  def isSubjectOf(uri: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isSubjectOf(toURI(uri)))
 
   @JSExport
-  def remove( focus : String ) : UnravelSessionJs = UnravelSessionJs(config,sw.remove(focus))
+  def isSubjectOf(uri: Any, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isSubjectOf(toURI(uri), ref))
 
   @JSExport
-  def console() : UnravelSessionJs = UnravelSessionJs(config,sw.console)
+  def isSubjectOf(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isSubjectOf(toURI(uri), wrap(f)))
 
   @JSExport
-  def sparql() : String = sw.sparql
+  def isObjectOf(uri: Any, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isObjectOf(toURI(uri), ref))
 
   @JSExport
-  def sparql_get() : String = sw.sparql_get
+  def isObjectOf(uri: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isObjectOf(toURI(uri)))
 
   @JSExport
-  def sparql_curl() : String = sw.sparql_curl
+  def isObjectOf(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isObjectOf(toURI(uri), wrap(f)))
+
+  @JSExport
+  def isLinkTo(uri: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isLinkTo(toURI(uri)))
+
+  @JSExport
+  def isLinkTo(uri: Any, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isLinkTo(toURI(uri), ref))
+
+  @JSExport
+  def isLinkTo(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isLinkTo(toURI(uri), wrap(f)))
+
+  @JSExport
+  def isLinkFrom(uri: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isLinkFrom(uri))
+
+  @JSExport
+  def isLinkFrom(uri: String, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isLinkFrom(uri, ref))
+
+  @JSExport
+  def isLinkFrom(uri: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isLinkFrom(uri, wrap(f)))
+
+  @JSExport
+  def isA(term: Any): UnravelSessionJs = UnravelSessionJs(config, sw.isA(term))
+
+  // ------------------------------------------------------------------ //
+  //  Valeurs                                                             //
+  // ------------------------------------------------------------------ //
+
+  @JSExport
+  def set(term: Any): UnravelSessionJs = UnravelSessionJs(config, sw.set(term))
+
+  @JSExport
+  def setList(terms: Any*): UnravelSessionJs =
+    UnravelSessionJs(config, sw.setList(terms.map(SparqlDefinition.fromAny)))
+
+  @JSExport
+  def datatype(uri: Any, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.datatype(toURI(uri), ref))
+
+  @JSExport
+  def remove(focus: String): UnravelSessionJs = UnravelSessionJs(config, sw.remove(focus))
+
+  // ------------------------------------------------------------------ //
+  //  Décoration                                                          //
+  // ------------------------------------------------------------------ //
+
+  @JSExport
+  def setDecoration(key: String, value: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.setDecoration(key, value))
+
+  @JSExport
+  def getDecoration(key: String): String = sw.getDecoration(key)
+
+  // ------------------------------------------------------------------ //
+  //  Debug / SPARQL                                                      //
+  // ------------------------------------------------------------------ //
+
+  @JSExport
+  def console(): UnravelSessionJs = UnravelSessionJs(config, sw.console)
+
+  @JSExport
+  def sparql(): String = sw.sparql
+
+  @JSExport
+  def sparql_get(): String = sw.sparql_get
+
+  @JSExport
+  def sparql_curl(): String = sw.sparql_curl
 
   @JSExport
   def getSerializedString(): String = sw.getSerializedString
 
   @JSExport
-  def setSerializedString(query : String): UnravelSessionJs = UnravelSessionJs(config,sw.setSerializedString(query))
+  def setSerializedString(query: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.setSerializedString(query))
 
   @JSExport
-  def browse[A](visitor : js.Function2[Dynamic, Integer,A] ) : js.Array[A] = {
-    val visitor2 : (Node, Integer) => A = (n, p) => {
-      visitor(JSON.parse(OptionPickler.write(n)),p)
-    }
+  def browse[A](visitor: js.Function2[Dynamic, Integer, A]): js.Array[A] = {
+    val visitor2: (Node, Integer) => A = (n, p) => visitor(JSON.parse(OptionPickler.write(n)), p)
     sw.browse(visitor2).toJSArray
   }
-  
-  @JSExport
-  def setDecoration(key : String, value : String) : UnravelSessionJs = UnravelSessionJs(config,sw.setDecoration(key,value))
 
-  @JSExport
-  def getDecoration(key : String) : String = sw.getDecoration(key)
+  // ------------------------------------------------------------------ //
+  //  Requêtes                                                            //
+  // ------------------------------------------------------------------ //
 
   @JSExport
   def select(lRef: String*): UnravelQueryJs = UnravelQueryJs(sw.select(lRef))
 
   @JSExport
-  def select(lRef: js.Array[String], limit : Int = 0, offset : Int = 0): UnravelQueryJs =
-    UnravelQueryJs(sw.select(lRef.toSeq,limit,offset))
+  def select(lRef: js.Array[String], limit: Int = 0, offset: Int = 0): UnravelQueryJs =
+    UnravelQueryJs(sw.select(lRef.toSeq, limit, offset))
 
   @JSExport
-  def selectByPage(lRef: js.Array[String])  : js.Promise[(Int,js.Array[UnravelQueryJs])] =
-    sw.selectByPage(lRef.toSeq).map( res => {
-      val n : Int = res._1
-      val l : Seq[UnravelQuery] = res._2
-      (n, l.map(swt => UnravelQueryJs(swt) ).toJSArray) }).toJSPromise
+  def selectByPage(lRef: js.Array[String]): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+    sw.selectByPage(lRef.toSeq).map { res =>
+      val n: Int = res._1
+      val l: Seq[UnravelQuery] = res._2
+      (n, l.map(UnravelQueryJs(_)).toJSArray)
+    }.toJSPromise
 
   @JSExport
-  def selectByPage(lRef: String*)  : js.Promise[(Int,js.Array[UnravelQueryJs])] =
+  def selectByPage(lRef: String*): js.Promise[(Int, js.Array[UnravelQueryJs])] =
     selectByPage(lRef.toJSArray)
 
   @JSExport
-  def selectDistinctByPage(lRef: js.Array[String])  : js.Promise[(Int,js.Array[UnravelQueryJs])] =
-    sw.selectDistinctByPage(lRef.toSeq).map( res => {
-    val n : Int = res._1
-    val l : Seq[UnravelQuery] = res._2
-    (n, l.map(swt => UnravelQueryJs(swt) ).toJSArray) }).toJSPromise
+  def selectDistinctByPage(lRef: js.Array[String]): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+    sw.selectDistinctByPage(lRef.toSeq).map { res =>
+      val n: Int = res._1
+      val l: Seq[UnravelQuery] = res._2
+      (n, l.map(UnravelQueryJs(_)).toJSArray)
+    }.toJSPromise
 
   @JSExport
-  def selectDistinctByPage(lRef: String*)  : js.Promise[(Int,js.Array[UnravelQueryJs])] =
+  def selectDistinctByPage(lRef: String*): js.Promise[(Int, js.Array[UnravelQueryJs])] =
     selectDistinctByPage(lRef.toJSArray)
 }

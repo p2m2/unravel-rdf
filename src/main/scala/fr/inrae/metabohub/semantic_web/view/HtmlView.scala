@@ -52,7 +52,7 @@ case class HtmlView(sw: UnravelSession, regex : String = "") {
   } else {
     sw
   })
-    .select(Seq(sw.focus())).limit(limitValues).commit().raw.map(resultsJson => {
+    .select(Seq(sw.current())).limit(limitValues).commit().raw.map(resultsJson => {
     values = " - " + resultsJson("results")("bindings").arr.mkString("\n - ")
     update()
   })

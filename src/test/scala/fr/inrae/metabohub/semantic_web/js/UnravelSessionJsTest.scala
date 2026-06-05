@@ -4,12 +4,13 @@ import fr.inrae.metabohub.data.DataTestFactory
 import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, test}
 
+import scala.concurrent.Future
 import scala.scalajs.js.JSConverters._
 
 object UnravelSessionJsTest extends TestSuite{
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  val insertData = DataTestFactory.insertVirtuoso1(
+  val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
     """<aa> <bb> <cc> .
        <aa> <bb> <dd> .
        <aa> a <ee> .
@@ -22,7 +23,7 @@ object UnravelSessionJsTest extends TestSuite{
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
-  def startRequest =
+  def startRequest: UnravelSessionJs =
     UnravelSessionJs(config)
       .graph(DataTestFactory.graph1(this.getClass.getSimpleName))
       .something("h1")
@@ -31,13 +32,13 @@ object UnravelSessionJsTest extends TestSuite{
 
 
     test("focus") {
-      startRequest.focus() match {
+      startRequest.current() match {
         case _ : String => assert(true)
         case _ => assert(false)
       }
     }
     test("focus change") {
-      startRequest.focus("h1")
+      startRequest.from("h1")
     }
     test("prefix") {
       startRequest.prefix("h","http://test")
@@ -49,7 +50,7 @@ object UnravelSessionJsTest extends TestSuite{
       startRequest.root().something("http://test")
     }
     test("isSubjectOf") {
-      startRequest.isSubjectOf("http://test")
+      startRequest.isSubjectOf("http://test", s=>s)
     }
     test("isObjectOf") {
       startRequest.isSubjectOf("http://test")

@@ -67,7 +67,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   }
 
 
-  def process_datatype(
+  private def process_datatype(
   root: Root,
   qr: QueryResult,
   datatypeNode: DatatypeNode,
@@ -92,9 +92,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
       val tx = UnravelSession(sw.config)
         .prefixes(root.getPrefixes)
-        .something("val_uri")
-        .setList(onlyUris)
-        .focusManagement(datatypeNode.property, forward = false)
+        .something("val_uri", _.setList(onlyUris))
         .select(List("val_uri", labelProperty))
         .console
         .commit()
@@ -117,7 +115,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
             try {
               Some(rec("val_uri")("value").value.toString)
             } catch {
-              case e: Throwable =>
+              case _: Throwable =>
                 trace("missing val_uri in record: " + rec.toString)
                 None
             }
@@ -126,7 +124,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
             try {
               Some(rec(labelProperty))
             } catch {
-              case e: Throwable =>
+              case _: Throwable =>
                 trace("missing property [" + labelProperty + "] in record: " + rec.toString)
                 None
             }
@@ -178,7 +176,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       case Success(driver) =>
         
         driver.subscribe(this.asInstanceOf[Subscriber[UnravelRequestEvent,Publisher[UnravelRequestEvent]]])
-        println("DRIVER1"+driver.toString())
+        println("DRIVER1"+driver.toString)
         driver.execute(this)
           /* manage datatype decoration */
           .map((qr: QueryResult) => {
@@ -202,12 +200,11 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
                     } catch {
                       case _: Throwable => List()
                     }
-                    trace("ICI1:"+qr.toString())
+                    trace("ICI1:"+qr.toString)
                   Future.sequence(process_datatype(sw.rootNode,qr, datatypeNode, lUris))
-                case None => { 
-                  trace("ICI2:"+qr.toString())
+                case None =>
+                  trace("ICI2:"+qr.toString)
                   Future {}
-                }
               }
             })) onComplete {
               case Success(_) =>
@@ -240,7 +237,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   def projection  : UnravelQuery = {
     /* check if a projection exist or create a new one */
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
-      case Some(p) => sw.focus(p.idRef).transaction
+      case Some(p) => sw.from(p.idRef).transaction
       case None => sw.root.focusManagement(Projection(Seq(),sw.getUniqueRef())).transaction
     }
   }
@@ -252,7 +249,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
         val listVariable : Seq[QueryVariable] = p.variables ++  lRef.map(QueryVariable(_))
         sw.root.focusManagement(
           Projection(listVariable,p.idRef,p.children))
-          .focus(p.idRef).transaction
+          .from(p.idRef).transaction
       case None =>
         sw.root.focusManagement(Projection(lRef.map(QueryVariable(_)),sw.getUniqueRef())).transaction
     }

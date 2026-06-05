@@ -6,9 +6,10 @@ import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, test}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object Fix72CuriUri extends TestSuite {
-  val insert_data = DataTestFactory.insertVirtuoso1(
+  val insert_data: Future[Any] = DataTestFactory.insertVirtuoso1(
     """
       <http://aa> <http://bb> <http://cc> .
       <http://aa> <http://test#dd> "test" .
@@ -21,15 +22,14 @@ object Fix72CuriUri extends TestSuite {
   }
 
   def tests = Tests {
-    test("Fix #73") {
+    test("Fix #72") {
       insert_data.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .prefix("test","http://test#")
-          .something("h1")
-          .datatype(URI("dd","test"),"dt")
-          .console
-          .select(Seq("h1","dt"))
+          .something("h1", h1 => h1.datatype(URI("dd","test"),"dt"))
+          //.console
+         .select(Seq("h1","dt"))
           .commit()
           .raw.map(r => {
             println(r)

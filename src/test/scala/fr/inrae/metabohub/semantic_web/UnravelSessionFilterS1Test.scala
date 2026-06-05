@@ -30,9 +30,9 @@ object UnravelSessionFilterS1Test extends TestSuite {
           .something("instance")
             .isSubjectOf(URI("a"))
               .set(URI("Class", "owl"))
-          .focus("instance")
+          .from("instance")
             .filter.contains("w3")
-          .focus("instance")
+          .from("instance")
             .filter.not.contains("http://www.w3.org/2002/07/owl")
           .select(List("instance"))
 

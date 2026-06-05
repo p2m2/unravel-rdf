@@ -7,12 +7,13 @@ import fr.inrae.metabohub.semantic_web.configuration._
 import utest._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 object UnravelSessionTest extends TestSuite {
 
-  val insertData = DataTestFactory.insertVirtuoso1(
+  val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
     """
       <http://aa> <http://bb> <http://cc> .
       <http://aa> <http://bb2> <http://cc2> .
@@ -37,7 +38,7 @@ object UnravelSessionTest extends TestSuite {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
-  def startRequest =
+  def startRequest: UnravelSession =
     UnravelSession(config)
       .graph(DataTestFactory.graph1(this.getClass.getSimpleName))
       .something("h1")
@@ -141,15 +142,15 @@ object UnravelSessionTest extends TestSuite {
       }).flatten
     }
 
-    test("focus on the root using focus method") {
+    test("focus/from on the root using focus method") {
       val disco = UnravelSession(config)
-      val f = disco.focus()
-      assert(Try(disco.focus(f)).isSuccess)
-      assert(Try(disco.something("h1").focus(f)).isSuccess)
+      val f = disco.current()
+      assert(Try(disco.from(f)).isSuccess)
+      assert(Try(disco.something("h1").from(f)).isSuccess)
     }
 
     test("bad focus") {
-      assert(Try(startRequest.focus("h2")).isFailure)
+      assert(Try(startRequest.from("h2")).isFailure)
     }
 
     test("use named graph") {
@@ -170,22 +171,22 @@ object UnravelSessionTest extends TestSuite {
 
     test("remove Something h1") {
       val sw = startRequest.remove("h1")
-      assert(sw.rootNode.idRef == sw.focus())
-      assert(sw.something("h").focus() == "h")
+      assert(sw.rootNode.idRef == sw.current())
+      assert(sw.something("h").current() == "h")
     }
 
     test("Remove nothing") {
 
       val sw =  UnravelSession(config)
                   .remove("h1")
-      assert(sw.rootNode.idRef == sw.focus())
+      assert(sw.rootNode.idRef == sw.current())
 
     }
 
     test("Remove root") {
       val sw =  UnravelSession(config)
       sw.remove(sw.rootNode.idRef)
-      assert(sw.rootNode.idRef == sw.focus())
+      assert(sw.rootNode.idRef == sw.current())
     }
 
     test("Remove branch") {
@@ -216,15 +217,15 @@ object UnravelSessionTest extends TestSuite {
     }
 
     test("sparql get") {
-       assert( startRequest
-          .isSubjectOf("http://test","h2")
-          .sparql_get.length>0)
+       assert(startRequest
+         .isSubjectOf("http://test", "h2")
+         .sparql_get.nonEmpty)
     }
 
     test("sparql curl") {
-      assert( startRequest
-        .isSubjectOf("http://test","h2")
-        .sparql_curl.length>0)
+      assert(startRequest
+        .isSubjectOf("http://test", "h2")
+        .sparql_curl.nonEmpty)
     }
 
     test("prefix") {

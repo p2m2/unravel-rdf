@@ -70,7 +70,7 @@ case class UnravelSession(
 
   case class BindIncrement(`var` : String) {
     def manage(n:ExpressionNode,forward : Boolean = true) : UnravelSession =
-      // focusManagement(Bind(n,`var`),forward).root.something(`var`).focus(`var`)
+      // focusManagement(Bind(n,`var`),forward).root.something(`var`).from(`var`)
       focusManagement(Bind(n,`var`),forward)
     /* primary expression */
 
@@ -109,9 +109,9 @@ case class UnravelSession(
   def getConfig : UnravelConfig = config
 
   /* get current focus */
-  def focus() : String = focusNode
+  def current() : String = focusNode
 
-  /* set the current focus on the select node */
+  @deprecated("Use nested closures or from() instead", "0.5")
   def focus(ref : String) : UnravelSession = {
     if ( ref == focusNode ) {
       UnravelSession(config,rootNode,fn)
@@ -123,6 +123,13 @@ case class UnravelSession(
         case None => throw UnravelException(s"$ref does not exist.")
       }
     }
+  }
+
+  def from( ref : String, f : UnravelSession => UnravelSession = identity ) : UnravelSession = {
+    val node = pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption
+      .getOrElse(throw UnravelException(s"$ref does not exist."))
+    val inner = UnravelSession(config, rootNode, Some(node.reference()))
+    f(inner).copy(fn = this.fn)
   }
 
   def refExist(ref:String) : UnravelSession = {
@@ -140,7 +147,7 @@ case class UnravelSession(
   def prefixes( lPrefixes : Map[String,IRI] ) : UnravelSession =
     (lPrefixes map {case (key, value) => prefix(key, value)
     }).toSeq match {
-      case l if l.length>0 => l(l.length-1)
+      case l if l.nonEmpty => l.last
       case _ => this
     }
 
@@ -152,7 +159,7 @@ case class UnravelSession(
 
   def namedGraph(graph : IRI ) : UnravelSession = UnravelSession(config,rootNode.addNamedGraph(graph),Some(focusNode))
 
-  def checkQueryVariable(term : SparqlDefinition): UnravelSession = {
+  private def checkQueryVariable(term : SparqlDefinition): UnravelSession = {
     /* Check if QueryVariable is referenced with Element.
      *  add a Something element otherwise */
     term match {
@@ -192,41 +199,72 @@ case class UnravelSession(
   }
 
   /* start a request with a variable */
-  def something( ref : String = getUniqueRef("something") ) : UnravelSession = {
+  def something( ref : String = getUniqueRef("something"), f : UnravelSession => UnravelSession = identity ) : UnravelSession = {
     debug(" -- something -- ")
-    focusManagement(Something(ref))
+    val inner = focusManagement(Something(ref))
+    f(inner).copy(fn = this.fn)
   }
 
   /* create node which focus is the subject : ?focusId <uri> ?target */
-  def isSubjectOf( term : SparqlDefinition , ref : String = getUniqueRef("object")  ) : UnravelSession =
-    checkQueryVariable(term).focusManagement(SubjectOf(ref,term))
+  def isSubjectOf(term: SparqlDefinition, ref: String, f: UnravelSession => UnravelSession): UnravelSession = {
+    val inner = checkQueryVariable(term).focusManagement(SubjectOf(ref, term))
+    f(inner).copy(fn = this.fn)
+  }
+
+  def isSubjectOf( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity ) : UnravelSession =
+    isSubjectOf(term,getUniqueRef("object"),f)
+
+  def isSubjectOf( term : SparqlDefinition, ref : String ) : UnravelSession =
+    isSubjectOf(term, ref, identity)
 
 
   /* create node which focus is the subject : ?target <uri> ?focusId */
-  def isObjectOf( term : SparqlDefinition , ref : String = getUniqueRef("subject")  ) : UnravelSession =
-    checkQueryVariable(term).focusManagement(ObjectOf(ref,term))
+  def isObjectOf( term : SparqlDefinition , ref : String, f : UnravelSession => UnravelSession) : UnravelSession = {
+    val inner = checkQueryVariable(term).focusManagement(ObjectOf(ref,term))
+    f(inner).copy(fn = this.fn)
+  }
+
+  def isObjectOf( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity  ) : UnravelSession =
+    isObjectOf(term, getUniqueRef("linkFrom"), f)
+
+  def isObjectOf( term : SparqlDefinition, ref : String ) : UnravelSession =
+    isLinkTo(term, ref, identity)
 
   /* create node which focus is the properties :
   ?focusId ?target <uri>|literal
   */
-  def isLinkTo(term : SparqlDefinition, ref : String = getUniqueRef("linkTo") ) : UnravelSession =
-    checkQueryVariable(term).focusManagement(LinkTo(ref,term))
+  def isLinkTo(term : SparqlDefinition, ref : String, f : UnravelSession => UnravelSession ) : UnravelSession = {
+    val inner = checkQueryVariable(term).focusManagement(LinkTo(ref,term))
+    f(inner).copy(fn = this.fn)
+  }
 
+  def isLinkTo( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity) : UnravelSession =
+    isLinkTo(term, getUniqueRef("linkFrom"), f)
+
+  def isLinkTo( term : SparqlDefinition, ref : String ) : UnravelSession =
+    isLinkTo(term, ref, identity)
 
   /* create node which focus is typed with <uri>:
   ?focusId a <uri>
   */
   def isA( term : SparqlDefinition  ) : UnravelSession =
     checkQueryVariable(term)
-    .isSubjectOf(URI("a"))
-    .set(term)
-    .focus(focusNode)
+    .isSubjectOf(URI("a"), s => s.set(term))
 
   /* create node which focus is the properties :
      <uri> ?target ?focusId
   */
-  def isLinkFrom( term : SparqlDefinition, ref : String = getUniqueRef("linkFrom")  ) : UnravelSession =
-    checkQueryVariable(term).focusManagement(LinkFrom(ref,term))
+
+  def isLinkFrom( term : SparqlDefinition, ref : String, f : UnravelSession => UnravelSession) : UnravelSession = {
+    val inner = checkQueryVariable(term).focusManagement(LinkFrom(ref,term))
+    f(inner).copy(fn = this.fn)
+  }
+
+  def isLinkFrom( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity) : UnravelSession =
+    isLinkFrom(term, getUniqueRef("linkFrom"), f)
+
+  def isLinkFrom( term : SparqlDefinition, ref : String ) : UnravelSession =
+    isLinkFrom(term, ref, identity)
 
   /*
   Get attribute value of an object.
@@ -237,7 +275,7 @@ case class UnravelSession(
   def datatype( uri : URI, ref : String ) : UnravelSession =
     UnravelSession(
       config,
-      root.focusManagement(DatatypeNode(focusNode,SubjectOf(ref,uri),ref), false).rootNode,
+      root.focusManagement(DatatypeNode(focusNode,SubjectOf(ref,uri),ref), forward = false).rootNode,
       Some(focusNode))
 
 

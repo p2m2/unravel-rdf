@@ -30,9 +30,9 @@ object Fix144TriplyDb extends TestSuite {
   def tests = Tests {
     test("Fix Triplydb access #144") {
         UnravelSession(config)
-          .something("h1")
-          .isSubjectOf(URI("a"),"type")
-          .filter.contains("Business")
+          .something("h1",
+            _.isSubjectOf(URI("a"),"type",
+             _.filter.contains("Business")))
           .select(Seq("type"))
 
       /*

@@ -16,7 +16,7 @@ object UnravelSessionDecorationTest extends TestSuite {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
-  def startRequest =
+  def startRequest: UnravelSession =
     UnravelSession(config)
       .graph(DataTestFactory.graph1(this.getClass.getSimpleName))
       .something("h1")
@@ -32,19 +32,16 @@ object UnravelSessionDecorationTest extends TestSuite {
             (n : Node,deep: Integer)=> {
               n.decorations
             }
-          ).filter( _.size>0) == List(Map("someKey"->"someValue")))
+          ).filter(_.nonEmpty) == List(Map("someKey"->"someValue")))
 
     }
 
     test("setDecoratingAttribute Root with children") {
       val m =
         startRequest
-          .root
-          .setDecoration("someKey","someValue")
-          .focus("h1")
-          .setDecoration("someKey2","someValue2")
-          .root
-          .setDecoration("someKey3","someValue3")
+          .root.setDecoration("someKey","someValue")
+          .from("h1", h1 => h1.setDecoration("someKey2","someValue2"))
+          .root.setDecoration("someKey3","someValue3")
           .browse(
             (n : Node,deep: Integer) => n match {
               case _ : Root => {
@@ -69,18 +66,20 @@ object UnravelSessionDecorationTest extends TestSuite {
           (n : Node,deep: Integer)=> {
             n.decorations
           }
-        ).filter( _.size>0) == List(Map("someKey"->"someValue")))
+        ).filter(_.nonEmpty) == List(Map("someKey"->"someValue")))
 
     }
 
     test("setDecoratingAttribute") {
      val m =
         startRequest
-          .setDecoration("someKey","someValue")
-          .isObjectOf(URI("http://s2"),"s2")
-          .setDecoration("someKey2","someValue2")
-          .isObjectOf(URI("http://s3"),"s3")
-          .setDecoration("someKey3","someValue3")
+          .from("h1",h1 =>
+            h1.setDecoration("someKey","someValue")
+            .isObjectOf(URI("http://s2"),"s2"))
+          .from("s2", s2 =>
+            s2.setDecoration("someKey2","someValue2")
+            .isObjectOf(URI("http://s3"),"s3"))
+          .from("s3", s3 => s3.setDecoration("someKey3","someValue3"))
           .browse(
             (n : Node,deep: Integer)=> {
               n.idRef -> n.decorations
@@ -104,19 +103,23 @@ object UnravelSessionDecorationTest extends TestSuite {
     }
 
     test("setDecoratingAttribute/getDecoration 3") {
-      (startRequest
-        .setDecoration("someKey","someValue")
-        .isObjectOf("http://some")
-        .getDecoration("someKey") == "")
+      startRequest
+        .from("h1", h1 =>
+          h1.setDecoration("someKey", "someValue")
+            .isObjectOf("http://some", s => {
+              assert(s.getDecoration("someKey") == "")
+              s
+            }))
     }
 
     test("setDecoratingAttribute/getDecoration 4") {
       (startRequest
-        .isObjectOf("http://some","something")
-        .setDecoration("someKey","someValue")
-        .isObjectOf("http://some")
-        .focus("something")
-        .getDecoration("someKey") == "someValue")
+        .from("h1",h1 =>
+          h1.isObjectOf("http://some","something",
+              s=>s.setDecoration("someKey","someValue")))
+        .from("h1",h1 => h1.isObjectOf("http://some"))
+        .from("something", s=> {assert(s.getDecoration("someKey") == "someValue");s}))
+
     }
 
     test("setDecoratingAttribute/getDecoration using datatype") {

@@ -99,7 +99,7 @@ object BindTest extends TestSuite {
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
-          assert(r("results")("bindings").arr.length == 0)
+          assert(r("results")("bindings").arr.isEmpty)
         })
       }).flatten
     }

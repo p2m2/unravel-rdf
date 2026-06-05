@@ -5,12 +5,13 @@ import fr.inrae.metabohub.semantic_web.configuration._
 import fr.inrae.metabohub.semantic_web.rdf.URI
 import utest.{TestSuite, Tests, test}
 
+import scala.concurrent.Future
 import scala.scalajs.js
 
 object UnravelSessionHelperJsTest extends TestSuite {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  val insertData = DataTestFactory.insertVirtuoso1(
+  val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
     """<aa> <bb> <cc> .
        <aa> <bb> <dd> .
        <aa> a <ee> .
@@ -23,7 +24,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
-  def startRequest =
+  def startRequest: UnravelSessionJs =
     UnravelSessionJs(config)
     .graph(DataTestFactory.graph1(this.getClass.getSimpleName))
     .something("h1")
@@ -31,31 +32,34 @@ object UnravelSessionHelperJsTest extends TestSuite {
   def tests = Tests {
     test("count") {
       insertData.map(_ => {
-        startRequest
-            .isSubjectOf(URI("<bb>"))
-            .finder
-            .count(js.Array("h1"))
-            .toFuture
-            .map( (count : Int) => { assert( count == 2 ) })
+        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+        session
+          .from("h1_obj")
+          .finder
+          .count(js.Array("h1_obj"))
+          .toFuture
+          .map( (count : Int) => { assert( count == 2 ) })
       }).flatten
     }
+
     test("classes 1") {
       insertData.map(_ => {
-        startRequest
-          .isSubjectOf(URI("<bb>"))
-          .focus("h1")
+        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+        session
+          .from("h1_obj")
           .finder
-          .classes()
-          .toFuture
-          .map( (lUris : js.Array[URI]) => {
-            assert( lUris.toList == List(URI("ee")) )
-          })
+            .classes()
+            .toFuture
+            .map( (lUris : js.Array[URI]) => {
+              assert( lUris.toList == List(URI("ee")) )
+            })
       }).flatten
     }
     test("classes 2") {
         insertData.map(_ => {
-          startRequest
-            .isSubjectOf(URI("<bb>"))
+          val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+          session
+            .from("h1_obj")
             .finder
             .classes()
             .toFuture
@@ -89,8 +93,9 @@ object UnravelSessionHelperJsTest extends TestSuite {
     }
     test("objectProperties 2") {
       insertData.map(_ => {
-        startRequest
-          .isSubjectOf(URI("<bb>"))
+        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+        session
+          .from("h1_obj")
           .finder
           .objectProperties()
           .toFuture
@@ -113,8 +118,9 @@ object UnravelSessionHelperJsTest extends TestSuite {
     }
     test("subjectProperties 2") {
       insertData.map(_ => {
-        startRequest
-          .isSubjectOf(URI("<bb>"))
+        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+        session
+          .from("h1_obj")
           .finder
           .subjectProperties()
           .toFuture
@@ -136,8 +142,9 @@ object UnravelSessionHelperJsTest extends TestSuite {
     }
     test("datatypeProperties 2") {
       insertData.map(_ => {
-        startRequest
-          .isSubjectOf(URI("<bb>"))
+        val session = startRequest.isSubjectOf(URI("<bb>"), "h1_obj")
+        session
+          .from("h1_obj")
           .finder
           .datatypeProperties()
           .toFuture
@@ -148,8 +155,9 @@ object UnravelSessionHelperJsTest extends TestSuite {
     }
     test("datatypeProperties 3") {
       insertData.map(_ => {
-        startRequest
-          .isObjectOf(URI("<bb>"))
+        val session = startRequest.isObjectOf(URI("<bb>"), "h1_sub")
+        session
+          .from("h1_sub")
           .finder
           .datatypeProperties()
           .toFuture

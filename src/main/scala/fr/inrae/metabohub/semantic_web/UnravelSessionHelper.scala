@@ -40,11 +40,11 @@ case class UnravelSessionHelper(sw : UnravelSession) {
       case _ : URI =>  sw.isSubjectOf(URI("a"),"_esp___type")
         .isSubjectOf(URI("a"))
         .set(motherClass)
-    }).focus("_esp___type")
+    }).from("_esp___type")
       .filter.not.regex(regex_avoid_prefix)
 
     (if ( regex.trim != "")
-          query.focus("_esp___type").filter.regex(regex)
+          query.from("_esp___type").filter.regex(regex)
       else
         query)
       .selectByPage(List("_esp___type"))
@@ -73,26 +73,26 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     val state = if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type")
-        .focus(sw.focusNode)
+        .from(sw.focusNode)
         .isLinkTo(QueryVariable("_esp___type"),"_esp___property").isSubjectOf(URI("a"))
         .set(motherClassProperties)
     } else {
       sw.root
         .something("_esp___type")
-        .focus(sw.focusNode)
+        .from(sw.focusNode)
         .isLinkTo(QueryVariable("_esp___type"),"_esp___property")
     }
 
     /* object or datatype properties owl def. */
     val query = ( kind  match {
-      case "objectProperty" => state.focus("_esp___type").filter.isUri
-      case "datatypeProperty" => state.focus("_esp___type").filter.isLiteral
+      case "objectProperty" => state.from("_esp___type").filter.isUri
+      case "datatypeProperty" => state.from("_esp___type").filter.isLiteral
       case _ => state
-    }).focus("_esp___property")
+    }).from("_esp___property")
       .filter.not.regex(regex_avoid_prefix)
 
     (if ( regex.trim != "")
-      query.focus("_esp___property")
+      query.from("_esp___property")
         .filter.regex(regex)
     else
       query)
@@ -135,19 +135,19 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     val query = (if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type")
-        .focus(sw.focusNode)
+        .from(sw.focusNode)
         .isLinkFrom(QueryVariable("_esp___type"),"_esp___property").isSubjectOf(URI("a"))
         .set(motherClassProperties)
     } else {
       sw.root
         .something("_esp___type")
-        .focus(sw.focusNode)
+        .from(sw.focusNode)
         .isLinkFrom(QueryVariable("_esp___type"),"_esp___property")
-    }).focus("_esp___property")
+    }).from("_esp___property")
       .filter.not.regex(regex_avoid_prefix)
 
     (if ( regex.trim != "")
-      query.focus("_esp___property").filter.regex(regex)
+      query.from("_esp___property").filter.regex(regex)
     else
       query)
 
