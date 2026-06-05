@@ -67,10 +67,13 @@ case class UnravelSession(
 
   def filter : FilterIncrement = FilterIncrement()
 
-  case class BindIncrement(`var` : String) {
+  case class BindIncrement(`var` : String, f: UnravelSession => UnravelSession = identity) {
     def manage(n:ExpressionNode,forward : Boolean = true) : UnravelSession =
-      // focusManagement(Bind(n,`var`),forward).root.something(`var`).from(`var`)
-      focusManagement(Bind(n,`var`))
+      {
+        val unravelSess = focusManagement(Bind(n,`var`))
+        UnravelSession(unravelSess.config,unravelSess.rootNode,Some(`var`))
+      }
+
     /* primary expression */
 
     /* String fun */
@@ -90,7 +93,7 @@ case class UnravelSession(
     def str() : UnravelSession = manage(Str(QueryVariable(`var`),getUniqueRef()))
   }
 
-  def bind(`var` : String) : BindIncrement = BindIncrement(`var`)
+  def bind(`var` : String, f: UnravelSession => UnravelSession = identity) : BindIncrement = BindIncrement(`var`,f)
 
   //private val logger = Logger.of[UnravelSession]
   // Set the root logger's log level

@@ -28,9 +28,9 @@ object BindSubStrTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"))
-          .bind("res").subStr(0,3)
+          .something(
+            _.isSubjectOf(URI("http://bb"),
+              _.bind("res").subStr(0,3)))
           .select(Seq("res"))
           .distinct
           .commit()
@@ -44,14 +44,17 @@ object BindSubStrTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"))
-          .bind("res").subStr(0,3)
-          .filter.equal("abc")
+          .something(
+            _.isSubjectOf(URI("http://bb"),
+              _.bind("res")
+                .subStr(0,3)
+                .filter.equal("abc")))
+          .console
           .select(Seq("res"))
           .distinct
           .commit()
           .raw.map(r => {
+          println(r)
           assert(r("results")("bindings").arr.length == 1)
         })
       }).flatten

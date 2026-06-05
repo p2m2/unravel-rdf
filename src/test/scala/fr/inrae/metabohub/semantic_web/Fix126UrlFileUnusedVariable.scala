@@ -28,8 +28,7 @@ object Fix126UrlFileUnusedVariable extends TestSuite {
     test("order by") {
         UnravelSession(config)
           .prefix("ns0","http://www.some-ficticious-zoo.com/rdf#")
-          .something("animal")
-          .datatype(URI("ns0:name"),"name")
+          .something("animal",_.datatype(URI("ns0:name"),"name"))
           .select(Seq("animal","name"))
           .console
           .commit()
