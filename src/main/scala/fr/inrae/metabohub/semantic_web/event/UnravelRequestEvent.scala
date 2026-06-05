@@ -1,8 +1,8 @@
 package fr.inrae.metabohub.semantic_web.event
 
-object DiscoveryStateRequestEvent extends Enumeration {
+object UnravelStateRequestEvent extends Enumeration {
 
-  type DiscoveryRequestEvent = Value
+  type UnravelRequestEvent = Value
   val
   START,
   QUERY_BUILD,
@@ -22,7 +22,7 @@ object DiscoveryStateRequestEvent extends Enumeration {
 
   val nValidStep = 11
 
-  def getPercentProgression(s : DiscoveryRequestEvent) : Double = s match {
+  def getPercentProgression(s : UnravelRequestEvent) : Double = s match {
     case START => 0.1
     case QUERY_BUILD => 0.2
     case RESULTS_BUILD => 0.3
@@ -37,4 +37,4 @@ object DiscoveryStateRequestEvent extends Enumeration {
 
 }
 
-case class DiscoveryRequestEvent(state : DiscoveryStateRequestEvent.Value)
+case class UnravelRequestEvent(state : UnravelStateRequestEvent.Value)

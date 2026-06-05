@@ -15,7 +15,7 @@ import io.lemonlabs.uri.{QueryString, Url}
 
 object UnravelSession {
 
-  private val version : String = SWDiscoveryVersionAtBuildTime.version
+  private val version : String = UnravelSessionVersionAtBuildTime.version
 
   implicit val rw: OptionPickler.ReadWriter[UnravelSession] = OptionPickler.macroRW
 
@@ -93,7 +93,7 @@ case class UnravelSession(
 
   def bind(`var` : String) : BindIncrement = BindIncrement(`var`)
 
-  //private val logger = Logger.of[SWDiscovery]
+  //private val logger = Logger.of[UnravelSession]
   // Set the root logger's log level
   Logger.setDefaultLogLevel(config.settings._logLevel)
 

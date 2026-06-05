@@ -8,7 +8,7 @@ import scala.sys.process.Process
 val staticVersionBuild = "local.build"
 val versionBuild = scala.util.Properties.envOrElse("DISCOVERY_VERSION", staticVersionBuild)
 
-val generateSWDiscoveryVersionFile = taskKey[Unit]("Generate SWDiscovery version file")
+val generateUnravelVersionFile = taskKey[Unit]("Generate Unravel version file")
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
 val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
 val cdnPrepare = taskKey[File]("Build a browser-ready UMD bundle in target/cdn")
@@ -151,15 +151,15 @@ def prepareNpmDir(
   npmDir
 }
 
-generateSWDiscoveryVersionFile := {
+generateUnravelVersionFile := {
   val file =
-    baseDirectory.value / "src" / "main" / "scala" / "fr" / "inrae" / "metabohub" / "semantic_web" / "SWDiscoveryVersionAtBuildTime.scala"
+    baseDirectory.value / "src" / "main" / "scala" / "fr" / "inrae" / "metabohub" / "semantic_web" / "UnravelSessionVersionAtBuildTime.scala"
 
   IO.write(
     file,
     s"""|package fr.inrae.metabohub.semantic_web
         |
-        |object SWDiscoveryVersionAtBuildTime {
+        |object UnravelSessionVersionAtBuildTime {
         |  val version: String = "${version.value}"
         |}
         |""".stripMargin

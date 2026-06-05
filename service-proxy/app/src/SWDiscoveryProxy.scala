@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.app
 
 import cask.main.Main
-import fr.inrae.metabohub.semantic_web.{SWDiscoveryVersionAtBuildTime, UnravelQuery}
+import fr.inrae.metabohub.semantic_web.UnravelQuery
 import io.undertow.Undertow
 import io.undertow.server.handlers.BlockingHandler
 import ujson.Value

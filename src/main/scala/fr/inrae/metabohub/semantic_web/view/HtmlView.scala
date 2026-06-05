@@ -1,28 +1,26 @@
 package fr.inrae.metabohub.semantic_web.view
 
 import fr.inrae.metabohub.semantic_web.node.pm.{NodeVisitor, SimpleConsole}
-import fr.inrae.metabohub.semantic_web.{UnravelSession, SWDiscoveryVersionAtBuildTime}
+import fr.inrae.metabohub.semantic_web.{UnravelSession, UnravelSessionVersionAtBuildTime}
 import org.scalajs.dom.document
 
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic
-
 import facade.npm._
 
 case class HtmlView(sw: UnravelSession, regex : String = "") {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  val updateElapsedTime = 1000
-  val limitValues = 10
+  private val limitValues = 10
 
-  val waitingForFuture = "[X]"
+  private val waitingForFuture = "[X]"
 
   /* count de la solution */
   var count: String = waitingForFuture
   var classes: String = waitingForFuture
-  var subjectOfObjectProperties: String = waitingForFuture
-  var subjectOfDatatypeProperties: String = waitingForFuture
-  var objectOfProperties: String = waitingForFuture
+  private var subjectOfObjectProperties: String = waitingForFuture
+  private var subjectOfDatatypeProperties: String = waitingForFuture
+  private var objectOfProperties: String = waitingForFuture
   var values: String = waitingForFuture
 /*
   sw.finder.count().map(c => {
@@ -60,12 +58,12 @@ case class HtmlView(sw: UnravelSession, regex : String = "") {
   })
 
 
-  val css = ""
+  private val css = ""
 
   def text =
     s"""
 ## [Discovery](https://github.com/p2m2/Discovery)
- - build    : ${SWDiscoveryVersionAtBuildTime.version}
+ - build    : ${UnravelSessionVersionAtBuildTime.version}
 
 ### New step on focus
 
@@ -107,7 +105,7 @@ ${SimpleConsole(consoleColor=false,displayRootStyle=false).get(sw.rootNode)}
 """
 
 
-  val options: js.Object with Dynamic = Dynamic.literal(
+  private val options: js.Object with Dynamic = Dynamic.literal(
     "ghCodeBlocks" -> true,
     "tables" -> true,
     "strikethrough" -> false

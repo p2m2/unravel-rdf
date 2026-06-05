@@ -161,7 +161,7 @@ object RequestsTest extends TestSuite {
 /*
     test("federation") {
       insertData.map(_ => {
-        SWDiscovery(mixconfig)
+        UnravelSession(mixconfig)
           .something("sub")
           .isSubjectOf(URI("http://bbbbbb"), "obj")
           //.console()

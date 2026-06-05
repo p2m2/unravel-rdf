@@ -18,17 +18,17 @@ object UnravelQuery {
 }
 
 case class UnravelQuery(sw : UnravelSession = UnravelSession())
-    extends Subscriber[DiscoveryRequestEvent,StrategyRequest]
+    extends Subscriber[UnravelRequestEvent,StrategyRequest]
 {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  def notify(pub: StrategyRequest, event: DiscoveryRequestEvent): Unit = {
+  def notify(pub: StrategyRequest, event: UnravelRequestEvent): Unit = {
     notify(event)
   }
 
   private val _prom_raw: Promise[ujson.Value] = Promise[ujson.Value]()
   val raw: Future[ujson.Value] =  _prom_raw.future
-  var currentRequestEvent: String = DiscoveryStateRequestEvent.START.toString
+  var currentRequestEvent: String = UnravelStateRequestEvent.START.toString
 
   private var countEvent: Int = 1
 
@@ -46,11 +46,11 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
     this
   }
 
-  def notify(event: DiscoveryRequestEvent): Unit = {
+  def notify(event: UnravelRequestEvent): Unit = {
     currentRequestEvent = event.state.toString
     countEvent = countEvent + 1
 
-    _progressionCallBack.foreach (f => f(DiscoveryStateRequestEvent.getPercentProgression(event.state)))
+    _progressionCallBack.foreach (f => f(UnravelStateRequestEvent.getPercentProgression(event.state)))
 
     _requestEventCallBack.foreach(f => f(currentRequestEvent))
   }
@@ -61,7 +61,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       http request should be cancelled
     * SWResults should be a publish[DiscoveryCancelEvent] => SW/QueryManager/HttpRequest => Subscriber[DiscoveryCancelEvent,SWResults]
     */
-    currentRequestEvent = DiscoveryStateRequestEvent.ABORTED_BY_THE_USER.toString
+    currentRequestEvent = UnravelStateRequestEvent.ABORTED_BY_THE_USER.toString
 
     _prom_raw failure UnravelException("aborted by the user.")
   }
@@ -153,12 +153,12 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 }
 
   def commit() : UnravelQuery = {
-    notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.START))
+    notify(UnravelRequestEvent(UnravelStateRequestEvent.START))
 
     val lSelectedVariable : Seq[QueryVariable] = sw.rootNode.getChild(Projection(List(),"")).lastOption match {
       case Some(proj) => proj.variables.distinct
       case None =>
-        notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.ERROR_REQUEST_DEFINITION))
+        notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
         throw UnravelException("projection/selected required variables are not defined.")
     }
 
@@ -168,7 +168,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
     if ( lDatatype.count(datatypeNode => lSelectedVariable.map(_.name).contains(datatypeNode.refNode)) != lDatatype.length )
       {
-        notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.ERROR_REQUEST_DEFINITION))
+        notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
         throw UnravelException("The user have to select node of interest before setup a desired datatype ["+lDatatype.map(d=>d.idRef + "->"+d.refNode).mkString(" ,")+"]")
       }
 
@@ -177,13 +177,13 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       case Failure(e) => _prom_raw failure e
       case Success(driver) =>
         
-        driver.subscribe(this.asInstanceOf[Subscriber[DiscoveryRequestEvent,Publisher[DiscoveryRequestEvent]]])
+        driver.subscribe(this.asInstanceOf[Subscriber[UnravelRequestEvent,Publisher[UnravelRequestEvent]]])
         println("DRIVER1"+driver.toString())
         driver.execute(this)
           /* manage datatype decoration */
           .map((qr: QueryResult) => {
             println("DRIVER2")
-            notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.DATATYPE_BUILD))
+            notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_BUILD))
             /* create an empty set of datatype */
             qr.json("results").update("datatype", ujson.Obj())
             trace(qr.json)
@@ -211,9 +211,9 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
               }
             })) onComplete {
               case Success(_) =>
-                notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.DATATYPE_DONE))
+                notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_DONE))
                 _prom_raw success qr.json
-                notify(DiscoveryRequestEvent(DiscoveryStateRequestEvent.REQUEST_DONE))
+                notify(UnravelRequestEvent(UnravelStateRequestEvent.REQUEST_DONE))
               case Failure(e) =>
                 _prom_raw failure e
             }
@@ -232,7 +232,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
     }
 
     def count(lRef : Seq[String],distinct: Boolean=false) : UnravelQuery = manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
-  //  def countAll(distinct: Boolean=false) : SWTransaction = manage(CountAll(distinct,sw.getUniqueRef()),true)
+  //  def countAll(distinct: Boolean=false) : UnravelQuery = manage(CountAll(distinct,sw.getUniqueRef()),true)
   }
 
   def aggregate(`var` : String) : ProjectionExpressionIncrement = ProjectionExpressionIncrement(`var`)

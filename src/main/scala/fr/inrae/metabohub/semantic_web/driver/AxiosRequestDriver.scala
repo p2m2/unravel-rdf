@@ -2,7 +2,7 @@ package fr.inrae.metabohub.semantic_web.driver
 
 import facade.npm.{Axios, AxiosConfig, qs}
 
-import fr.inrae.metabohub.semantic_web.event.{DiscoveryRequestEvent, DiscoveryStateRequestEvent}
+import fr.inrae.metabohub.semantic_web.event.{UnravelRequestEvent, UnravelStateRequestEvent}
 import fr.inrae.metabohub.semantic_web.exception.UnravelException
 import fr.inrae.metabohub.semantic_web.sparql.QueryResult
 import wvlet.log.Logger.rootLogger.debug
@@ -23,7 +23,7 @@ case class AxiosRequestDriver(
 
   def requestOnSWDB(query: String): Future[QueryResult] = {
     debug(s" -- HttpRequestDriver > ${this.getClass.getName}")
-    publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.START_HTTP_REQUEST))
+    publish(UnravelRequestEvent(UnravelStateRequestEvent.START_HTTP_REQUEST))
 
     method.toLowerCase match {
       case "post" => post(query)
@@ -33,12 +33,12 @@ case class AxiosRequestDriver(
   }
 
   private def handleError(e: Throwable): Nothing = {
-    publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.ERROR_HTTP_REQUEST))
+    publish(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_HTTP_REQUEST))
     throw UnravelException(Option(e.getMessage).getOrElse(e.toString))
   }
 
   def get(query: String): Future[QueryResult] = {
-    publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.PROCESS_HTTP_REQUEST))
+    publish(UnravelRequestEvent(UnravelStateRequestEvent.PROCESS_HTTP_REQUEST))
 
     val configAxios: AxiosConfig = js.Dynamic.literal(
       headers = js.Dictionary(
@@ -50,14 +50,14 @@ case class AxiosRequestDriver(
       .get(s"$url?query=${URIUtils.encodeURIComponent(query)}", configAxios)
       .toFuture
       .map { response =>
-        publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.FINISHED_HTTP_REQUEST))
+        publish(UnravelRequestEvent(UnravelStateRequestEvent.FINISHED_HTTP_REQUEST))
         QueryResult(JSON.stringify(response.data))
       }
       .recover { case e: Throwable => handleError(e) }
   }
 
   def post(query: String): Future[QueryResult] = {
-    publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.PROCESS_HTTP_REQUEST))
+    publish(UnravelRequestEvent(UnravelStateRequestEvent.PROCESS_HTTP_REQUEST))
 
     val configAxios: AxiosConfig = js.Dynamic.literal(
       url = url,
@@ -75,7 +75,7 @@ case class AxiosRequestDriver(
       .request(configAxios)
       .toFuture
       .map { response =>
-        publish(DiscoveryRequestEvent(DiscoveryStateRequestEvent.FINISHED_HTTP_REQUEST))
+        publish(UnravelRequestEvent(UnravelStateRequestEvent.FINISHED_HTTP_REQUEST))
         QueryResult(JSON.stringify(response.data))
       }
       .recover { case e: Throwable => handleError(e) }
