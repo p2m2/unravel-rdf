@@ -92,15 +92,13 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
       val tx = UnravelSession(sw.config)
         .prefixes(root.getPrefixes)
-        .something("val_uri", _.setList(onlyUris))
-        .select(List("val_uri", labelProperty))
-        .console
-        .commit()
+        .something("val_uri",
+          _.setList(onlyUris).focusManagement(datatypeNode.property)
+        ).select(List("val_uri", labelProperty)).commit()
 
       tx.raw.map { json =>
         trace("datatype raw json =======================")
         trace(json.toString)
-
         val bindings =
           try {
             json("results")("bindings").arr.toSeq
@@ -223,9 +221,9 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
   case class ProjectionExpressionIncrement(v : String) {
 
-    def manage(n:AggregateNode,forward : Boolean = false) : UnravelQuery = {
+    def manage(n:AggregateNode) : UnravelQuery = {
       sw.focusManagement(
-        ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef()),forward=forward).transaction
+        ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef())).transaction
     }
 
     def count(lRef : Seq[String],distinct: Boolean=false) : UnravelQuery = manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
@@ -256,28 +254,28 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
   }
 
-  def distinct : UnravelQuery = sw.root.focusManagement(Distinct(sw.getUniqueRef()), forward=false).transaction
+  def distinct : UnravelQuery = sw.root.focusManagement(Distinct(sw.getUniqueRef())).transaction
 
-  def reduced : UnravelQuery = sw.root.focusManagement(Reduced(sw.getUniqueRef()), forward=false).transaction
+  def reduced : UnravelQuery = sw.root.focusManagement(Reduced(sw.getUniqueRef())).transaction
 
-  def limit( value : Int ) : UnravelQuery = sw.root.focusManagement(Limit(value,sw.getUniqueRef()), forward=false).transaction
+  def limit( value : Int ) : UnravelQuery = sw.root.focusManagement(Limit(value,sw.getUniqueRef())).transaction
 
-  def offset( value : Int ) : UnravelQuery = sw.root.focusManagement(Offset(value,sw.getUniqueRef()), forward=false).transaction
+  def offset( value : Int ) : UnravelQuery = sw.root.focusManagement(Offset(value,sw.getUniqueRef())).transaction
 
   def orderByAsc( ref: String ) : UnravelQuery =
-    sw.refExist(ref).root.focusManagement(OrderByAsc(Seq(QueryVariable(ref)),sw.getUniqueRef()), forward=false).transaction
+    sw.refExist(ref).root.focusManagement(OrderByAsc(Seq(QueryVariable(ref)),sw.getUniqueRef())).transaction
 
   def orderByAsc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
-    sw.root.focusManagement(OrderByAsc(lRef.map(QueryVariable(_)),sw.getUniqueRef()), forward=false).transaction
+    sw.root.focusManagement(OrderByAsc(lRef.map(QueryVariable(_)),sw.getUniqueRef())).transaction
   }
 
   def orderByDesc( ref: String ) : UnravelQuery =
-    sw.refExist(ref).root.focusManagement(OrderByDesc(Seq(QueryVariable(ref)),sw.getUniqueRef()), forward=false).transaction
+    sw.refExist(ref).root.focusManagement(OrderByDesc(Seq(QueryVariable(ref)),sw.getUniqueRef())).transaction
 
   def orderByDesc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
-    sw.root.focusManagement(OrderByDesc(lRef.map(QueryVariable(_)),sw.getUniqueRef()), forward=false).transaction
+    sw.root.focusManagement(OrderByDesc(lRef.map(QueryVariable(_)),sw.getUniqueRef())).transaction
   }
   def getSerializedString : String = OptionPickler.write(this)
   def setSerializedString(query : String) : UnravelQuery = OptionPickler.read[UnravelQuery](query)

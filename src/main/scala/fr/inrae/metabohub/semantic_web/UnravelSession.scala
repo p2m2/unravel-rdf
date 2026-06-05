@@ -38,7 +38,7 @@ case class UnravelSession(
 
   case class FilterIncrement(negation : Boolean = false) {
 
-    private def manageFilter(n:Node, forward : Boolean = false) : UnravelSession = focusManagement(n,forward)
+    private def manageFilter(n:Node, forward : Boolean = false) : UnravelSession = focusManagement(n)
 
     def isLiteral : UnravelSession = manageFilter(
       fr.inrae.metabohub.semantic_web.node.isLiteral(this.negation,getUniqueRef()))
@@ -70,7 +70,7 @@ case class UnravelSession(
   case class BindIncrement(`var` : String) {
     def manage(n:ExpressionNode,forward : Boolean = true) : UnravelSession =
       // focusManagement(Bind(n,`var`),forward).root.something(`var`).from(`var`)
-      focusManagement(Bind(n,`var`),forward)
+      focusManagement(Bind(n,`var`))
     /* primary expression */
 
     /* String fun */
@@ -172,18 +172,14 @@ case class UnravelSession(
       }
   }
 
-  def focusManagement(n : Node, forward: Boolean = true) : UnravelSession = {
+  def focusManagement(n : Node) : UnravelSession = {
     // get all node
     val current = rootNode.getChild[Node](rootNode.asInstanceOf[Node]).filter( _.idRef == focusNode )
 
     if ( current.lastOption.exists(_.accept(n))) {
       val newRootNode = rootNode.addChildren(focusNode,n)
       /* current node is the focusNode */
-      if (forward) {
-        UnravelSession(config,newRootNode,Some(n.reference()))
-      }  else {
-        UnravelSession(config,newRootNode,Some(focusNode))
-      }
+      UnravelSession(config,newRootNode,Some(focusNode))
     } else {
         throw UnravelException(s"Can not add this node [$n]at the current focus[$current]")
       }
@@ -204,8 +200,9 @@ case class UnravelSession(
   /* start a request with a variable */
   def something( ref : String = getUniqueRef("something"), f : UnravelSession => UnravelSession) : UnravelSession = {
     debug(" -- something -- ")
-    val inner = focusManagement(Something(ref))
-    f(inner).copy(fn = this.fn)
+    val focus_current = focusNode
+    val withSomething = focusManagement(Something(ref))
+    f(withSomething.copy(fn = Some(ref))).copy(fn=Some(focus_current))
   }
 
   def something() : UnravelSession = something(getUniqueRef("something"),identity);
@@ -216,8 +213,9 @@ case class UnravelSession(
 
   /* create node which focus is the subject : ?focusId <uri> ?target */
   def isSubjectOf(term: SparqlDefinition, ref: String, f: UnravelSession => UnravelSession): UnravelSession = {
+    val focus_current = focusNode
     val inner = checkQueryVariable(term).focusManagement(SubjectOf(ref, term))
-    f(inner).copy(fn = this.fn)
+    f(inner.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
   def isSubjectOf( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity ) : UnravelSession =
@@ -229,8 +227,9 @@ case class UnravelSession(
 
   /* create node which focus is the subject : ?target <uri> ?focusId */
   def isObjectOf( term : SparqlDefinition , ref : String, f : UnravelSession => UnravelSession) : UnravelSession = {
+    val focus_current = focusNode
     val inner = checkQueryVariable(term).focusManagement(ObjectOf(ref,term))
-    f(inner).copy(fn = this.fn)
+    f(inner.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
   def isObjectOf( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity  ) : UnravelSession =
@@ -243,8 +242,9 @@ case class UnravelSession(
   ?focusId ?target <uri>|literal
   */
   def isLinkTo(term : SparqlDefinition, ref : String, f : UnravelSession => UnravelSession ) : UnravelSession = {
+    val focus_current = focusNode
     val inner = checkQueryVariable(term).focusManagement(LinkTo(ref,term))
-    f(inner).copy(fn = this.fn)
+    f(inner.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
   def isLinkTo( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity) : UnravelSession =
@@ -265,8 +265,9 @@ case class UnravelSession(
   */
 
   def isLinkFrom( term : SparqlDefinition, ref : String, f : UnravelSession => UnravelSession) : UnravelSession = {
+    val focus_current = focusNode
     val inner = checkQueryVariable(term).focusManagement(LinkFrom(ref,term))
-    f(inner).copy(fn = this.fn)
+    f(inner.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
   def isLinkFrom( term : SparqlDefinition, f : UnravelSession => UnravelSession = identity) : UnravelSession =
@@ -281,17 +282,27 @@ case class UnravelSession(
   Attribute value is optional
   */
 
-  def datatype( uri : URI, ref : String ) : UnravelSession =
-    UnravelSession(
-      config,
-      root.focusManagement(DatatypeNode(focusNode,SubjectOf(ref,uri),ref), forward = false).rootNode,
-      Some(focusNode))
+  def datatype(uri: URI, ref: String): UnravelSession = {
 
+    val focus_current = focusNode
+
+    val withDatatype = root.focusManagement(
+      DatatypeNode(
+        focus_current,                // parent = le SubjectOf déjà créé
+        SubjectOf(ref, uri),         // le SubjectOf que l’on veut typer
+        ref
+      )
+    )
+
+    // 4️⃣  Retourner une nouvelle session dont le focus est ce Something.
+    withDatatype.copy(fn = Some(focus_current))
+  }
 
   def set( term : SparqlDefinition ) : UnravelSession =
-    checkQueryVariable(term).focusManagement(Value(term),forward = false)
+    checkQueryVariable(term).focusManagement(Value(term))
 
-  def setList( terms : Seq[SparqlDefinition] ) : UnravelSession = focusManagement(ListValues(terms),forward = false)
+  def setList( terms : Seq[SparqlDefinition] ) : UnravelSession = focusManagement(ListValues(terms))
+
 
   def remove( focus : String ) : UnravelSession =
     UnravelSession(config,RemoveNode.run(rootNode,focus),

@@ -39,16 +39,15 @@ object RdfContentFederationTest extends TestSuite {
         .rdfContent(turtleContent2)
         .setPageSize(5)
         .setSizeBatchProcessing(10)
-        .setLogLevel("trace")
+        .setLogLevel("info")
         .setCache(true)
 
       UnravelSession(configTurtleContent)
         .prefix("ns0", "http://www.some-ficticious-zoo.com/rdf#")
-        .something("h1")
-        .datatype(URI("ns0:color"), "color")
-        .isSubjectOf(URI("ns0:class"))
-        .set("Mammal")
-        //.console
+        .something("h1",
+          _.isSubjectOf(URI("ns0:class"),_.set("Mammal"))
+            .datatype(URI("ns0:color"), "color")
+        )
         .select(List("h1", "color"))
         .commit()
         .raw
