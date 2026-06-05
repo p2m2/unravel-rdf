@@ -240,7 +240,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   def projection  : UnravelQuery = {
     /* check if a projection exist or create a new one */
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
-      case Some(p) => sw.focus(p.idRef).transaction
+      case Some(p) => sw.copy(fn = Some(p.idRef)).transaction
       case None => sw.root.focusManagement(Projection(Seq(),sw.getUniqueRef())).transaction
     }
   }
@@ -250,9 +250,9 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
       case Some(p) =>
         val listVariable : Seq[QueryVariable] = p.variables ++  lRef.map(QueryVariable(_))
-        sw.root.focusManagement(
+        sw.copy(fn = Some(p.idRef)).focusManagement(
           Projection(listVariable,p.idRef,p.children))
-          .from(p.idRef).transaction
+          .transaction
       case None =>
         sw.root.focusManagement(Projection(lRef.map(QueryVariable(_)),sw.getUniqueRef())).transaction
     }

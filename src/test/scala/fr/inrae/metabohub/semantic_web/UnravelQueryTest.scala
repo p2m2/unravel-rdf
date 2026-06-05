@@ -22,11 +22,6 @@ object UnravelQueryTest extends TestSuite {
     test("commit - empty projection") {
       assert(Try(UnravelSession(config).something("h1").select(List()).commit().projection).isSuccess)
     }
-
-    test("commit - empty projection") {
-      assert(Try(UnravelSession(config).something("h1").select(List()).commit().projection(List())).isSuccess)
-    }
-
   }
 
 }

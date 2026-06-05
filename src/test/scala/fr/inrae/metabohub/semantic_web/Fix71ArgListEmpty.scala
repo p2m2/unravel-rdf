@@ -24,8 +24,8 @@ object Fix71ArgListEmpty extends TestSuite {
       insert_data.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "v")
+          .something(
+            _.isSubjectOf(URI("http://bb"), "v"))
           .select(Seq("*"))
           .commit()
           .raw.map(_ => {
@@ -38,8 +38,8 @@ object Fix71ArgListEmpty extends TestSuite {
       insert_data.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "v")
+          .something(
+            _.isSubjectOf(URI("http://bb"), "v"))
           .select()
           .commit()
           .raw.map(_ => {
@@ -52,8 +52,8 @@ object Fix71ArgListEmpty extends TestSuite {
       insert_data.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "v")
+          .something(
+           _.isSubjectOf(URI("http://bb"), "v"))
           .select(List())
           .commit()
           .raw.map(_ => {
