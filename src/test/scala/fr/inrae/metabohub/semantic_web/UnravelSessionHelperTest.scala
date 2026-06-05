@@ -43,9 +43,9 @@ object UnravelSessionHelperTest  extends TestSuite  {
      insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something("h1") //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-          .isSubjectOf(URI("http://bb2"))
-          .finder
+          .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
+          _.isSubjectOf(URI("http://bb2"),"obj"))
+          .from("obj").finder
           .count(Seq("h1"))
           .map(count => assert(count == 2))
       }).flatten
@@ -55,9 +55,9 @@ object UnravelSessionHelperTest  extends TestSuite  {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something("h1") //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-          .isSubjectOf(URI("http://bb2"))
-          .finder
+          .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
+            _.isSubjectOf(URI("http://bb2"),"obj"))
+          .from("obj").finder
           .count(Seq("h1"),distinct = true)
           .map(count => assert(count == 1))
       }).flatten
@@ -67,40 +67,39 @@ object UnravelSessionHelperTest  extends TestSuite  {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something("h1") //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-          .datatype(URI("http://fake/"),"dt1")
-          .isSubjectOf(URI("http://bb2"))
-          .finder
+          .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
+             _.datatype(URI("http://fake/"),"dt1")
+             .isSubjectOf(URI("http://bb2"),"obj"))
+          .from("obj",_.finder
           .count(Seq("h1","dt1"))
-          .map(count => assert(count == 2))
+          .map(count => assert(count == 2)))
       }).flatten
     }
 
     test("findClasses") {
       val query = UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-        .something("h1")
-        .set(URI("http://aa1"))
-        .finder
+        .something("h1",
+        _.set(URI("http://aa1")))
 
       insertData.map(_ => {
-        query.classes()
-          .map(types => assert(types.length == 1))
+        query.from("h1",_.finder.classes()
+          .map(types => assert(types.length == 1)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes("", "", 1)
-          .map(types => assert(types.isEmpty))
+        query.from("h1",_.finder.classes("", "", 1)
+          .map(types => assert(types.isEmpty)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes("eaf")
-          .map(types => assert(types.length == 1))
+        query.from("h1",_.finder.classes("eaf")
+          .map(types => assert(types.length == 1)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes("^(eaf)")
-          .map(types => assert(types.isEmpty))
+        query.from("h1",_.finder.classes("^(eaf)")
+          .map(types => assert(types.isEmpty)))
       }).flatten
 
     }
@@ -108,46 +107,42 @@ object UnravelSessionHelperTest  extends TestSuite  {
     test("findClasses with mother class -> owl:Class") {
       val query = UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-        .something("h1")
-        .set(URI("http://aa2"))
-        .finder
+        .something("h1",_.set(URI("http://aa2")))
 
       insertData.map(_ => {
-        query.classes()
-          .map(types => assert(types.length == 1))
+        query.from("h1",_.finder.classes()
+          .map(types => assert(types.length == 1)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes(regex="")
-          .map(types => assert(types.length == 1))
+        query.from("h1",_.finder.classes(regex="")
+          .map(types => assert(types.length == 1)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes("", URI("Class", "owl"))
-          .map(types => assert(types.length == 1))
+        query.from("h1",_.finder.classes("", URI("Class", "owl"))
+          .map(types => assert(types.length == 1)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes("OwlClass", URI("Class", "owl"))
-          .map(types => assert(types.length == 1))
+        query.from("h1",_.finder.classes("OwlClass", URI("Class", "owl"))
+          .map(types => assert(types.length == 1)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes("eafTyp", URI("Class", "owl"))
-          .map(types => assert(types.isEmpty))
+        query.from("h1",_.finder.classes("eafTyp", URI("Class", "owl"))
+          .map(types => assert(types.isEmpty)))
       }).flatten
 
       insertData.map(_ => {
-        query.classes("OwlClass", URI("Class", "owl"), 1)
-          .map(types => assert(types.isEmpty))
+        query.from("h1",_.finder.classes("OwlClass", URI("Class", "owl"), 1)
+          .map(types => assert(types.isEmpty)))
       }).flatten
     }
 
 
     test("findObjectProperties") {
-      val query = UnravelSession(config).something("h1")
-        .set(URI("http://aa"))
-        .finder
+      val query = UnravelSession(config).something("h1",_.set(URI("http://aa"))).finder
 
       insertData.map(_ => {
         query.objectProperties()
@@ -171,8 +166,7 @@ object UnravelSessionHelperTest  extends TestSuite  {
     }
 
     test("findObjectProperties mother class --> owl:ObjectProperty ") {
-      val query = UnravelSession(config).something("h1")
-        .set(URI("http://aa"))
+      val query = UnravelSession(config).something("h1", _.set(URI("http://aa")))
         .finder
 
       insertData.map(_ => {
@@ -192,9 +186,7 @@ object UnravelSessionHelperTest  extends TestSuite  {
     }
 
     test("datatypeProperties") {
-      val query = UnravelSession(config).something("h1")
-        .set(URI("http://aa3"))
-        .finder
+      val query = UnravelSession(config).something("h1",_.set(URI("http://aa3"))).finder
 
       insertData.map(_ => {
         query.datatypeProperties()
@@ -218,9 +210,7 @@ object UnravelSessionHelperTest  extends TestSuite  {
     }
 
     test("subjectProperties") {
-      val query = UnravelSession(config).something("h1")
-        .set(URI("http://cc"))
-        .finder
+      val query = UnravelSession(config).something("h1",_.set(URI("http://cc"))).finder
 
       insertData.map(_ => {
         query.subjectProperties()

@@ -37,9 +37,8 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     debug(" -- findClasses -- ")
     val query = (motherClass match {
       case uri : URI if uri == URI("")  => sw.isSubjectOf(URI("a"),"_esp___type")
-      case _ : URI =>  sw.isSubjectOf(URI("a"),"_esp___type")
-        .isSubjectOf(URI("a"))
-        .set(motherClass)
+      case _ : URI =>  sw.isSubjectOf(URI("a"),"_esp___type",
+          _.isSubjectOf(URI("a"),_.set(motherClass)))
     }).from("_esp___type")
       .filter.not.regex(regex_avoid_prefix)
 
@@ -66,34 +65,29 @@ case class UnravelSessionHelper(sw : UnravelSession) {
       })
   }
 
-  def properties(regex : String="", motherClassProperties: URI = URI(""), kind : String, page : Int) : Future[Seq[URI]] = {
+  private def properties(regex : String="", motherClassProperties: URI = URI(""), kind : String, page : Int) : Future[Seq[URI]] = {
     debug(" -- findProperties -- ")
 
     /* inherited from something ??? */
     val state = if (motherClassProperties != URI("")) {
       sw.root
-        .something("_esp___type")
-        .from(sw.focusNode)
-        .isLinkTo(QueryVariable("_esp___type"),"_esp___property").isSubjectOf(URI("a"))
-        .set(motherClassProperties)
+        .something("_esp___type",
+          _.isLinkTo(QueryVariable("_esp___type"),"_esp___property",
+            _.isSubjectOf(URI("a"),_.set(motherClassProperties))))
     } else {
       sw.root
-        .something("_esp___type")
-        .from(sw.focusNode)
-        .isLinkTo(QueryVariable("_esp___type"),"_esp___property")
+        .something("_esp___type",_.isLinkTo(QueryVariable("_esp___type"),"_esp___property"))
     }
 
     /* object or datatype properties owl def. */
     val query = ( kind  match {
-      case "objectProperty" => state.from("_esp___type").filter.isUri
-      case "datatypeProperty" => state.from("_esp___type").filter.isLiteral
+      case "objectProperty" => state.from("_esp___type",_.filter.isUri)
+      case "datatypeProperty" => state.from("_esp___type",_.filter.isLiteral)
       case _ => state
-    }).from("_esp___property")
-      .filter.not.regex(regex_avoid_prefix)
+    }).from("_esp___property",_.filter.not.regex(regex_avoid_prefix))
 
     (if ( regex.trim != "")
-      query.from("_esp___property")
-        .filter.regex(regex)
+      query.from("_esp___property",_.filter.regex(regex))
     else
       query)
       .selectByPage(List("_esp___property"))
@@ -134,20 +128,20 @@ case class UnravelSessionHelper(sw : UnravelSession) {
 
     val query = (if (motherClassProperties != URI("")) {
       sw.root
-        .something("_esp___type")
-        .from(sw.focusNode)
-        .isLinkFrom(QueryVariable("_esp___type"),"_esp___property").isSubjectOf(URI("a"))
-        .set(motherClassProperties)
+        .something("_esp___type",
+          _.isLinkFrom(QueryVariable("_esp___type"),"_esp___property")
+           .isSubjectOf(URI("a"),
+             _.set(motherClassProperties))
+          )
+
     } else {
       sw.root
-        .something("_esp___type")
-        .from(sw.focusNode)
-        .isLinkFrom(QueryVariable("_esp___type"),"_esp___property")
-    }).from("_esp___property")
-      .filter.not.regex(regex_avoid_prefix)
+        .something("_esp___type",_.isLinkFrom(QueryVariable("_esp___type"),"_esp___property"))
+
+    }).from("_esp___property",_.filter.not.regex(regex_avoid_prefix))
 
     (if ( regex.trim != "")
-      query.from("_esp___property").filter.regex(regex)
+      query.from("_esp___property",_.filter.regex(regex))
     else
       query)
 

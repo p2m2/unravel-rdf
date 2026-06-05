@@ -5,7 +5,6 @@ import fr.inrae.metabohub.semantic_web.exception._
 import fr.inrae.metabohub.semantic_web.node._
 import fr.inrae.metabohub.semantic_web.node.pm.{NodeVisitor, RemoveNode}
 import fr.inrae.metabohub.semantic_web.rdf._
-import fr.inrae.metabohub.semantic_web.sparql.QueryResult
 import wvlet.log.Logger
 import wvlet.log.Logger.rootLogger._
 
@@ -39,7 +38,7 @@ case class UnravelSession(
 
   case class FilterIncrement(negation : Boolean = false) {
 
-    def manageFilter(n:Node,forward : Boolean = false) : UnravelSession = focusManagement(n,forward)
+    private def manageFilter(n:Node, forward : Boolean = false) : UnravelSession = focusManagement(n,forward)
 
     def isLiteral : UnravelSession = manageFilter(
       fr.inrae.metabohub.semantic_web.node.isLiteral(this.negation,getUniqueRef()))
@@ -111,7 +110,6 @@ case class UnravelSession(
   /* get current focus */
   def current() : String = focusNode
 
-  @deprecated("Use nested closures or from() instead", "0.5")
   def focus(ref : String) : UnravelSession = {
     if ( ref == focusNode ) {
       UnravelSession(config,rootNode,fn)
@@ -125,12 +123,17 @@ case class UnravelSession(
     }
   }
 
-  def from( ref : String, f : UnravelSession => UnravelSession = identity ) : UnravelSession = {
+  private def positionOn(ref: String): UnravelSession = {
     val node = pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption
       .getOrElse(throw UnravelException(s"$ref does not exist."))
-    val inner = UnravelSession(config, rootNode, Some(node.reference()))
-    f(inner).copy(fn = this.fn)
+    UnravelSession(config, rootNode, Some(node.reference()))
   }
+
+  def from(ref: String, f: UnravelSession => UnravelSession = identity): UnravelSession =
+    f(positionOn(ref)).copy(fn = this.fn)
+
+  def from[A](ref: String, f: UnravelSession => Future[A]): Future[A] =
+    f(positionOn(ref))
 
   def refExist(ref:String) : UnravelSession = {
 
@@ -199,11 +202,17 @@ case class UnravelSession(
   }
 
   /* start a request with a variable */
-  def something( ref : String = getUniqueRef("something"), f : UnravelSession => UnravelSession = identity ) : UnravelSession = {
+  def something( ref : String = getUniqueRef("something"), f : UnravelSession => UnravelSession) : UnravelSession = {
     debug(" -- something -- ")
     val inner = focusManagement(Something(ref))
     f(inner).copy(fn = this.fn)
   }
+
+  def something() : UnravelSession = something(getUniqueRef("something"),identity);
+
+  def something(ref : String) : UnravelSession = something(ref,identity);
+
+  def something(f : UnravelSession => UnravelSession) : UnravelSession = something(getUniqueRef("something"),f);
 
   /* create node which focus is the subject : ?focusId <uri> ?target */
   def isSubjectOf(term: SparqlDefinition, ref: String, f: UnravelSession => UnravelSession): UnravelSession = {

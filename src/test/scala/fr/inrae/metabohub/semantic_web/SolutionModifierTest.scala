@@ -24,8 +24,7 @@ object SolutionModifierTest extends TestSuite {
   val basereq : UnravelQuery = UnravelSession(config)
     .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
     .prefix("foaf","http://xmlns.com/foaf/0.1/")
-    .something()
-    .isSubjectOf(URI("name","foaf"), "name")
+    .something(_.isSubjectOf(URI("name","foaf"), "name"))
     .select(Seq("name"))
 
   def tests = Tests {
@@ -55,7 +54,7 @@ object SolutionModifierTest extends TestSuite {
           .limit(2)
           .offset(1)
           .commit()
-          .raw.map(r => {
+          .raw.map(_ => {
             assert(true)
         })
       }).flatten
