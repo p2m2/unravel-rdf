@@ -39,10 +39,9 @@ object RequestWithPrefixAndDatatypeTest  extends TestSuite  {
       UnravelSession(configTurtleContent)
       UnravelSession(configTurtleContent)
         .prefix("v","http://www.some-ficticious-zoo.com/rdf#")
-        .something("h1")
-          .datatype("v:name","name")
-          .isSubjectOf(URI("v:class"))
-           .set("Mammal")
+        .something("h1",
+          _.datatype("v:name","name")
+           .isSubjectOf(URI("v:class"),_.set("Mammal")))
         .select(List("h1","name"))
         .distinct
         .commit()
