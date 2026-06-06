@@ -5,10 +5,12 @@ import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
 import fr.inrae.metabohub.semantic_web.rdf.{IRI, Literal, SparqlBuilder, URI}
 import utest.{TestSuite, Tests, test}
 
+import scala.concurrent.Future
+
 object BindTest extends TestSuite {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  val insertData = DataTestFactory.insertVirtuoso1(
+  val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
     """
       <http://aa1> <http://bb> "abcdef" .
       <http://aa2> <http://bb> "abcdefghij" .
@@ -18,8 +20,9 @@ object BindTest extends TestSuite {
 
   val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
+
   override def utestAfterAll(): Unit = {
-    DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
+      val _ = DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
 
   def tests: Tests = Tests {
@@ -29,9 +32,9 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "r")
-          .filter.regex(regexv)
+          .something(
+            _.isSubjectOf(URI("http://bb"), "r",_.filter.regex(regexv))
+            )
           .select(Seq("r", "reg"))
           .distinct
           .commit()
@@ -46,9 +49,7 @@ object BindTest extends TestSuite {
       val repl = "aaaaa"
       val req = UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-        .something()
-        .isSubjectOf(URI("http://bb"), "r")
-        .bind("rep").replace(pat, repl)
+        .something(_.isSubjectOf(URI("http://bb"), "r",_.bind("rep").replace(pat, repl)))
 
 
       insertData.map(_ => {
@@ -67,6 +68,7 @@ object BindTest extends TestSuite {
           .distinct
           .commit()
           .raw.map(r => {
+          println(r("results")("bindings"))
           assert(r("results")("bindings").arr.count(v => v("rep")("value").toString.contains(repl)) == 2)
         })
       }).flatten
@@ -77,9 +79,9 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
-          .bind("new_value").abs()
+          .something(
+            _.set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
+            .bind("new_value").abs())
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
@@ -92,10 +94,10 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
-          .bind("new_value").abs()
-          .isObjectOf(URI("http://test"))
+          .something(
+            _.set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
+            .bind("new_value").abs()
+            .isObjectOf(URI("http://test")))
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
@@ -108,9 +110,10 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
-          .bind("new_value").round()
+          .something(
+            _.set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
+              .bind("new_value").round()
+          )
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
@@ -122,9 +125,9 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
-          .bind("new_value").ceil()
+          .something(
+            _.set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
+            .bind("new_value").ceil())
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
@@ -137,9 +140,9 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
-          .bind("new_value").floor()
+          .something(
+            _.set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
+              .bind("new_value").floor())
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
@@ -151,8 +154,7 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .bind("new_value").rand()
+          .something(_.bind("new_value").rand())
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
@@ -165,9 +167,7 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "r")
-          .bind("dt").datatype()
+          .something(_.isSubjectOf(URI("http://bb"), "r",_.bind("dt").datatype()))
           .select(Seq("dt"))
           .distinct
           .commit()
@@ -182,9 +182,9 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isObjectOf(URI("http://bb"), "r")
-          .bind("convert_str").str()
+          .something(
+            _.isObjectOf(URI("http://bb"), "r",_.bind("convert_str").str())
+            )
           .select(Seq("convert_str"))
           .distinct
           .commit()

@@ -137,7 +137,7 @@ object SparqlGenerator  {
       case _ : Rand                  => "RAND ()"
 
       case _ : Datatype              => "DATATYPE ( " + "?"+ varIdSire  + " )"
-      case _ : Str    if varIdSire.length>0  => "STR ( " + "?"+ varIdSire  + " )"
+      case _ : Str    if varIdSire.nonEmpty => "STR ( " + "?"+ varIdSire  + " )"
       case n : Str                    => "STR ( " + "?"+ n.term.sparql  + " )"
       case n : Lang                   => "LANG ( " + "?"+ n.term.sparql  + " )"
       case n : LangMatches            => "LANGMATCHES ( " + "LANG(?"+ n.term.sparql+"),"+ n.term  + " )"
