@@ -180,18 +180,34 @@ case class UnravelSession(
   }
 
   def focusManagement(n : Node) : UnravelSession = {
-    println(s"START focus Management: N:${n.toString}   THIS.$fn THIS.$focusNode")
     // get all node
     val current = rootNode.getChild[Node](rootNode.asInstanceOf[Node]).filter( _.idRef == focusNode )
-    val r = if ( current.lastOption.exists(_.accept(n))) {
+    if ( current.lastOption.exists(_.accept(n))) {
       val newRootNode = rootNode.addChildren(focusNode,n)
       /* with lambdas enclosure the focus is "this".focusNode */
       UnravelSession(config,newRootNode,Some(this.focusNode))
     } else {
-        throw UnravelException(s"Can not add this node [$n]at the current focus[$current]")
+      throw UnravelException(
+        s"""
+           |Invalid semantic structure.
+           |
+           |Attempted to add:
+           |  $n
+           |
+           |Current focus:
+           |  ${this.focusNode}
+           |
+           |The current focus does not accept nodes of type '${n.getClass.getSimpleName}'.
+           |
+           |This usually means that:
+           |  - the focus is positioned on the wrong node,
+           |  - an intermediate node is missing,
+           |  - or the current branch must be closed before adding this node.
+           |
+           |Full focus path:
+           |  $current
+           |""".stripMargin)
       }
-    println(s"START focus Management: N:${n.toString}   THIS.${r.fn} THIS.${r.focusNode}")
-    r
   }
 
   def getUniqueRef(baseNameVar : String=""): String = {

@@ -50,28 +50,28 @@ object UnravelSessionJsTest extends TestSuite{
       startRequest.root().something("http://test")
     }
     test("isSubjectOf") {
-      startRequest.isSubjectOf("http://test", s=>s)
+      startRequest.from("h1",_.isSubjectOf("http://test"))
     }
     test("isObjectOf") {
-      startRequest.isSubjectOf("http://test")
+      startRequest.from("h1",_.isSubjectOf("http://test"))
     }
     test("isLinkTo") {
-      startRequest.isSubjectOf("http://test")
+      startRequest.from("h1",_.isSubjectOf("http://test"))
     }
     test("isA") {
-      startRequest.isA("http://test")
+      startRequest.from("h1",_.isA("http://test"))
     }
     test("isLinkFrom") {
-      startRequest.isLinkFrom("http://test")
+      startRequest.from("h1",_.isLinkFrom("http://test"))
     }
     test("set") {
-      startRequest.set("http://test")
+      startRequest.from("h1",_.set("http://test"))
     }
     test("setList") {
-      startRequest.setList("http://test")
+      startRequest.from("h1",_.setList("http://test"))
     }
     test("datatype") {
-      startRequest.datatype("http://test","h2")
+      startRequest.from("h1",_.datatype("http://test","h2"))
     }
     test("remove") {
       startRequest.remove("h1")
