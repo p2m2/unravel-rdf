@@ -34,6 +34,14 @@ case class AxiosRequestDriver(
 
   private def handleError(e: Throwable): Nothing = {
     publish(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_HTTP_REQUEST))
+
+    println("====================================")
+    println("HTTP ERROR")
+    println("====================================")
+    println(s"class   = ${e.getClass.getName}")
+    println(s"message = ${e.getMessage}")
+    println(s"error   = $e")
+
     throw UnravelException(Option(e.getMessage).getOrElse(e.toString))
   }
 
@@ -58,6 +66,11 @@ case class AxiosRequestDriver(
 
   def post(query: String): Future[QueryResult] = {
     publish(UnravelRequestEvent(UnravelStateRequestEvent.PROCESS_HTTP_REQUEST))
+
+    println("====================================")
+    println("SPARQL QUERY")
+    println("====================================")
+    println(query)
 
     val configAxios: AxiosConfig = js.Dynamic.literal(
       url = url,

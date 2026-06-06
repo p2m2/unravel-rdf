@@ -156,10 +156,10 @@ object SparqlGenerator  {
           case n : StrEnds            => "strEnds(str(" + "?" +varIdSire + "),"+ n.value.sparql + ")"
           case n : Equal              => "(?" +varIdSire + "="+ n.value.sparql + ")"
           case n : NotEqual           => "(?" +varIdSire + "!="+ n.value.sparql + ")"
-          case n : Inf                => "(?" +varIdSire + "<" + n.value.sparql + ")"
-          case n : InfEqual           => "(?" +varIdSire + "<=" + n.value.sparql + ")"
-          case n : Sup                => "(?" +varIdSire + ">" + n.value.sparql + ")"
-          case n : SupEqual           => "(?" +varIdSire + ">=" + n.value.sparql + ")"
+          case n : Inf                => s"(xsd:numeric(?$varIdSire) < ${n.value.sparql})"
+          case n : InfEqual           => s"(xsd:numeric(?$varIdSire) <= ${n.value.sparql})"
+          case n : Sup                => s"(xsd:numeric(?$varIdSire) > ${n.value.sparql})"
+          case n : SupEqual           => s"(xsd:numeric(?$varIdSire) >= ${n.value.sparql})"
           case _ : isBlank            => "isBlank(" + "?" +varIdSire + ")"
           case _ : isURI              => "isURI(" + "?" +varIdSire + ")"
           case _ : isLiteral          => "isLiteral(" + "?" +varIdSire + ")"
@@ -167,12 +167,12 @@ object SparqlGenerator  {
         }
       } + " )\n"
       case root : Root                            => { "" }
-      case s : Something if s.children.length>0   => ""
-      case s : Something if s.children.length==0  => "{ " +
+      case s : Something if s.children.nonEmpty => ""
+      case s : Something if s.children.isEmpty => "{ " +
                                             "{ " + "?"+ variableName + " " + "?property_"+variableName+" "+ "?object_"+variableName +
                                            " } UNION { [] " + "?"+ variableName + " [] " + "} UNION { "+
                                                              " "+ "?subject_"+variableName + " "+ "?property_"+variableName+ " ?"+ variableName  + " }" + " }"
-      case u : UnionBlock    if u.children.length>0 => "{ " +
+      case u : UnionBlock    if u.children.nonEmpty => "{ " +
         u.children.map( block => {  sparqlNode(block,u.s.idRef,variableName) + " }" }).mkString(" } UNION { ") +" }"
       case _ : UnionBlock                           => ""
       case _ : NotBlock                             => "???????????????"
