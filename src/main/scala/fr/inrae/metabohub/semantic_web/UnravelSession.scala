@@ -180,15 +180,18 @@ case class UnravelSession(
   }
 
   def focusManagement(n : Node) : UnravelSession = {
+    println(s"START focus Management: N:${n.toString}   THIS.$fn THIS.$focusNode")
     // get all node
     val current = rootNode.getChild[Node](rootNode.asInstanceOf[Node]).filter( _.idRef == focusNode )
-    if ( current.lastOption.exists(_.accept(n))) {
+    val r = if ( current.lastOption.exists(_.accept(n))) {
       val newRootNode = rootNode.addChildren(focusNode,n)
-      /* current node is the focusNode */
-      UnravelSession(config,newRootNode,Some(focusNode))
+      /* with lambdas enclosure the focus is "this".focusNode */
+      UnravelSession(config,newRootNode,Some(this.focusNode))
     } else {
         throw UnravelException(s"Can not add this node [$n]at the current focus[$current]")
       }
+    println(s"START focus Management: N:${n.toString}   THIS.${r.fn} THIS.${r.focusNode}")
+    r
   }
 
   def getUniqueRef(baseNameVar : String=""): String = {
@@ -419,7 +422,7 @@ case class UnravelSession(
   def browse[A](visitor : (Node, Integer) => A ) : Seq[A] = NodeVisitor.map(rootNode,0,visitor)
 
   def setDecoration(key : String, value : String) : UnravelSession = {
-      rootNode
+      val v = rootNode
         .getChild[Node](rootNode.asInstanceOf[Node])
         .filter( _.idRef == focusNode )
         .lastOption match {
@@ -430,6 +433,7 @@ case class UnravelSession(
             sw.focusManagement(n.addDecoratingAttribute(key,value))
           case None => throw UnravelException(s"Can not reach current node -- $focusNode --]")
         }
+    UnravelSession(v.config,v.rootNode,Some(this.focusNode))
   }
 
   def getDecoration(key : String) : String = {

@@ -75,7 +75,7 @@ object UnravelSessionDecorationTest extends TestSuite {
         startRequest
           .from("h1",h1 =>
             h1.setDecoration("someKey","someValue")
-            .isObjectOf(URI("http://s2"),"s2"))
+              .isObjectOf(URI("http://s2"),"s2"))
           .from("s2", s2 =>
             s2.setDecoration("someKey2","someValue2")
             .isObjectOf(URI("http://s3"),"s3"))
@@ -106,6 +106,7 @@ object UnravelSessionDecorationTest extends TestSuite {
       startRequest
         .from("h1", h1 =>
           h1.setDecoration("someKey", "someValue")
+            .console
             .isObjectOf("http://some", s => {
               assert(s.getDecoration("someKey") == "")
               s
