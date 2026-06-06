@@ -25,8 +25,7 @@ object OrderByTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "v")
+          .something(_.isSubjectOf(URI("http://bb"), "v"))
           .select(Seq("v"))
           .orderByAsc("v")
           .commit()
@@ -44,8 +43,7 @@ object OrderByTest extends TestSuite {
     test("order by with wrong variable") {
         Try(UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "v")
+          .something(_.isSubjectOf(URI("http://bb"), "v"))
           .select(Seq("v"))
           .orderByAsc("v_bad")) match {
           case Success(_) => println("Success");assert(false)
@@ -57,8 +55,7 @@ object OrderByTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something("h")
-          .isSubjectOf(URI("http://bb"), "v")
+          .something("h",_.isSubjectOf(URI("http://bb"), "v"))
           .select(Seq("v"))
           .orderByAsc(Seq("v","h"))
           .commit()
@@ -74,8 +71,7 @@ object OrderByTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something()
-          .isSubjectOf(URI("http://bb"), "v")
+          .something(_.isSubjectOf(URI("http://bb"), "v"))
           .select(Seq("v"))
           .orderByDesc("v")
           .commit()
@@ -91,8 +87,7 @@ object OrderByTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something("h")
-          .isSubjectOf(URI("http://bb"), "v")
+          .something("h",_.isSubjectOf(URI("http://bb"), "v"))
           .select(Seq("v"))
           .orderByDesc(Seq("v","h"))
           .commit()
@@ -108,8 +103,7 @@ object OrderByTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something("h")
-          .isSubjectOf(URI("http://bb"), "v")
+          .something("h",_.isSubjectOf(URI("http://bb"), "v"))
           .select(Seq("v"))
           .orderByDesc(Seq("v"))
           .orderByAsc(Seq("h"))
@@ -125,8 +119,7 @@ object OrderByTest extends TestSuite {
     test("order by desc with wrong variable") {
       Try(UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-        .something()
-        .isSubjectOf(URI("http://bb"), "v")
+        .something(_.isSubjectOf(URI("http://bb"), "v"))
         .select(Seq("v"))
         .orderByDesc("v_bad")) match {
         case Success(_) => println("Success");assert(false)
