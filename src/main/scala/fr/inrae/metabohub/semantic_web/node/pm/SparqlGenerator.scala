@@ -166,7 +166,7 @@ object SparqlGenerator  {
           case _ => throw new Exception("SparqlGenerator::sparqlNode . [Devel error] Node undefined ["+n.toString+"]")
         }
       } + " )\n"
-      case root : Root                            => { "" }
+      case _ : Root                             => { "" }
       case s : Something if s.children.nonEmpty => ""
       case s : Something if s.children.isEmpty => "{ " +
                                             "{ " + "?"+ variableName + " " + "?property_"+variableName+" "+ "?object_"+variableName +
@@ -187,6 +187,8 @@ object SparqlGenerator  {
            varIdSire : String = "" /* sire variable */
           )  : String = {
     val variableName : String = n.idRef
+    //println(s"============= BODY  varIdSire=$varIdSire  type_node=${n.getClass.getSimpleName} variableName=$variableName ======================")
+    //println(variableName)
     sparqlNode(n,varIdSire,variableName) + n.children.map( child => body( child, variableName)).mkString("")
   }
 }

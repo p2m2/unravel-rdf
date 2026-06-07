@@ -261,7 +261,7 @@ case class UnravelSession(
     isObjectOf(term, getUniqueRef("linkFrom"), f)
 
   def isObjectOf( term : SparqlDefinition, ref : String ) : UnravelSession =
-    isLinkTo(term, ref, identity)
+    isObjectOf(term, ref, identity)
 
   /* create node which focus is the properties :
   ?focusId ?target <uri>|literal
