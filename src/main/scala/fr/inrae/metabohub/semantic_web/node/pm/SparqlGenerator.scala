@@ -106,10 +106,8 @@ object SparqlGenerator  {
                  variableName : String) : String = {
     trace(varIdSire+" - "+variableName)
     n match {
-      case node : SubjectOf          => "\t?" + varIdSire + " " + node.term.toString + " " + "?"+ variableName + " .\n"
-      case node : ObjectOf           => "\t?" + variableName + " " + node.term.toString + " " + "?"+ varIdSire + " .\n"
-      case node : LinkTo           => "\t?"+ varIdSire + " " + "?" + variableName + " " + node.term.toString + " .\n"
-      case node : LinkFrom           => node.term.toString + " " + "?" + variableName + " " + "?"+ varIdSire + " .\n"
+      case node : SubjectOf          => "\t?" + varIdSire + " " + node.propertyTerm.toString + " " + "?"+ variableName + " .\n"
+      case node : ObjectOf           => "\t?" + variableName + " " + node.propertyTerm.toString + " " + "?"+ varIdSire + " .\n"
       case node : Value              => node.term match {
         case _ : QueryVariable => "\tBIND ( ?" + varIdSire +  " AS " + node.term.toString + ")"
         case _  =>  "\tVALUES ?" +varIdSire+ " { " + node.term.toString + " } .\n" }
@@ -187,8 +185,10 @@ object SparqlGenerator  {
            varIdSire : String = "" /* sire variable */
           )  : String = {
     val variableName : String = n.idRef
-    //println(s"============= BODY  varIdSire=$varIdSire  type_node=${n.getClass.getSimpleName} variableName=$variableName ======================")
-    //println(variableName)
+    println(s"============= BODY  varIdSire=$varIdSire  type_node=${n.getClass.getSimpleName} variableName=$variableName ======================")
+    println(variableName)
+    println(sparqlNode(n,varIdSire,variableName))
+    println("--------------------------------------------------------------------------")
     sparqlNode(n,varIdSire,variableName) + n.children.map( child => body( child, variableName)).mkString("")
   }
 }

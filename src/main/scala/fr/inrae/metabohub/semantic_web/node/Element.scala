@@ -230,9 +230,7 @@ object RdfNode {
   implicit val rw: OptionPickler.ReadWriter[RdfNode] = OptionPickler.ReadWriter.merge(
     Something.rw,
     SubjectOf.rw,
-    ObjectOf.rw,
-    LinkTo.rw,
-    LinkFrom.rw
+    ObjectOf.rw
   )
 }
 
@@ -255,11 +253,11 @@ abstract class RdfNode(
 }
 
 
-abstract class URIRdfNode(
-                           override val idRef : String,
-                           val term : SparqlDefinition,
-                           override val children: Seq[Node],
-                           override val decorations: Map[String,String])
+abstract class URIRdfNode(override val idRef: String,
+                          val propertyTerm: SparqlDefinition,
+                          val targetTerm: SparqlDefinition,
+                          override val children: Seq[Node],
+                          override val decorations: Map[String, String])
   extends RdfNode(idRef,children,decorations)
 
 
@@ -284,15 +282,15 @@ object SubjectOf {
 }
 
 
-final case class SubjectOf(
-                      override val idRef : String = randomUUID.toString,
-                      override val term : SparqlDefinition,
-                      override val children: Seq[Node] = Seq[Node](),
-                      override val decorations: Map[String,String] = Map()
-                    ) extends URIRdfNode(idRef,term,children,decorations) {
+final case class SubjectOf(override val idRef: String = randomUUID.toString,
+                           override val propertyTerm: SparqlDefinition,
+                           val objectTerm: SparqlDefinition,
+                           override val children: Seq[Node] = Seq[Node](),
+                           override val decorations: Map[String, String] = Map())
+  extends URIRdfNode(idRef, propertyTerm,objectTerm, children, decorations) {
 
   def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node = {
-    SubjectOf(idRef,term,children,decoratingAttributeMap)
+    SubjectOf(idRef, propertyTerm,objectTerm, children, decoratingAttributeMap)
   }
 }
 
@@ -301,50 +299,15 @@ object ObjectOf {
 }
 
 @JSExportTopLevel(name="ObjectOf")
-final case class ObjectOf(
-                     override val idRef : String,
-                     override val term : SparqlDefinition,
-                     override val children: Seq[Node] = Seq[Node](),
-                     override val decorations: Map[String,String] = Map()
-                         ) extends URIRdfNode(idRef,term,children,decorations) {
+final case class ObjectOf(override val idRef: String,
+                          override val propertyTerm: SparqlDefinition,
+                          val subjectTerm: SparqlDefinition,
+                          override val children: Seq[Node] = Seq[Node](),
+                          override val decorations: Map[String, String] = Map())
+  extends URIRdfNode(idRef, propertyTerm,subjectTerm, children, decorations) {
 
   def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node = {
-    ObjectOf(idRef,term,children,decoratingAttributeMap)
-  }
-}
-
-
-object LinkTo {
-  implicit val rw: OptionPickler.ReadWriter[LinkTo] = OptionPickler.macroRW
-}
-
-@JSExportTopLevel(name="LinkTo")
-final case class LinkTo(
-                   override val idRef : String,
-                   override val term : SparqlDefinition,
-                   override val children: Seq[Node] = Seq[Node](),
-                   override val decorations: Map[String,String] = Map()
-                       ) extends URIRdfNode(idRef,term,children,decorations)
-{
-  def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node = {
-    LinkTo(idRef,term,children,decoratingAttributeMap)
-  }
-}
-
-object LinkFrom {
-  implicit val rw: OptionPickler.ReadWriter[LinkFrom] = OptionPickler.macroRW
-}
-
-@JSExportTopLevel(name="LinkFrom")
-final case class LinkFrom(
-                     override val idRef : String,
-                     override val term : SparqlDefinition,
-                     override val children: Seq[Node] = Seq[Node](),
-                     override val decorations: Map[String,String] = Map()
-                         ) extends URIRdfNode(idRef,term,children,decorations) {
-
-  def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node = {
-    LinkFrom(idRef,term,children,decoratingAttributeMap)
+    ObjectOf(idRef, propertyTerm,subjectTerm, children, decoratingAttributeMap)
   }
 }
 

@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web.node.pm
 import fr.inrae.metabohub.semantic_web.node.{Root, SubjectOf}
-import fr.inrae.metabohub.semantic_web.rdf.URI
+import fr.inrae.metabohub.semantic_web.rdf.{QueryVariable, URI}
 import utest.{TestSuite, Tests, test}
 object RemoveNodeTest extends TestSuite {
 
@@ -10,25 +10,25 @@ object RemoveNodeTest extends TestSuite {
     }
 
     test("one child") {
-      val tree = Root("test").addChildren(SubjectOf("t1",URI("http://test")))
+      val tree = Root("test").addChildren(SubjectOf("t1", URI("http://test"),QueryVariable("t1")))
       assert(RemoveNode.run(tree,"t1") == Root("test"))
     }
 
     test("one child") {
-      val tree = Root("test").addChildren(SubjectOf("t1",URI("http://test")))
+      val tree = Root("test").addChildren(SubjectOf("t1", URI("http://test"),QueryVariable("t1")))
       assert(RemoveNode.run(tree,"test") == Root("test"))
     }
 
     test("one child") {
       val tree1 = Root("test")
-         .addChildren(SubjectOf("t1",URI("http://test")))
-         .addChildren(SubjectOf("t2",URI("http://test2")))
+         .addChildren(SubjectOf("t1", URI("http://test"),QueryVariable("t1")))
+         .addChildren(SubjectOf("t2", URI("http://test2"),QueryVariable("t2")))
 
       val tree2 = Root("test")
-        .addChildren(SubjectOf("t1",URI("http://test")))
+        .addChildren(SubjectOf("t1", URI("http://test"),QueryVariable("t1")))
 
       val tree3 = Root("test")
-        .addChildren(SubjectOf("t2",URI("http://test2")))
+        .addChildren(SubjectOf("t2", URI("http://test2"),QueryVariable("t2")))
 
       assert(RemoveNode.run(tree1,"test") == Root("test"))
       assert(RemoveNode.run(tree1,"t1") == tree3)

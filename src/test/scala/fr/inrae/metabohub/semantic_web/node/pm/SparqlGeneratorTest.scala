@@ -84,7 +84,8 @@ object SparqlGeneratorTest extends TestSuite {
     }
 
     test("sparqlNode - SubjectOf") {
-      val v = SparqlGenerator.sparqlNode(SubjectOf("id",URI("http://test")),"varSire","varId")
+      val v = SparqlGenerator.sparqlNode(
+        SubjectOf("varId", URI("http://test"),QueryVariable("varId")),"varSire","varId")
       assert(v.contains("?varSire <http://test> ?varId"))
     }
 
@@ -93,27 +94,30 @@ object SparqlGeneratorTest extends TestSuite {
       assert(v.toLowerCase() != "")
     }
     test("sparqlNode Something") {
-      val v = SparqlGenerator.sparqlNode(Something("1234", List(SubjectOf("test",URI("http://test")))),"nothingSire","nothingVar")
+      val v = SparqlGenerator.sparqlNode(
+        Something("1234", List(
+          SubjectOf("test", URI("http://test"),QueryVariable("nothingVar")))),"nothingSire","nothingVar")
       assert(v.toLowerCase() == "")
     }
 
     test("sparqlNode SubjectOf") {
-      val v = SparqlGenerator.sparqlNode(SubjectOf("1234",URI("test")),"nothingSire","nothingVar")
+      val v = SparqlGenerator.sparqlNode(SubjectOf("nothingVar", URI("test"),QueryVariable("nothingVar")),"nothingSire","nothingVar")
       assert(v.trim().split(" ").toList == List("?nothingSire","<test>","?nothingVar","."))
     }
 
     test("sparqlNode ObjectOf") {
-      val v = SparqlGenerator.sparqlNode(ObjectOf("1234",URI("test")),"nothingSire","nothingVar")
+      val v = SparqlGenerator.sparqlNode(ObjectOf("1234", URI("test"),QueryVariable("nothingVar")),"nothingSire","nothingVar")
       assert(v.trim().split(" ").toList == List("?nothingVar","<test>","?nothingSire","."))
     }
 
     test("sparqlNode LinkTo") {
-      val v = SparqlGenerator.sparqlNode(LinkTo("1234",URI("test")),"nothingSire","nothingVar")
+      val v = SparqlGenerator.sparqlNode(
+        SubjectOf("1234",QueryVariable("nothingVar"),URI("test")),"test","nothingVar")
       assert(v.trim().split(" ").toList == List("?nothingSire","?nothingVar","<test>","."))
     }
 
     test("sparqlNode LinkFrom") {
-      val v = SparqlGenerator.sparqlNode(LinkFrom("1234",URI("test")),"nothingSire","nothingVar")
+      val v = SparqlGenerator.sparqlNode(ObjectOf("1234",QueryVariable("nothingVar"),URI("test")),"test","nothingVar")
       assert(v.trim().split(" ").toList == List("<test>","?nothingVar","?nothingSire","."))
     }
 

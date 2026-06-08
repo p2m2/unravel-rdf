@@ -159,7 +159,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
     }
 
     val lDatatype: Seq[DatatypeNode] =
-      sw.rootNode.getChild[DatatypeNode](DatatypeNode("",SubjectOf("",URI("")),"unk"))
+      sw.rootNode.getChild[DatatypeNode](DatatypeNode("",SubjectOf("", URI(""),QueryVariable("")),"unk"))
         .filter(ld => lSelectedVariable.map(_.name).contains(ld.property.reference()))
 
     if ( lDatatype.count(datatypeNode => lSelectedVariable.map(_.name).contains(datatypeNode.refNode)) != lDatatype.length )

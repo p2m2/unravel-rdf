@@ -54,26 +54,6 @@ object SerializationBuilderTest extends TestSuite  {
       assert(UnravelQuery().setSerializedString(swt.getSerializedString) == swt)
     }
 
-    test("serialization LinkTo") {
-      val sw =
-        UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isLinkTo(URI("bb")))
-
-      assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
-      val swt : UnravelQuery = sw.select()
-      assert(UnravelQuery().setSerializedString(swt.getSerializedString) == swt)
-    }
-
-    test("serialization LinkFrom") {
-      val sw =
-        UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isLinkFrom(QueryVariable("bb")))
-
-      assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
-      val swt : UnravelQuery = sw.select()
-      assert(UnravelQuery().setSerializedString(swt.getSerializedString) == swt)
-    }
-
     test("serialization Value QueryVariable") {
       val sw =
         UnravelSession( DataTestFactory.getConfigVirtuoso1())
@@ -128,7 +108,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization filter") {
       val sw =
         UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isLinkTo(URI("bb"),_.filter.not.contains("filter")))
+          .something ("h1",_.isSubjectOf(URI("bb"),_.filter.not.contains("filter")))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()
@@ -138,7 +118,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization datatype") {
       val sw =
         UnravelSession(DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isLinkTo(URI("bb"),_.datatype(URI("some"),"v")))
+          .something ("h1",_.isSubjectOf(URI("bb"),f=(s => s.datatype(URI("some"),"v"))))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()

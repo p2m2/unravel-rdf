@@ -141,30 +141,6 @@ case class UnravelSessionJs(
     UnravelSessionJs(config, sw.isObjectOf(toURI(uri), wrap(f)))
 
   @JSExport
-  def isLinkTo(uri: Any): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isLinkTo(toURI(uri)))
-
-  @JSExport
-  def isLinkTo(uri: Any, ref: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isLinkTo(toURI(uri), ref))
-
-  @JSExport
-  def isLinkTo(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isLinkTo(toURI(uri), wrap(f)))
-
-  @JSExport
-  def isLinkFrom(uri: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isLinkFrom(uri))
-
-  @JSExport
-  def isLinkFrom(uri: String, ref: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isLinkFrom(uri, ref))
-
-  @JSExport
-  def isLinkFrom(uri: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isLinkFrom(uri, wrap(f)))
-
-  @JSExport
   def isA(term: Any): UnravelSessionJs = UnravelSessionJs(config, sw.isA(term))
 
   // ------------------------------------------------------------------ //

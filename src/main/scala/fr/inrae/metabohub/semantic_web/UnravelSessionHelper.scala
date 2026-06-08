@@ -8,7 +8,7 @@ import scala.concurrent.Future
 case class UnravelSessionHelper(sw : UnravelSession) {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  val regex_avoid_prefix : String = "^("+ List(
+  private val regex_avoid_prefix : String = "^("+ List(
     "http://www.openlinksw.com/schemas/virtrdf#",
     "http://www.w3.org/2002/07/owl#",
     "http://www.w3.org/2000/01/rdf-schema#",
@@ -38,7 +38,7 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     val query = (motherClass match {
       case uri : URI if uri == URI("")  => sw.isSubjectOf(URI("a"),"_esp___type")
       case _ : URI =>  sw.isSubjectOf(URI("a"),"_esp___type",
-          _.isSubjectOf(URI("a"),_.set(motherClass)))
+          _.isSubjectOf(URI("a"),motherClass))
     }).from("_esp___type")
       .filter.not.regex(regex_avoid_prefix)
 
@@ -72,11 +72,11 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     val state = if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type",
-          _.isLinkTo(QueryVariable("_esp___type"),"_esp___property",
-            _.isSubjectOf(URI("a"),_.set(motherClassProperties))))
+          _.isSubjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type"),
+            _.isSubjectOf(URI("a"),motherClassProperties)))
     } else {
       sw.root
-        .something("_esp___type",_.isLinkTo(QueryVariable("_esp___type"),"_esp___property"))
+        .something("_esp___type",_.isSubjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type")))
     }
 
     /* object or datatype properties owl def. */
@@ -86,7 +86,7 @@ case class UnravelSessionHelper(sw : UnravelSession) {
       case _ => state
     }).from("_esp___property",_.filter.not.regex(regex_avoid_prefix))
 
-    (if ( regex.trim != "")
+    (if ( regex.trim.nonEmpty)
       query.from("_esp___property",_.filter.regex(regex))
     else
       query)
@@ -129,14 +129,13 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     val query = (if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type",
-          _.isLinkFrom(QueryVariable("_esp___type"),"_esp___property")
-           .isSubjectOf(URI("a"),
-             _.set(motherClassProperties))
+          _.isObjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type"))
+           .isSubjectOf(URI("a"), motherClassProperties)
           )
 
     } else {
       sw.root
-        .something("_esp___type",_.isLinkFrom(QueryVariable("_esp___type"),"_esp___property"))
+        .something("_esp___type",_.isObjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type")))
 
     }).from("_esp___property",_.filter.not.regex(regex_avoid_prefix))
 

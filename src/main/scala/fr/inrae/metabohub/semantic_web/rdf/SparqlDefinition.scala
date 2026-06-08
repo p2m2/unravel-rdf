@@ -1,11 +1,10 @@
 package fr.inrae.metabohub.semantic_web.rdf
+
 import fr.inrae.metabohub.semantic_web.configuration.OptionPickler
 import fr.inrae.metabohub.semantic_web.exception._
 import scala.language.implicitConversions
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.util.{Failure, Success, Try}
-
-case class Graph(triples : Set[Triple])
 
 case class Triple(s: SparqlDefinition, p: SparqlDefinition, o: SparqlDefinition)
 
@@ -94,7 +93,7 @@ case class URI (localNameUser : String,nameSpaceUser : String = "") extends Spar
     case _ => SparqlDefinition.cleanString(localNameUser)
   }
 
-  val nameSpace: String = nameSpaceUser match {
+  private val nameSpace: String = nameSpaceUser match {
     case "" if !localNameUser.contains("://") =>
       localNameUser.split(":") match {
         case arr if arr.length==2 => arr(0)
@@ -179,7 +178,7 @@ case class Literal[T](value : T,datatype : URI = URI.empty,ta : String="") exten
   }
 
   def toInt: Int = valueString.toInt
-  def toFloat: Float = valueString.toFloat
+
   def toDouble: Double = valueString.toDouble
   def toBoolean: Boolean = valueString.toBoolean
 

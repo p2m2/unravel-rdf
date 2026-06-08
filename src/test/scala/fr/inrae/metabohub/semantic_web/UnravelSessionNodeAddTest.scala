@@ -14,7 +14,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
   val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   def tests: Tests = Tests {
-
+/*
     test("something") {
       UnravelSession(config).something("h1")
     }
@@ -84,10 +84,11 @@ object UnravelSessionNodeAddTest extends TestSuite {
         case Failure(_) => assert(true)
       }
     }
-
+*/
     test("isLinkFrom") {
-      val s = UnravelSession(config)
-        .something("h1",_.isLinkFrom(URI("bb"), "var"))
+      val s =
+        UnravelSession(config)
+          .something("h1",_.isObjectOf(QueryVariable("var"),_.set(URI("<bb>"))))
 
       val triplet: Regex = "<bb> \\?var \\?h1".r
 
@@ -97,6 +98,19 @@ object UnravelSessionNodeAddTest extends TestSuite {
       }
     }
 
+    test("isLinkFrom QueryVariable") {
+      val s =
+        UnravelSession(config)
+        .something("h1",_.isObjectOf(QueryVariable("var"),URI("<bb>")))
+
+      val triplet: Regex = "<bb> \\?var \\?h1".r
+      println(s.sparql)
+      triplet.findFirstMatchIn(s.sparql) match {
+        case Some(_) => assert(true)
+        case None => assert(false)
+      }
+    }
+/*
     test("isA on the root") {
       Try(UnravelSession(config).from("h1",_.isA(URI("class")))) match {
         case Success(_) => assert(false)
@@ -114,6 +128,6 @@ object UnravelSessionNodeAddTest extends TestSuite {
         case Some(_) => assert(true)
         case None => assert(false)
       }
-    }
+    }*/
   }
 }

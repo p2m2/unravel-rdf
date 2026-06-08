@@ -25,7 +25,7 @@ Nous migrons le DSL SWDiscovery vers une nouvelle API. Voici les décisions pris
    - isLinkTo / isLinkFrom → out(Var(...)) / in(Var(...))
 
 4. ALIAS DOCUMENTÉS (sucre syntaxique sur out/in)
-   - traverse(p, ref) = out(p,ref) + in(p,ref) mergés dans UnravelQuery
+   - traverse(p, ref) = out(p,ref) + in(p,ref) mergés dans UnravelQuery (ref peut etre sujet ou objet de la relation propriete p)
    - isA(uri)         = out(URI("rdf:type"), uri)
 
 5. REFONTE select → project (optionnel)
@@ -48,7 +48,7 @@ Nous migrons le DSL SWDiscovery vers une nouvelle API. Voici les décisions pris
 Ordre de migration ([ ] = à faire, [x] = terminé, [~] = en cours) :
 
   [X] Passe 1 — Renommage pur (SWDiscovery→UnravelSession, etc.)
-  [ ] Passe 2 — Fermetures imbriquées (ajouter f=identity sur toutes les traversées)
+  [X] Passe 2 — Fermetures imbriquées (ajouter f=identity sur toutes les traversées)
   [ ] Passe 3 — Primitives out/in avec SparqlDefinition unifié
   [ ] Passe 4 — traverse + alias
   [ ] Passe 8 — Documentation (après Passe 4, avant Passes 5-7)
