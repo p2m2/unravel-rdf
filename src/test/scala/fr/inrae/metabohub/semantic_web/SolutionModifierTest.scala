@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web
 import fr.inrae.metabohub.data.DataTestFactory
-import fr.inrae.metabohub.semantic_web.rdf.{IRI, URI}
+import fr.inrae.metabohub.semantic_web.rdf.{IRI, Literal, QueryVariable, URI}
 import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, test}
 
@@ -24,8 +24,20 @@ object SolutionModifierTest extends TestSuite {
   val basereq : UnravelQuery = UnravelSession(config)
     .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
     .prefix("foaf","http://xmlns.com/foaf/0.1/")
-    .something(_.isSubjectOf(URI("name","foaf"), "name"))
+    .something(_.isSubjectOf(URI("name","foaf"), "?name"))
     .select(Seq("name"))
+
+  val basereq2 : UnravelQuery = UnravelSession(config)
+    .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+    .prefix("foaf","http://xmlns.com/foaf/0.1/")
+    .something(_.isSubjectOf("?var", Literal("Alice")))
+    .select(Seq("var"))
+
+  val basereq3 : UnravelQuery = UnravelSession(config)
+    .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+    .prefix("foaf","http://xmlns.com/foaf/0.1/")
+    .something(_.isObjectOf("?var", "<http://p1>"))
+    .select(Seq("var"))
 
   def tests = Tests {
     test("no modifier") {
@@ -79,6 +91,24 @@ object SolutionModifierTest extends TestSuite {
           .raw.map(r => {
           assert(r("results")("bindings").arr.length <= 3)
         })
+      }).flatten
+    }
+
+    test("no modifier queryvar as property subjectof") {
+      insertData.map(_ => {
+        basereq2.commit()
+          .raw.map(r => {
+            assert(r("results")("bindings").arr.length == 3)
+          })
+      }).flatten
+    }
+    test("no modifier queryvar as property - objectof") {
+      insertData.map(_ => {
+        basereq3.commit()
+          .raw.map(r => {
+            println(r("results")("bindings").arr.length)
+            assert(r("results")("bindings").arr.length == 2)
+          })
       }).flatten
     }
   }

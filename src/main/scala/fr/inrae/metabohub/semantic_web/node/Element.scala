@@ -141,10 +141,15 @@ final case class Root(
     Root(idRef,prefixes,directives,defaultGraph,namedGraph,lDatatypeNode ,lSourcesNodes,lBindNode :+ b,lSolutionSequenceModifierNode ,children,decorations)
 
   private def addSolutionSequenceModifierNode(s : SolutionSequenceModifierNode) : Root =
-    Root(idRef,prefixes,directives,defaultGraph,namedGraph,lDatatypeNode ,lSourcesNodes,lBindNode,lSolutionSequenceModifierNode :+ s,children,decorations)
+    Root(idRef,prefixes,directives,defaultGraph,namedGraph,
+      lDatatypeNode ,lSourcesNodes,lBindNode,
+      lSolutionSequenceModifierNode :+ s,
+      children,decorations)
 
 
-  override def getChild[SpecializedNodeType <: Node ](that : SpecializedNodeType)(implicit tag: ClassTag[SpecializedNodeType]) : Seq[SpecializedNodeType] = {
+  override def getChild[SpecializedNodeType <: Node ]
+                       (that : SpecializedNodeType)
+                       (implicit tag: ClassTag[SpecializedNodeType]) : Seq[SpecializedNodeType] = {
 
     { super.getChild(that) } ++
       { lSourcesNodes.flatMap( _.getChild[SpecializedNodeType](that) ) } ++

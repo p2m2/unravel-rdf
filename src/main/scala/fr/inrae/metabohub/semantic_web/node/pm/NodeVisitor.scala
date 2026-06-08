@@ -1,6 +1,7 @@
 package fr.inrae.metabohub.semantic_web.node.pm
 
 import fr.inrae.metabohub.semantic_web.node._
+import fr.inrae.metabohub.semantic_web.rdf.QueryVariable
 
 object NodeVisitor  {
 
@@ -29,16 +30,43 @@ object NodeVisitor  {
    * @param n
    * @return
    */
-  def getAllAncestorsRef( n : Node ) : Seq[String] = n match {
-    case node : Root => {
-      Seq(node.reference())++:
-        node.children.flatMap(getAllAncestorsRef(_)) ++:
+  def getAllAncestorsRef(n: Node): Seq[String] = n match {
+    case node: Root =>
+      Seq(node.reference()) ++
+        node.children.flatMap(getAllAncestorsRef) ++
         node.lBindNode.flatMap(getAllAncestorsRef(_))
+    case node: SubjectOf => node.objectTerm match {
+      case q: QueryVariable => node.propertyTerm match {
+        case q2 : QueryVariable =>
+          Seq(q.name,q2.name) ++ node.children.flatMap(getAllAncestorsRef)
+        case _ => Seq(q.name) ++ node.children.flatMap(getAllAncestorsRef)
+      }
+      case _ => node.propertyTerm match {
+        case q2 : QueryVariable =>
+          Seq(q2.name) ++ node.children.flatMap(getAllAncestorsRef)
+        case _ => Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
+      }
     }
-    case node : RdfNode  => Seq(node.reference()) ++: node.children.flatMap(getAllAncestorsRef(_))
-    case node : Bind => Seq(node.reference()) ++: node.children.flatMap(getAllAncestorsRef(_))
-    case node : FilterNode => Seq(node.reference()) ++: node.children.flatMap(getAllAncestorsRef(_))
-    case _ => Seq()
+    case node: ObjectOf => node.subjectTerm match {
+      case q: QueryVariable => node.propertyTerm match {
+        case q2 : QueryVariable =>
+          Seq(q.name,q2.name) ++ node.children.flatMap(getAllAncestorsRef)
+        case _ => Seq(q.name) ++ node.children.flatMap(getAllAncestorsRef)
+      }
+      case _ => node.propertyTerm match {
+        case q2 : QueryVariable =>
+          Seq(q2.name) ++ node.children.flatMap(getAllAncestorsRef)
+        case _ => Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
+      }
+    }
+    case node: RdfNode =>
+      Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
+    case node: Bind =>
+      Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
+    case node: FilterNode =>
+      Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
+    case _ =>
+      Seq()
   }
 
   /**

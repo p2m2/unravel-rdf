@@ -6,7 +6,6 @@ import scala.language.implicitConversions
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.util.{Failure, Success, Try}
 
-case class Triple(s: SparqlDefinition, p: SparqlDefinition, o: SparqlDefinition)
 
 sealed abstract class SparqlDefinition {
 
@@ -32,8 +31,6 @@ object SparqlDefinition {
       case _ => throw UnravelException(any.toString + " can not be cast into Sparql Def type.")
     }
 
-
-  implicit def fromString(s: String): Literal[String] = Literal(s)
   implicit def fromString(s: Int): Literal[Int] = Literal(s)
   implicit def fromString(s: Boolean): Literal[Boolean] = Literal(s)
   implicit def fromString(s: Double): Literal[Double] = Literal(s)

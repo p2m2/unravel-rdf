@@ -35,27 +35,34 @@ object SparqlGenerator  {
       }.lastOption.map(sparqlNode(_,"","")).getOrElse("")
     } + {
       root.lSolutionSequenceModifierNode.filter {
-        case _: Projection => true
-        case _ => false
-      }.lastOption
+          case _: Projection => true
+          case _ => false
+        }.lastOption
         .map {
           case proj: Projection => {
             /* get All variables and check if variables asking by the user is present */
-            val allVariables = pm.NodeVisitor.getAllAncestorsRef(root)
+            val allVariables = pm.NodeVisitor.getAllAncestorsRef(root).distinct
             val variables =
               proj
                 .variables
                 .filter(queryVariable => allVariables.contains(queryVariable.name) || queryVariable.name == "*")
+
+            // Lance une exception si aucune variable n'est définie
+            if (variables.isEmpty && allVariables.nonEmpty) {
+              throw new IllegalArgumentException(
+                s"No variables defined. All ancestors: ${allVariables.mkString(", ")}"
+              )
+            }
 
             Projection(variables, proj.idRef, proj.children, proj.decorations)
           }
           case solutionSequenceModifierNode => solutionSequenceModifierNode
         }
         .map( proj => {
-        (sparqlNode(proj,"","")
-          + proj.children.map( child => body( child, "")).mkString(""))
-      }
-      ).getOrElse("*")
+          (sparqlNode(proj,"","")
+            + proj.children.map( child => body( child, "")).mkString(""))
+        }
+        ).getOrElse("*")
     } + "\n" +
       from(root.defaultGraph) +"\n"+
       fromNamed(root.namedGraph) +"\n"+
@@ -66,14 +73,14 @@ object SparqlGenerator  {
 
     val orderByForm_asc = {
       root.lSolutionSequenceModifierNode.filter {
-        case o : OrderByAsc if o.list.length>0 => true
+        case o : OrderByAsc if o.list.nonEmpty => true
         case _ => false
       }.lastOption.map(sparqlNode(_,"","")).getOrElse("")
     }
 
     val orderByForm_desc ={
       root.lSolutionSequenceModifierNode.filter {
-        case d : OrderByDesc if d.list.length>0 =>  true
+        case d : OrderByDesc if d.list.nonEmpty =>  true
         case _ => false
       }.lastOption.map(sparqlNode(_,"","")).getOrElse("")
     }
@@ -106,8 +113,8 @@ object SparqlGenerator  {
                  variableName : String) : String = {
     trace(varIdSire+" - "+variableName)
     n match {
-      case node : SubjectOf          => "\t?" + varIdSire + " " + node.propertyTerm.toString + " " + "?"+ variableName + " .\n"
-      case node : ObjectOf           => "\t?" + variableName + " " + node.propertyTerm.toString + " " + "?"+ varIdSire + " .\n"
+      case node : SubjectOf          => "\t?" + varIdSire + " " + node.propertyTerm.toString + " " + node.objectTerm.toString + " .\n"
+      case node : ObjectOf           => "\t" + node.subjectTerm.toString + " " + node.propertyTerm.toString + " " + "?"+ varIdSire + " .\n"
       case node : Value              => node.term match {
         case _ : QueryVariable => "\tBIND ( ?" + varIdSire +  " AS " + node.term.toString + ")"
         case _  =>  "\tVALUES ?" +varIdSire+ " { " + node.term.toString + " } .\n" }
@@ -185,10 +192,10 @@ object SparqlGenerator  {
            varIdSire : String = "" /* sire variable */
           )  : String = {
     val variableName : String = n.idRef
-    println(s"============= BODY  varIdSire=$varIdSire  type_node=${n.getClass.getSimpleName} variableName=$variableName ======================")
-    println(variableName)
-    println(sparqlNode(n,varIdSire,variableName))
-    println("--------------------------------------------------------------------------")
+    //println(s"============= BODY  varIdSire=$varIdSire  type_node=${n.getClass.getSimpleName} variableName=$variableName ======================")
+    //println(variableName)
+    //println(sparqlNode(n,varIdSire,variableName))
+    //println("--------------------------------------------------------------------------")
     sparqlNode(n,varIdSire,variableName) + n.children.map( child => body( child, variableName)).mkString("")
   }
 }

@@ -12,7 +12,7 @@ object SparqlQueryBuilder {
    * @return
    */
   def baseQuery(n: Root) : String = {
-    (pm.SparqlGenerator.solutionSequenceModifierStart(n)) + "\n" +
+    pm.SparqlGenerator.solutionSequenceModifierStart(n) + "\n" +
       pm.SparqlGenerator.body(n) + "\n" +
       pm.SparqlGenerator.solutionSequenceModifierEnd(n)
   }

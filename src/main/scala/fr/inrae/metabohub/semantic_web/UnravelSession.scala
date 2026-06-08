@@ -262,6 +262,7 @@ case class UnravelSession(
                  ): UnravelSession = {
 
    if (objectTermSparql != null) {
+     println(objectTermSparql,objectTermSparql.getClass.getSimpleName)
       // Cas SparqlDefinition
       objectTermSparql match {
         case QueryVariable(id) =>
