@@ -29,7 +29,7 @@ object UnravelSessionFilterS1Test extends TestSuite {
       insertData.map(_ => {
         val trans = UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something("instance",_.isSubjectOf(URI("a"),_.set(URI("Class", "owl"))))
+          .something("instance",_.isSubjectOf(URI("a"),apply=_.set(URI("Class", "owl"))))
           .from("instance",_.filter.contains("w3"))
           .from("instance",_.filter.not.contains("http://www.w3.org/2002/07/owl"))
           .select(List("instance"))

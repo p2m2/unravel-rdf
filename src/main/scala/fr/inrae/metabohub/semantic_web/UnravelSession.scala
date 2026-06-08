@@ -241,7 +241,7 @@ case class UnravelSession(
   def something(f: UnravelSession => UnravelSession): UnravelSession = something(getUniqueRef("something"), f);
 
   /* create node which focus is the subject : ?focusId <uri> ?target */
-  private def isSubjectOf(
+  private def _isSubjectOf(
                            propertyTerm: SparqlDefinition,
                            ref: String,
                            objectTerm: SparqlDefinition,
@@ -254,61 +254,33 @@ case class UnravelSession(
     f(inner.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
+  // Méthode principale avec paramètre nommé
   def isSubjectOf(
-                   propertyTerm: SparqlDefinition
+                   propertyTerm: SparqlDefinition,
+                   objectTermSparql: SparqlDefinition = null,
+                   apply: UnravelSession => UnravelSession = identity
                  ): UnravelSession = {
-    val id = getUniqueRef("object")
-    val objectTerm = QueryVariable(id)
-    isSubjectOf(propertyTerm, id, objectTerm, identity)
+
+   if (objectTermSparql != null) {
+      // Cas SparqlDefinition
+      objectTermSparql match {
+        case QueryVariable(id) =>
+          _isSubjectOf(propertyTerm, id, objectTermSparql, apply)
+        case _ =>
+          _isSubjectOf(propertyTerm, getUniqueRef("object"), objectTermSparql, apply)
+      }
+    } else {
+      val id = getUniqueRef("object")
+      val objectTermVar = QueryVariable(id)
+      _isSubjectOf(propertyTerm, id, objectTermVar, apply)
+    }
   }
-
-  //((((((((((((((((((objectTerm=>string))))))))))))))))))))))))))))))))
-  def isSubjectOf(
-                   propertyTerm: SparqlDefinition,
-                   objectTerm: String
-                 ): UnravelSession =
-    isSubjectOf(propertyTerm, objectTerm, QueryVariable(objectTerm), identity)
-
-
-  def isSubjectOf(
-                   propertyTerm: SparqlDefinition,
-                   objectTerm: String,
-                   f: UnravelSession => UnravelSession
-                 ): UnravelSession =
-    isSubjectOf(propertyTerm, objectTerm, QueryVariable(objectTerm), f)
-
-  //((((((((((((((((((objectTerm=>SparqlDef))))))))))))))))))))))))))))))))
-
-  def isSubjectOf(
-                   propertyTerm: SparqlDefinition,
-                   objectTerm: SparqlDefinition
-                 ): UnravelSession =
-    objectTerm match {
-      case QueryVariable(id) =>
-        isSubjectOf(propertyTerm, id, objectTerm, identity)
-
-      case _ =>
-        isSubjectOf(propertyTerm, getUniqueRef("object"), objectTerm, identity)
-    }
-
-  def isSubjectOf(
-                   propertyTerm: SparqlDefinition,
-                   objectTerm: SparqlDefinition,
-                   f: UnravelSession => UnravelSession = identity
-                 ): UnravelSession =
-    objectTerm match {
-      case QueryVariable(id) =>
-        isSubjectOf(propertyTerm, id, objectTerm, f)
-
-      case _ =>
-        isSubjectOf(propertyTerm, getUniqueRef("object"), objectTerm, f)
-    }
 
   //---------------------------------------------------------------------------------------------------------
 
 
   /* create node which focus is the object : ?target <uri> ?focusId */
-  def isObjectOf(
+  private def _isObjectOf(
                   propertyTerm: SparqlDefinition,
                   ref: String,
                   subjectTerm: SparqlDefinition,
@@ -320,62 +292,31 @@ case class UnravelSession(
     f(inner.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
-
-  /** subjectTerm = String → variable implicite */
   def isObjectOf(
                   propertyTerm: SparqlDefinition,
-                  ref: String,
-                  subjectTerm: String
-                ): UnravelSession =
-    isObjectOf(propertyTerm, ref, QueryVariable(subjectTerm), identity)
+                  subjectTermSparql: SparqlDefinition = null,
+                  apply: UnravelSession => UnravelSession = identity
+                 ): UnravelSession = {
 
-  /** objectTerm = SparqlDefinition (cas général) */
-  def isObjectOf(
-                  propertyTerm: SparqlDefinition,
-                  subjectTerm: SparqlDefinition,
-                  f: UnravelSession => UnravelSession
-                ): UnravelSession =
-    subjectTerm match {
-      case QueryVariable(id) =>
-        isObjectOf(propertyTerm, id, subjectTerm, f)
-
-      case _ =>
-        isObjectOf(propertyTerm, getUniqueRef("subject"), subjectTerm, f)
+    if (subjectTermSparql != null) {
+      // Cas SparqlDefinition
+      subjectTermSparql match {
+        case QueryVariable(id) =>
+          _isObjectOf(propertyTerm, id, subjectTermSparql, apply)
+        case _ =>
+          _isObjectOf(propertyTerm, getUniqueRef("subject"), subjectTermSparql, apply)
+      }
+    } else {
+      val id = getUniqueRef("object")
+      val subjectTermSparql = QueryVariable(id)
+      _isObjectOf(propertyTerm, id, subjectTermSparql, apply)
     }
-
-  /** API principale (seule avec default arg) */
-  def isObjectOf(
-                  propertyTerm: SparqlDefinition,
-                  f: UnravelSession => UnravelSession
-                ): UnravelSession = {
-    val ref = getUniqueRef("object")
-    isObjectOf(propertyTerm, ref, QueryVariable(ref), f)
   }
 
-  def isObjectOf(
-                  propertyTerm: SparqlDefinition,
-                  subjectTerm: SparqlDefinition
-                ): UnravelSession =
-    subjectTerm match {
-      case QueryVariable(id) =>
-        isSubjectOf(propertyTerm, id, subjectTerm, identity)
-
-      case _ =>
-        isObjectOf(propertyTerm, getUniqueRef("object"), subjectTerm, identity)
-    }
-
-  def isObjectOf(
-                  propertyTerm: SparqlDefinition
-                ): UnravelSession = {
-    val id = getUniqueRef("object")
-    val subjectTerm = QueryVariable(id)
-    isObjectOf(propertyTerm, id, subjectTerm, identity)
-  }
-
-
-  /* create node which focus is typed with <uri>:
+  /*
+  create node which focus is typed with <uri>:
   ?focusId a <uri>
-*/
+  */
   def isA(term: SparqlDefinition): UnravelSession =
     isSubjectOf(URI("rdf:type"), term)
 

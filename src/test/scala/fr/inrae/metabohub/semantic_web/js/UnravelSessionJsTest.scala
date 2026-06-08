@@ -61,9 +61,6 @@ object UnravelSessionJsTest extends TestSuite{
     test("isA") {
       startRequest.from("h1",_.isA("http://test"))
     }
-    test("isLinkFrom") {
-      startRequest.from("h1",_.isLinkFrom("http://test"))
-    }
     test("set") {
       startRequest.from("h1",_.set("http://test"))
     }

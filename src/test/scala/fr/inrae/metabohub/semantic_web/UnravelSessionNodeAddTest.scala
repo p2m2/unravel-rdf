@@ -14,7 +14,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
   val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
   def tests: Tests = Tests {
-/*
+
     test("something") {
       UnravelSession(config).something("h1")
     }
@@ -60,7 +60,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
 
     test("isLinkTo on the root") {
 
-      Try(UnravelSession(config).from("h1",_.isLinkTo(URI("bb"), "var"))) match {
+      Try(UnravelSession(config).from("h1",_.isSubjectOf(QueryVariable("var"),URI("bb")))) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
@@ -68,7 +68,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
 
     test("isLinkTo") {
       val s = UnravelSession(config)
-        .something("h1",_.isLinkTo(URI("bb"), "var"))
+        .something("h1",_.isSubjectOf(QueryVariable("var"),URI("bb")))
 
       val triplet: Regex = "\\?h1 \\?var+ <bb>".r
 
@@ -79,16 +79,16 @@ object UnravelSessionNodeAddTest extends TestSuite {
     }
 
     test("isLinkFrom on the root") {
-      Try(UnravelSession(config).from("h1",_.isLinkFrom(URI("bb"), "var"))) match {
+      Try(UnravelSession(config).from("h1",_.isObjectOf(QueryVariable("var"),URI("bb")))) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
     }
-*/
+
     test("isLinkFrom") {
       val s =
         UnravelSession(config)
-          .something("h1",_.isObjectOf(QueryVariable("var"),_.set(URI("<bb>"))))
+          .something("h1",_.isObjectOf(QueryVariable("var"),apply = _.set(URI("<bb>"))))
 
       val triplet: Regex = "<bb> \\?var \\?h1".r
 
@@ -110,7 +110,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
         case None => assert(false)
       }
     }
-/*
+
     test("isA on the root") {
       Try(UnravelSession(config).from("h1",_.isA(URI("class")))) match {
         case Success(_) => assert(false)
@@ -128,6 +128,6 @@ object UnravelSessionNodeAddTest extends TestSuite {
         case Some(_) => assert(true)
         case None => assert(false)
       }
-    }*/
+    }
   }
 }

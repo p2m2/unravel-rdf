@@ -107,7 +107,7 @@ object UnravelSessionDecorationTest extends TestSuite {
         .from("h1", h1 =>
           h1.setDecoration("someKey", "someValue")
             .console
-            .isObjectOf("http://some", s => {
+            .isObjectOf("http://some", apply=s => {
               assert(s.getDecoration("someKey") == "")
               s
             }))

@@ -108,7 +108,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization filter") {
       val sw =
         UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isSubjectOf(URI("bb"),_.filter.not.contains("filter")))
+          .something ("h1",_.isSubjectOf(URI("bb"),apply=_.filter.not.contains("filter")))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()
@@ -118,7 +118,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization datatype") {
       val sw =
         UnravelSession(DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isSubjectOf(URI("bb"),f=(s => s.datatype(URI("some"),"v"))))
+          .something ("h1",_.isSubjectOf(URI("bb"),apply=(s => s.datatype(URI("some"),"v"))))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()

@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.semantic_web
 
 import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
-import fr.inrae.metabohub.semantic_web.rdf.URI
+import fr.inrae.metabohub.semantic_web.rdf.{QueryVariable, URI}
 import utest.{TestSuite, Tests, test}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,7 +45,7 @@ object RdfContentFederationTest extends TestSuite {
       UnravelSession(configTurtleContent)
         .prefix("ns0", "http://www.some-ficticious-zoo.com/rdf#")
         .something("h1",
-          _.isSubjectOf(URI("ns0:class"),_.set("Mammal"))
+          _.isSubjectOf(URI("ns0:class"),QueryVariable("Mammal"))
             .datatype(URI("ns0:color"), "color")
         )
         .select(List("h1", "color"))

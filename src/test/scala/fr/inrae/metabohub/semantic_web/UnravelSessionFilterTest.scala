@@ -49,7 +49,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),_.filter.isLiteral))
+            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.isLiteral))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .transaction
           .distinct
@@ -66,7 +66,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),_.filter.isUri))
+            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.isUri))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -82,7 +82,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),_.filter.isBlank))
+            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.isBlank))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .transaction
           .distinct
@@ -100,7 +100,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something("x",
-            _.isSubjectOf(URI("http://propContains"),_.filter.contains("regex_expected")))
+            _.isSubjectOf(URI("http://propContains"),apply=_.filter.contains("regex_expected")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("x"))
           .commit()
@@ -115,15 +115,15 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(URI("http://propContains"),_.filter.not.contains("regex_expected")))
+            _.isSubjectOf(URI("http://propContains"),apply=_.filter.not.contains("regex_expected")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
           .raw
-          .map(result => {
+          .map(_ => {
             assert(false)
           })
-          .recover(e => assert(true))
+          .recover(_ => assert(true))
       }).flatten
     }
     test("SW Filter not contains 2") {
@@ -131,16 +131,16 @@ object UnravelSessionFilterTest extends TestSuite {
         UnravelSession(config)
           .something(
             _.isSubjectOf(URI("propContains"),
-              _.filter.contains("bidon")
+              apply=_.filter.contains("bidon")
               .filter.not.contains("regex_expected")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
           .raw
-          .map(result => {
+          .map(_ => {
             assert(false)
           })
-          .recover(e => assert(true))
+          .recover(_ => assert(true))
       }).flatten
     }
 
@@ -148,7 +148,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),_.filter.strStarts("tes")))
+            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.strStarts("tes")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -164,7 +164,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),_.filter.strEnds("est")))
+            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.strEnds("est")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -202,7 +202,7 @@ object UnravelSessionFilterTest extends TestSuite {
           .commit()
           .raw
           .map(result => {
-            assert(result("results")("bindings").arr.map(v => v("v")("value").value).filter(_ == "test").length == 0)
+            assert(!result("results")("bindings").arr.map(v => v("v")("value").value).contains("test"))
           })
       }).flatten
     }

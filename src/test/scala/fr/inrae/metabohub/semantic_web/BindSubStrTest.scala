@@ -30,7 +30,7 @@ object BindSubStrTest extends TestSuite {
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
             _.isSubjectOf(URI("http://bb"),
-              _.bind("res").subStr(0,3)))
+              apply=_.bind("res").subStr(0,3)))
           .select(Seq("res"))
           .distinct
           .commit()
@@ -46,7 +46,7 @@ object BindSubStrTest extends TestSuite {
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
             _.isSubjectOf(URI("http://bb"),
-              _.bind("res")
+              apply=_.bind("res")
                 .subStr(0,3)
                 .filter.equal("abc")))
           .console
