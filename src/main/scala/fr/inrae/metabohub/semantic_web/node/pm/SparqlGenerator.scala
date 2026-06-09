@@ -150,9 +150,9 @@ object SparqlGenerator  {
       } + {
         node match {
           case node : Regex              => "regex (str(" + "?"+ varIdSire  + ")," + node.pattern.sparql + "," + node.flags.sparql + ")"
-          case n : Contains           => "contains(str(" + "?" +varIdSire + "),"+ n.value.sparql + ")"
-          case n : StrStarts          => "strStarts(str(" + "?" +varIdSire + "),"+ n.value.sparql + ")"
-          case n : StrEnds            => "strEnds(str(" + "?" +varIdSire + "),"+ n.value.sparql + ")"
+          case n : Contains           => "contains(str(" + "?" +varIdSire + "),"+ s"str(${n.value.sparql})" + ")"
+          case n : StrStarts          => "strStarts(str(" + "?" +varIdSire + "),"+ s"str(${n.value.sparql})" + ")"
+          case n : StrEnds            => "strEnds(str(" + "?" +varIdSire + "),"+ s"str(${n.value.sparql})" + ")"
           case n : Equal              => "(?" +varIdSire + "="+ n.value.sparql + ")"
           case n : NotEqual           => "(?" +varIdSire + "!="+ n.value.sparql + ")"
           case n : Inf                => s"((?$varIdSire)<${n.value.sparql})"

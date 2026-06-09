@@ -75,10 +75,10 @@ object UnravelSessionDecorationTest extends TestSuite {
         startRequest
           .from("h1",h1 =>
             h1.setDecoration("someKey","someValue")
-              .isObjectOf(URI("http://s2"),"s2"))
+              .isObjectOf(URI("http://s2"),"?s2"))
           .from("s2", s2 =>
             s2.setDecoration("someKey2","someValue2")
-            .isObjectOf(URI("http://s3"),"s3"))
+            .isObjectOf(URI("http://s3"),"?s3"))
           .from("s3", s3 => s3.setDecoration("someKey3","someValue3"))
           .browse(
             (n : Node,deep: Integer)=> {
@@ -116,7 +116,7 @@ object UnravelSessionDecorationTest extends TestSuite {
     test("setDecoratingAttribute/getDecoration 4") {
       (startRequest
         .from("h1",h1 =>
-          h1.isObjectOf("http://some","something",
+          h1.isObjectOf("http://some","?something",
               s=>s.setDecoration("someKey","someValue")))
         .from("h1",h1 => h1.isObjectOf("http://some"))
         .from("something", s=> {assert(s.getDecoration("someKey") == "someValue");s}))

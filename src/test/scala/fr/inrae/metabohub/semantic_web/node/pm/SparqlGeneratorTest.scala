@@ -122,24 +122,24 @@ object SparqlGeneratorTest extends TestSuite {
     test("sparqlNode Contains") {
 
       val v = SparqlGenerator.sparqlNode(Contains("h",negation = false,""),"nothingSire","nothingVar")
-      assert(v.trim().split(" ").toList == List("FILTER","(","contains(str(?nothingSire),\"h\")",")"))
+      assert(v.trim().split(" ").toList == List("FILTER","(","contains(str(?nothingSire),str(\"h\"))",")"))
     }
 
     test("sparqlNode Contains neg") {
       val v = SparqlGenerator.sparqlNode(Contains("h",negation = true,""),"nothingSire","nothingVar")
-      assert(v.trim().split(" ").toList == List("FILTER","(","!contains(str(?nothingSire),\"h\")",")"))
+      assert(v.trim().split(" ").toList == List("FILTER","(","!contains(str(?nothingSire),str(\"h\"))",")"))
     }
 
     test("sparqlNode StrStarts") {
 
       val v = SparqlGenerator.sparqlNode(StrStarts("h",negation = false,""),"nothingSire","nothingVar")
-      assert(v.trim().split(" ").toList == List("FILTER","(","strStarts(str(?nothingSire),\"h\")",")"))
+      assert(v.trim().split(" ").toList == List("FILTER","(","strStarts(str(?nothingSire),str(\"h\"))",")"))
     }
 
     test("sparqlNode StrEnds") {
 
       val v = SparqlGenerator.sparqlNode(StrEnds("h",negation = false,""),"nothingSire","nothingVar")
-      assert(v.trim().split(" ").toList == List("FILTER","(","strEnds(str(?nothingSire),\"h\")",")"))
+      assert(v.trim().split(" ").toList == List("FILTER","(","strEnds(str(?nothingSire),str(\"h\"))",")"))
     }
 
     test("sparqlNode Equal") {
