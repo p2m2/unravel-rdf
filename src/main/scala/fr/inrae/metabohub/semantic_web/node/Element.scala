@@ -418,6 +418,8 @@ final case class SubjectOf(override val idRef: String = randomUUID.toString,
   def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node = {
     SubjectOf(idRef, propertyTerm,objectTerm, children, decoratingAttributeMap)
   }
+  override def toString: String =
+    s"SubjectOf($idRef,propertyTerm=$propertyTerm,objectTerm$objectTerm) " + super.toString
 }
 
 object ObjectOf {
@@ -435,6 +437,9 @@ final case class ObjectOf(override val idRef: String,
   def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node = {
     ObjectOf(idRef, propertyTerm,subjectTerm, children, decoratingAttributeMap)
   }
+
+  override def toString: String =
+    s"ObjectOf($idRef,propertyTerm=$propertyTerm,subjectTerm$subjectTerm) " + super.toString
 }
 
 object Value {

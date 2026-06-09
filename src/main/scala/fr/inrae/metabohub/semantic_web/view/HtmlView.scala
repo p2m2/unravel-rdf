@@ -67,7 +67,7 @@ case class HtmlView(sw: UnravelSession, regex : String = "") {
 
 ### New step on focus
 
- - **target node**      : ${NodeVisitor.getNodeWithRef(sw.focusNode,sw.rootNode).mkString(",")}
+ - **target node**      : ${NodeVisitor.getNodeWithVariableRef(sw.focusNode,sw.rootNode).mkString(",")}
  - **regex**            : $regex
  - **Number of values** : **$count**
 

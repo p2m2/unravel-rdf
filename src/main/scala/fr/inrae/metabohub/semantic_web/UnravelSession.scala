@@ -135,7 +135,7 @@ case class UnravelSession(
     } else if (ref == rootNode.idRef) {
       root
     } else {
-      pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption match {
+      pm.NodeVisitor.getNodeWithVariableRef(ref, rootNode).lastOption match {
         case Some(node) => UnravelSession(config, rootNode, Some(node.reference()))
         case None => throw UnravelException(s"$ref does not exist.")
       }
@@ -146,7 +146,7 @@ case class UnravelSession(
     if (ref == root.rootNode.idRef)
       UnravelSession(config, rootNode, Some(root.rootNode.idRef))
     else {
-      val node = pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption
+      val node = pm.NodeVisitor.getNodeWithVariableRef(ref, rootNode).lastOption
         .getOrElse(throw UnravelException(s"$ref does not exist."))
       UnravelSession(config, rootNode, Some(node.reference()))
     }
@@ -160,7 +160,7 @@ case class UnravelSession(
 
   def refExist(ref: String): UnravelSession = {
 
-    pm.NodeVisitor.getNodeWithRef(ref, rootNode).lastOption match {
+    pm.NodeVisitor.getNodeWithVariableRef(ref, rootNode).lastOption match {
       case Some(_) => UnravelSession(config, rootNode, Some(focusNode))
       case None => throw UnravelException(s"$ref does not exist.")
     }
@@ -262,7 +262,6 @@ case class UnravelSession(
                  ): UnravelSession = {
 
    if (objectTermSparql != null) {
-     println(objectTermSparql,objectTermSparql.getClass.getSimpleName)
       // Cas SparqlDefinition
       objectTermSparql match {
         case QueryVariable(id) =>

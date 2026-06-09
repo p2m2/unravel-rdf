@@ -16,7 +16,6 @@ case class UnravelSessionHelper(sw : UnravelSession) {
   ).mkString("|") + ")"
 
   def count(lRef : Seq[String],distinct : Boolean = false) : Future[Int] = {
-    println(s" COUNT=> $lRef")
     sw
       .transaction
       .projection
@@ -37,8 +36,8 @@ case class UnravelSessionHelper(sw : UnravelSession) {
   def classes(regex : String="", motherClass: URI = URI(""), page : Int =0) : Future[Seq[URI]] = {
     debug(" -- findClasses -- ")
     val query = (motherClass match {
-      case uri : URI if uri == URI("")  => sw.isSubjectOf(URI("a"),"_esp___type")
-      case _ : URI =>  sw.isSubjectOf(URI("a"),"_esp___type",
+      case uri : URI if uri == URI("")  => sw.isSubjectOf(URI("a"),"?_esp___type")
+      case _ : URI =>  sw.isSubjectOf(URI("a"),"?_esp___type",
           _.isSubjectOf(URI("a"),motherClass))
     }).from("_esp___type")
       .filter.not.regex(regex_avoid_prefix)

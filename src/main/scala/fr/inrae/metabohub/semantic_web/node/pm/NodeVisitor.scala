@@ -5,9 +5,24 @@ import fr.inrae.metabohub.semantic_web.rdf.QueryVariable
 
 object NodeVisitor  {
 
-  def getNodeWithRef(ref : String, n: Node ) : Array[RdfNode] = n match {
-            case node : RdfNode  if (node.reference() == ref) => Array[RdfNode](node)
-            case _   => n.children.toArray.flatMap( child => getNodeWithRef( ref, child ))
+  def getNodeWithVariableRef(ref: String, n: Node): Array[RdfNode] = n match {
+    case s: SubjectOf =>
+      (s.propertyTerm, s.objectTerm) match {
+        case (q: QueryVariable, _) if q.name == ref => Array[RdfNode](s)
+        case (_, q: QueryVariable) if q.name == ref => Array[RdfNode](s)
+        case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+      }
+
+    case o: ObjectOf =>
+      (o.propertyTerm, o.subjectTerm) match {
+        case (q: QueryVariable, _) if q.name == ref => Array[RdfNode](o)
+        case (_, q: QueryVariable) if q.name == ref => Array[RdfNode](o)
+        case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+      }
+
+    case node: RdfNode if node.reference() == ref => Array[RdfNode](node)
+
+    case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
   }
 
   /**

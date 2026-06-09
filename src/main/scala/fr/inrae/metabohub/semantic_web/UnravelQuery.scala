@@ -172,11 +172,9 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       case Success(driver) =>
         
         driver.subscribe(this.asInstanceOf[Subscriber[UnravelRequestEvent,Publisher[UnravelRequestEvent]]])
-        println("DRIVER1"+driver.toString)
         driver.execute(this)
           /* manage datatype decoration */
           .map((qr: QueryResult) => {
-            println("DRIVER2")
             notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_BUILD))
             /* create an empty set of datatype */
             qr.json("results").update("datatype", ujson.Obj())
@@ -218,12 +216,10 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   }
 
   case class ProjectionExpressionIncrement(v : String) {
-    println(s"ProjectionExpressionIncrement =================================== var=$v")
     def manage(n:AggregateNode) : UnravelQuery = {
       // get the Last Projection Node
       sw.rootNode.lSolutionSequenceModifierNode.lastOption match {
         case Some(proj) =>
-          println(ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef()))
           sw.copy(fn = Some(proj.idRef)) // on se position sur le noeud Projection des SolutionSequenceModifier
           .focusManagement(ProjectionExpression(QueryVariable(v),n,v)).transaction
         case None => throw UnravelException(s"Can not find Project node int the RootNode :: $sw")
