@@ -26,7 +26,7 @@ object SparqlGeneratorTest extends TestSuite {
           val l : Seq[IRI] = List("http://something","http://something2")
           assert(SparqlGenerator.fromNamed(l).toLowerCase().contains("from named"))
         }
-    
+
         test("prologCountSelection") {
           assert(SparqlGenerator.prologCountSelection("myvar").toLowerCase().contains("count"))
           assert(SparqlGenerator.prologCountSelection("myvar").toLowerCase().contains("myvar"))

@@ -53,7 +53,7 @@ object UnravelSessionTest extends TestSuite {
           .commit()
           .raw
           .map(_ => assert(false))
-          .recover((_) => assert(true))
+          .recover(_ => assert(true))
       }).flatten
     }
 
@@ -72,7 +72,7 @@ object UnravelSessionTest extends TestSuite {
         startRequest
           .from("h1",
             _.set(URI("http://aa"))
-             .isSubjectOf(URI("http://bb"), "var"))
+             .isSubjectOf(URI("http://bb"), "?var"))
           .select(List("var"))
           .commit()
           .raw
@@ -94,7 +94,7 @@ object UnravelSessionTest extends TestSuite {
           .map(
             response => {
               println(response)
-              assert(response("results")("datatypes")("d")("http://aa3")(0)("value").toString().length > 0)
+              assert(response("results")("datatypes")("d")("http://aa3")(0)("value").toString().nonEmpty)
             }
           )
       }).flatten
@@ -111,7 +111,7 @@ object UnravelSessionTest extends TestSuite {
           .raw
           .map(
             response => {
-              assert(response("results")("datatypes")("d")("http://aa3")(0)("value").toString().length > 0)
+              assert(response("results")("datatypes")("d")("http://aa3")(0)("value").toString().nonEmpty)
             }
           )
       }).flatten
@@ -196,14 +196,14 @@ object UnravelSessionTest extends TestSuite {
     test("Remove branch") {
       UnravelSession(config)
           .something("h1",
-            _.isObjectOf(URI("http://h1"),"h2")
-             .isObjectOf(URI("http://h11"),"h22")
+            _.isObjectOf(URI("http://h1"),"?h2")
+             .isObjectOf(URI("http://h11"),"?h22")
           )
           .something("d1",
-             _.isObjectOf(URI("http://d1"),"d2")
-              .isObjectOf(URI("http://d11"),"d22"))
+             _.isObjectOf(URI("http://d1"),"?d2")
+              .isObjectOf(URI("http://d11"),"?d22"))
             .remove("h1")
-          .browse( (n: Node,d:Integer) => {
+          .browse( (n: Node, _:Integer) => {
             n match {
               case _ : Root => assert(true)
               case _ => assert(n.idRef.startsWith("d"))
@@ -214,8 +214,8 @@ object UnravelSessionTest extends TestSuite {
     test("browse") {
       val listBrowse : Seq[String] =
         startRequest
-          .something("h1",_.isSubjectOf("http://test","h2"))
-         .browse( (n : Node, p:Integer) => { n.idRef} )
+          .something("h1",_.isSubjectOf("http://test",QueryVariable("h2")))
+         .browse( (n : Node, _:Integer) => { n.idRef} )
       assert( listBrowse.contains("h1") )
       assert( listBrowse.contains("h2") )
     }
