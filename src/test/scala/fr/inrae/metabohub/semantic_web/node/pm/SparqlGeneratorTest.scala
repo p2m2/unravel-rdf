@@ -8,116 +8,73 @@ import utest.{TestSuite, Tests, assert, test}
 object SparqlGeneratorTest extends TestSuite {
   def tests: Tests = Tests {
 
-    test("prefixes") {
-      val m : Map[String,IRI] = Map("some"-> "http://something","some2"->"http://something2")
-      assert(SparqlGenerator.prefixes(m).toLowerCase().contains("prefix"))
-      assert(SparqlGenerator.prefixes(m).toLowerCase().contains("some:"))
-      assert(SparqlGenerator.prefixes(m).toLowerCase().contains("some2:"))
-      assert(SparqlGenerator.prefixes(m).toLowerCase().contains("http://something"))
-      assert(SparqlGenerator.prefixes(m).toLowerCase().contains("http://something2"))
-    }
+        test("prefixes") {
+          val m : Map[String,IRI] = Map("some"-> "http://something","some2"->"http://something2")
+          assert(SparqlGenerator.prefixes(m).toLowerCase().contains("prefix"))
+          assert(SparqlGenerator.prefixes(m).toLowerCase().contains("some:"))
+          assert(SparqlGenerator.prefixes(m).toLowerCase().contains("some2:"))
+          assert(SparqlGenerator.prefixes(m).toLowerCase().contains("http://something"))
+          assert(SparqlGenerator.prefixes(m).toLowerCase().contains("http://something2"))
+        }
 
-    test("from") {
-      val l : Seq[IRI] = List("http://something","http://something2")
-      assert(SparqlGenerator.from(l).toLowerCase().contains("from"))
-    }
+        test("from") {
+          val l : Seq[IRI] = List("http://something","http://something2")
+          assert(SparqlGenerator.from(l).toLowerCase().contains("from"))
+        }
 
-    test("fromNamed") {
-      val l : Seq[IRI] = List("http://something","http://something2")
-      assert(SparqlGenerator.fromNamed(l).toLowerCase().contains("from named"))
-    }
-/*
-    test("Sparql Prolog - Variable list empty") {
-      val v = SparqlGenerator.queryFormSelect(Seq[String]()).toLowerCase()
-      assert(v.contains("*"))//assert(SparqlGenerator.prolog(Seq[String]().contains("*")) == "SELECT * WHERE {")
-      assert(v.contains("select"))
-    }
+        test("fromNamed") {
+          val l : Seq[IRI] = List("http://something","http://something2")
+          assert(SparqlGenerator.fromNamed(l).toLowerCase().contains("from named"))
+        }
+    
+        test("prologCountSelection") {
+          assert(SparqlGenerator.prologCountSelection("myvar").toLowerCase().contains("count"))
+          assert(SparqlGenerator.prologCountSelection("myvar").toLowerCase().contains("myvar"))
+        }
 
-    test("Sparql Prolog - One Variable ") {
-      val v = SparqlGenerator.queryFormSelect(Seq[String]("test")).toLowerCase()
-      assert(v.contains("?test"))
-      assert(v.contains("select"))
-    }
+        test("all") {
+          ApplyAllNode.listNodes.map(n => {
+            SparqlGenerator.sparqlNode(n,"varSire","varId")
+          })
+        }
 
-    test("Sparql Prolog - Two Variables ") {
-      val v = SparqlGenerator.queryFormSelect(Seq[String]("test","test2")).toLowerCase()
-      assert(v.contains("?test"))
-      assert(v.contains("?test2"))
-      assert(v.contains("select"))
-    }
+        test("sparqlNode - SubjectOf") {
+          val v = SparqlGenerator.sparqlNode(
+            SubjectOf("varId", URI("http://test"),QueryVariable("varId")),"varSire","varId")
+          assert(v.contains("?varSire <http://test> ?varId"))
+        }
 
-    test("start_where") {
-      assert(SparqlGenerator.start_where.toLowerCase().contains("where"))
-    }
+        test("sparqlNode Something") {
+          val v = SparqlGenerator.sparqlNode(Something("1234"),"nothingSire","nothingVar")
+          assert(v.toLowerCase() != "")
+        }
+        test("sparqlNode Something") {
+          val v = SparqlGenerator.sparqlNode(
+            Something("1234", List(
+              SubjectOf("test", URI("http://test"),QueryVariable("nothingVar")))),"nothingSire","nothingVar")
+          assert(v.toLowerCase() == "")
+        }
 
-    test("end_where") {
-      assert(SparqlGenerator.start_where.toLowerCase().contains("}"))
-    }
+        test("sparqlNode SubjectOf") {
+          val v = SparqlGenerator.sparqlNode(SubjectOf("nothingVar", URI("test"),QueryVariable("nothingVar")),"nothingSire","nothingVar")
+          assert(v.trim().split(" ").toList == List("?nothingSire","<test>","?nothingVar","."))
+        }
 
-    test("solutionModifier") {
-      assert(SparqlGenerator.solutionModifier(0,0).contains("}"))
-      assert(!SparqlGenerator.solutionModifier(0,0).toLowerCase().contains("limit"))
-      assert(!SparqlGenerator.solutionModifier(0,0).toLowerCase().contains("offset"))
-    }
-
-    test("solutionModifier limit") {
-      assert(SparqlGenerator.solutionModifier(10,0).contains("}"))
-      assert(SparqlGenerator.solutionModifier(10,0).toLowerCase().contains("limit 10"))
-      assert(!SparqlGenerator.solutionModifier(10,0).toLowerCase().contains("offset"))
-    }
-
-    test("solutionModifier offset") {
-      assert(SparqlGenerator.solutionModifier(0,10).contains("}"))
-      assert(!SparqlGenerator.solutionModifier(0,10).toLowerCase().contains("limit"))
-      assert(SparqlGenerator.solutionModifier(0,10).toLowerCase().contains("offset 10"))
-    }
-*/
-    test("prologCountSelection") {
-      assert(SparqlGenerator.prologCountSelection("myvar").toLowerCase().contains("count"))
-      assert(SparqlGenerator.prologCountSelection("myvar").toLowerCase().contains("myvar"))
-    }
-
-    test("all") {
-      ApplyAllNode.listNodes.map(n => {
-        SparqlGenerator.sparqlNode(n,"varSire","varId")
-      })
-    }
-
-    test("sparqlNode - SubjectOf") {
-      val v = SparqlGenerator.sparqlNode(
-        SubjectOf("varId", URI("http://test"),QueryVariable("varId")),"varSire","varId")
-      assert(v.contains("?varSire <http://test> ?varId"))
-    }
-
-    test("sparqlNode Something") {
-      val v = SparqlGenerator.sparqlNode(Something("1234"),"nothingSire","nothingVar")
-      assert(v.toLowerCase() != "")
-    }
-    test("sparqlNode Something") {
-      val v = SparqlGenerator.sparqlNode(
-        Something("1234", List(
-          SubjectOf("test", URI("http://test"),QueryVariable("nothingVar")))),"nothingSire","nothingVar")
-      assert(v.toLowerCase() == "")
-    }
-
-    test("sparqlNode SubjectOf") {
-      val v = SparqlGenerator.sparqlNode(SubjectOf("nothingVar", URI("test"),QueryVariable("nothingVar")),"nothingSire","nothingVar")
-      assert(v.trim().split(" ").toList == List("?nothingSire","<test>","?nothingVar","."))
-    }
-
-    test("sparqlNode ObjectOf") {
-      val v = SparqlGenerator.sparqlNode(ObjectOf("1234", URI("test"),QueryVariable("nothingVar")),"nothingSire","nothingVar")
-      assert(v.trim().split(" ").toList == List("?nothingVar","<test>","?nothingSire","."))
-    }
+        test("sparqlNode ObjectOf") {
+          val v = SparqlGenerator.sparqlNode(ObjectOf("1234", URI("test"),QueryVariable("nothingVar")),"nothingSire","nothingVar")
+          assert(v.trim().split(" ").toList == List("?nothingVar","<test>","?nothingSire","."))
+        }
 
     test("sparqlNode LinkTo") {
+      println(URI("test"))
       val v = SparqlGenerator.sparqlNode(
-        SubjectOf("1234",QueryVariable("nothingVar"),URI("test")),"test","nothingVar")
+        SubjectOf("1234",QueryVariable("nothingVar"),URI("test")),"nothingSire","nothingVar")
+      println(v)
       assert(v.trim().split(" ").toList == List("?nothingSire","?nothingVar","<test>","."))
     }
 
     test("sparqlNode LinkFrom") {
-      val v = SparqlGenerator.sparqlNode(ObjectOf("1234",QueryVariable("nothingVar"),URI("test")),"test","nothingVar")
+      val v = SparqlGenerator.sparqlNode(ObjectOf("1234",QueryVariable("nothingVar"),URI("test")),"nothingSire","nothingVar")
       assert(v.trim().split(" ").toList == List("<test>","?nothingVar","?nothingSire","."))
     }
 
@@ -285,6 +242,5 @@ object SparqlGeneratorTest extends TestSuite {
         SparqlGenerator.sparqlNode(n,"nothingSire","nothingVar")
       })
     }
-
   }
 }
