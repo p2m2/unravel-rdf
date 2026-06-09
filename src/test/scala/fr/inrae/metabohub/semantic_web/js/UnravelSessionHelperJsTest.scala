@@ -33,7 +33,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
     test("count") {
       insertData.map(_ => {
         val session = startRequest.from("h1",
-            _.isSubjectOf(URI("<bb>"), "h1_obj"))
+            _.isSubjectOf(URI("<bb>"), "?h1_obj"))
 
         session
           .from("h1_obj",
@@ -49,7 +49,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
 
     test("classes 1") {
       insertData.map(_ => {
-        val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+        val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "?h1_obj"))
         session
           .from("h1_obj",
           {s => s.finder
@@ -63,7 +63,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
 
     test("classes 2") {
         insertData.map(_ => {
-          val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+          val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "?h1_obj"))
           session
             .from("h1_obj",
             { s => s.finder
@@ -101,7 +101,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
    }
    test("objectProperties 2") {
      insertData.map(_ => {
-       val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+       val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "?h1_obj"))
        session
          .from("h1_obj",
            {
@@ -128,7 +128,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
      }
      test("subjectProperties 2") {
        insertData.map(_ => {
-         val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+         val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "?h1_obj"))
          session
            .from("h1_obj",
              {
@@ -155,7 +155,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
      }
      test("datatypeProperties 2") {
        insertData.map(_ => {
-         val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "h1_obj"))
+         val session = startRequest.from("h1",_.isSubjectOf(URI("<bb>"), "?h1_obj"))
          session
            .from("h1_obj",
              {
@@ -171,7 +171,7 @@ object UnravelSessionHelperJsTest extends TestSuite {
      test("datatypeProperties 3") {
        insertData.map(_ => {
          startRequest.from("h1",
-             _.isObjectOf(URI("<bb>"), "h1_sub")
+             _.isObjectOf(URI("<bb>"), "?h1_sub")
            .from("h1_sub", s => {s.finder
            .datatypeProperties()
            .toFuture

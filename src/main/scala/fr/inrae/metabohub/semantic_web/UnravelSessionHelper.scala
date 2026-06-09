@@ -16,6 +16,7 @@ case class UnravelSessionHelper(sw : UnravelSession) {
   ).mkString("|") + ")"
 
   def count(lRef : Seq[String],distinct : Boolean = false) : Future[Int] = {
+    println(s" COUNT=> $lRef")
     sw
       .transaction
       .projection

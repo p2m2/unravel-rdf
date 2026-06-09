@@ -40,19 +40,16 @@ object SparqlGenerator  {
         }.lastOption
         .map {
           case proj: Projection => {
+            println("======================================================================================")
             /* get All variables and check if variables asking by the user is present */
             val allVariables = pm.NodeVisitor.getAllAncestorsRef(root).distinct
+            println(allVariables)
+            println(proj)
+            println(proj.toString)
             val variables =
               proj
                 .variables
                 .filter(queryVariable => allVariables.contains(queryVariable.name) || queryVariable.name == "*")
-
-            // Lance une exception si aucune variable n'est définie
-            if (variables.isEmpty && allVariables.nonEmpty) {
-              throw new IllegalArgumentException(
-                s"No variables defined. All ancestors: ${allVariables.mkString(", ")}"
-              )
-            }
 
             Projection(variables, proj.idRef, proj.children, proj.decorations)
           }

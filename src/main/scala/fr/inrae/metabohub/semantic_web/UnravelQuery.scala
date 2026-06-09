@@ -150,14 +150,12 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
   def commit() : UnravelQuery = {
     notify(UnravelRequestEvent(UnravelStateRequestEvent.START))
-
     val lSelectedVariable : Seq[QueryVariable] = sw.rootNode.getChild(Projection(List(),"")).lastOption match {
       case Some(proj) => proj.variables.distinct
       case None =>
         notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
         throw UnravelException("projection/selected required variables are not defined.")
     }
-
     val lDatatype: Seq[DatatypeNode] =
       sw.rootNode.getChild[DatatypeNode](DatatypeNode("",SubjectOf("", URI(""),QueryVariable("")),"unk"))
         .filter(ld => lSelectedVariable.map(_.name).contains(ld.property.reference()))
@@ -220,19 +218,20 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   }
 
   case class ProjectionExpressionIncrement(v : String) {
-
+    println(s"ProjectionExpressionIncrement =================================== var=$v")
     def manage(n:AggregateNode) : UnravelQuery = {
-      // get the Last Proejection Node
+      // get the Last Projection Node
       sw.rootNode.lSolutionSequenceModifierNode.lastOption match {
         case Some(proj) =>
-          sw.copy(fn = Some(proj.idRef)) // on se position sur le nodeu Projection des SolutionSequenceModifier
-            .focusManagement(ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef())).transaction
+          println(ProjectionExpression(QueryVariable(v),n,sw.getUniqueRef()))
+          sw.copy(fn = Some(proj.idRef)) // on se position sur le noeud Projection des SolutionSequenceModifier
+          .focusManagement(ProjectionExpression(QueryVariable(v),n,v)).transaction
         case None => throw UnravelException(s"Can not find Project node int the RootNode :: $sw")
       }
     }
 
-    def count(lRef : Seq[String],distinct: Boolean=false) : UnravelQuery = manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
-  //  def countAll(distinct: Boolean=false) : UnravelQuery = manage(CountAll(distinct,sw.getUniqueRef()),true)
+    def count(lRef : Seq[String],distinct: Boolean=false) : UnravelQuery =
+        manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
   }
 
   def aggregate(`var` : String) : ProjectionExpressionIncrement = ProjectionExpressionIncrement(`var`)

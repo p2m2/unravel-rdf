@@ -29,8 +29,6 @@ object UnravelSessionJsTest extends TestSuite{
       .something("h1")
 
   def tests = Tests {
-
-
     test("focus") {
       startRequest.current() match {
         case _ : String => assert(true)
@@ -94,6 +92,7 @@ object UnravelSessionJsTest extends TestSuite{
     test("select") {
       startRequest.select(Seq("h1").toJSArray,1,1)
     }
+
     test("selectByPage") {
       startRequest.selectByPage("h1")
     }
@@ -122,6 +121,5 @@ object UnravelSessionJsTest extends TestSuite{
       assert(startRequest.setConfig(DataTestFactory.getConfigVirtuoso2()).getConfig().sources.head.id ==
         DataTestFactory.getConfigVirtuoso2().sources.head.id)
     }
-
   }
 }

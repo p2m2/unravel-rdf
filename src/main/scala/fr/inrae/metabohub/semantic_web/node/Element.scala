@@ -114,68 +114,76 @@ final case class Root(
                ) extends Node(idRef,children,decorations) {
   /* prefix management */
 
-  def addPrefix(short : String,long : IRI) : Root = {
-    Root(idRef,prefixes + (short -> long ),directives,defaultGraph,namedGraph,lDatatypeNode,lSourcesNodes,lBindNode,lSolutionSequenceModifierNode,children,decorations)
+  def addPrefix(short: String, long: IRI): Root = {
+    Root(idRef, prefixes + (short -> long), directives, defaultGraph, namedGraph, lDatatypeNode, lSourcesNodes, lBindNode, lSolutionSequenceModifierNode, children, decorations)
   }
-  def getPrefix(short : String) : IRI = prefixes.getOrElse(short,IRI(""))
 
-  def getPrefixes : Map[String,IRI] = prefixes
+  def getPrefix(short: String): IRI = prefixes.getOrElse(short, IRI(""))
 
-  def addDirective(directive : String) : Root =
-    Root(idRef,prefixes,directives :+ directive ,defaultGraph,namedGraph,lDatatypeNode,lSourcesNodes,lBindNode,lSolutionSequenceModifierNode,children,decorations)
+  def getPrefixes: Map[String, IRI] = prefixes
 
-  def addDefaultGraph(graph : IRI) : Root =
-    Root(idRef,prefixes,directives,defaultGraph :+ graph,namedGraph,lDatatypeNode,lSourcesNodes,lBindNode,lSolutionSequenceModifierNode,children,decorations)
+  def addDirective(directive: String): Root =
+    Root(idRef, prefixes, directives :+ directive, defaultGraph, namedGraph, lDatatypeNode, lSourcesNodes, lBindNode, lSolutionSequenceModifierNode, children, decorations)
 
-  def addNamedGraph(graph : IRI) : Root =
-    Root(idRef,prefixes,directives,defaultGraph,namedGraph :+ graph,lDatatypeNode,lSourcesNodes,lBindNode,lSolutionSequenceModifierNode,children,decorations)
+  def addDefaultGraph(graph: IRI): Root =
+    Root(idRef, prefixes, directives, defaultGraph :+ graph, namedGraph, lDatatypeNode, lSourcesNodes, lBindNode, lSolutionSequenceModifierNode, children, decorations)
 
-  private def addSourceNode(s : SourcesNode) : Root =
-    Root(idRef,prefixes,directives,defaultGraph,namedGraph,lDatatypeNode,lSourcesNodes :+ s,lBindNode,lSolutionSequenceModifierNode,children,decorations)
+  def addNamedGraph(graph: IRI): Root =
+    Root(idRef, prefixes, directives, defaultGraph, namedGraph :+ graph, lDatatypeNode, lSourcesNodes, lBindNode, lSolutionSequenceModifierNode, children, decorations)
 
-  private def addDatatype(d : DatatypeNode) : Root =
-    Root(idRef,prefixes,directives,defaultGraph,namedGraph,lDatatypeNode :+ d,lSourcesNodes,lBindNode,lSolutionSequenceModifierNode,children,decorations)
+  private def addSourceNode(s: SourcesNode): Root =
+    Root(idRef, prefixes, directives, defaultGraph, namedGraph, lDatatypeNode, lSourcesNodes :+ s, lBindNode, lSolutionSequenceModifierNode, children, decorations)
+
+  private def addDatatype(d: DatatypeNode): Root =
+    Root(idRef, prefixes, directives, defaultGraph, namedGraph, lDatatypeNode :+ d, lSourcesNodes, lBindNode, lSolutionSequenceModifierNode, children, decorations)
 
 
-  private def addBindNode(b : Bind) : Root =
-    Root(idRef,prefixes,directives,defaultGraph,namedGraph,lDatatypeNode ,lSourcesNodes,lBindNode :+ b,lSolutionSequenceModifierNode ,children,decorations)
+  private def addBindNode(b: Bind): Root =
+    Root(idRef, prefixes, directives, defaultGraph, namedGraph, lDatatypeNode, lSourcesNodes, lBindNode :+ b, lSolutionSequenceModifierNode, children, decorations)
 
-  private def addSolutionSequenceModifierNode(s : SolutionSequenceModifierNode) : Root =
-    Root(idRef,prefixes,directives,defaultGraph,namedGraph,
-      lDatatypeNode ,lSourcesNodes,lBindNode,
+  private def addSolutionSequenceModifierNode(s: SolutionSequenceModifierNode): Root =
+    Root(idRef, prefixes, directives, defaultGraph, namedGraph,
+      lDatatypeNode, lSourcesNodes, lBindNode,
       lSolutionSequenceModifierNode :+ s,
-      children,decorations)
+      children, decorations)
 
 
-  override def getChild[SpecializedNodeType <: Node ]
-                       (that : SpecializedNodeType)
-                       (implicit tag: ClassTag[SpecializedNodeType]) : Seq[SpecializedNodeType] = {
+  override def getChild[SpecializedNodeType <: Node]
+                       (that: SpecializedNodeType)
+                       (implicit tag: ClassTag[SpecializedNodeType]): Seq[SpecializedNodeType] = {
 
-    { super.getChild(that) } ++
-      { lSourcesNodes.flatMap( _.getChild[SpecializedNodeType](that) ) } ++
-      { lDatatypeNode.flatMap( _.getChild[SpecializedNodeType](that) ) } ++
-      { lBindNode.flatMap( _.getChild[SpecializedNodeType](that) ) } ++
-      { lSolutionSequenceModifierNode.flatMap( _.getChild[SpecializedNodeType](that) ) } ++
-      { children.flatMap( _.getChild[SpecializedNodeType](that) ) }
+    {
+      super.getChild(that)
+    } ++ {
+      lSourcesNodes.flatMap(_.getChild[SpecializedNodeType](that))
+    } ++ {
+      lDatatypeNode.flatMap(_.getChild[SpecializedNodeType](that))
+    } ++ {
+      lBindNode.flatMap(_.getChild[SpecializedNodeType](that))
+    } ++ {
+      lSolutionSequenceModifierNode.flatMap(_.getChild[SpecializedNodeType](that))
+    } ++ {
+      children.flatMap(_.getChild[SpecializedNodeType](that))
+    }
 
   }
 
-  def sourcesNode(n : RdfNode) : Option[SourcesNode] = {
-    lSourcesNodes.find( p => p.refNode == n.reference() )
+  def sourcesNode(n: RdfNode): Option[SourcesNode] = {
+    lSourcesNodes.find(p => p.refNode == n.reference())
   }
 
   override def addChildren(n: Node): Root = {
     n match {
-      case s : SourcesNode => addSourceNode(s)
-      case d : DatatypeNode => addDatatype(d)
-      case b : Bind => addBindNode(b)
-      case s : SolutionSequenceModifierNode => addSolutionSequenceModifierNode(s)
+      case s: SourcesNode => addSourceNode(s)
+      case d: DatatypeNode => addDatatype(d)
+      case b: Bind => addBindNode(b)
+      case s: SolutionSequenceModifierNode => addSolutionSequenceModifierNode(s)
       case _ => super.addChildren(n).asInstanceOf[Root]
     }
   }
 
-  override def addChildren(focusId : String, n: Node): Root = {
-    if ( focusId == idRef) {
+  override def addChildren(focusId: String, n: Node): Root = {
+    if (focusId == idRef) {
       addChildren(n)
     } else {
       Root(
@@ -184,50 +192,163 @@ final case class Root(
         directives,
         defaultGraph,
         namedGraph,
-        lDatatypeNode.map(_.addChildren(focusId,n).asInstanceOf[DatatypeNode]) ,
-        lSourcesNodes.map(_.addChildren(focusId,n).asInstanceOf[SourcesNode]),
-        lBindNode.map(_.addChildren(focusId,n).asInstanceOf[Bind]),
-        lSolutionSequenceModifierNode.map(_.addChildren(focusId,n).asInstanceOf[SolutionSequenceModifierNode]),
-        children.map(_.addChildren(focusId,n)),
+        lDatatypeNode.map(_.addChildren(focusId, n).asInstanceOf[DatatypeNode]),
+        lSourcesNodes.map(_.addChildren(focusId, n).asInstanceOf[SourcesNode]),
+        lBindNode.map(_.addChildren(focusId, n).asInstanceOf[Bind]),
+        lSolutionSequenceModifierNode.map(_.addChildren(focusId, n).asInstanceOf[SolutionSequenceModifierNode]),
+        children.map(_.addChildren(focusId, n)),
         decorations
       )
     }
   }
 
 
-  def copy(children : Seq[Node],decoratingAttributeMap : Map[String,String]=decorations) : Node = {
-    Root(idRef,prefixes,directives,defaultGraph,namedGraph,lDatatypeNode,
-      lSourcesNodes,lBindNode,lSolutionSequenceModifierNode,children,decoratingAttributeMap)
+  def copy(children: Seq[Node], decoratingAttributeMap: Map[String, String] = decorations): Node = {
+    Root(idRef, prefixes, directives, defaultGraph, namedGraph, lDatatypeNode,
+      lSourcesNodes, lBindNode, lSolutionSequenceModifierNode, children, decoratingAttributeMap)
   }
 
   /* Accept only something on the root */
   override def accept(n: Node): Boolean = n match {
-    case _ : Something => true
-    case _ : SourcesNode => true
-    case _ : DatatypeNode => true
-    case _ : Bind => true
-    case _ : SolutionSequenceModifierNode => true
+    case _: Something => true
+    case _: SourcesNode => true
+    case _: DatatypeNode => true
+    case _: Bind => true
+    case _: SolutionSequenceModifierNode => true
     case _ => false
   }
 
-  override def toString : String = {
-    super.toString + "\n" +
-    "* lDatatypeNode@"+ { lDatatypeNode.length match {
-      case l if l>0 => " ["+lDatatypeNode.toString()+"]"
-      case _ => ""
-    } } + "\n" +
-      "* lSourcesNodes@"+ { lSourcesNodes.length match {
-      case l if l>0 => " ["+lSourcesNodes.toString()+"]"
-      case _ => ""
-    } } + "\n" +
-      "* lBindNode@"+ { lBindNode.length match {
-      case l if l>0 => " ["+lBindNode.toString()+"]"
-      case _ => ""
-    } }  + "\n" +
-      "* lSolutionSequenceModifierNode@"+ { lSolutionSequenceModifierNode.length match {
-      case l if l>0 => " ["+lSolutionSequenceModifierNode.toString()+"]"
-      case _ => ""
-    } }
+  override def toString: String = {
+    val builder = new StringBuilder()
+
+    // Header avec idRef et infos principales
+    builder.append("═══════════════════════════════════════════════════════════\n")
+    builder.append("  ROOT NODE\n")
+    builder.append("═══════════════════════════════════════════════════════════\n")
+    builder.append("  idRef: ").append(idRef).append("\n")
+
+    // Prefixes
+    builder.append("\n  ┌─ PREFIXES ──────────────────────────────────────────\n")
+    if (prefixes.nonEmpty) {
+      prefixes.foreach { case (key, value) =>
+        builder.append("  │   ").append(key).append(" → ").append(value.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (aucun prefix)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // Directives
+    builder.append("\n  ┌─ DIRECTIVES ────────────────────────────────────────\n")
+    if (directives.nonEmpty) {
+      directives.foreach { directive =>
+        builder.append("  │   • ").append(directive).append("\n")
+      }
+    } else {
+      builder.append("  │   (aucune directive)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // Default Graph
+    builder.append("\n  ┌─ DEFAULT GRAPH ─────────────────────────────────────\n")
+    builder.append("  │   Count: ").append(defaultGraph.length.toString).append("\n")
+    if (defaultGraph.nonEmpty) {
+      defaultGraph.foreach { iri =>
+        builder.append("  │   • ").append(iri.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (vide)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // Named Graph
+    builder.append("\n  ┌─ NAMED GRAPH ───────────────────────────────────────\n")
+    builder.append("  │   Count: ").append(namedGraph.length.toString).append("\n")
+    if (namedGraph.nonEmpty) {
+      namedGraph.foreach { iri =>
+        builder.append("  │   • ").append(iri.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (vide)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // lDatatypeNode
+    builder.append("\n  ┌─ LDATATYPE NODE ────────────────────────────────────\n")
+    builder.append("  │   Count: ").append(lDatatypeNode.length.toString).append("\n")
+    if (lDatatypeNode.nonEmpty) {
+      lDatatypeNode.foreach { node =>
+        builder.append("  │   ┌─ ").append(node.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (vide)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // lSourcesNodes
+    builder.append("\n  ┌─ LSOURCES NODES ────────────────────────────────────\n")
+    builder.append("  │   Count: ").append(lSourcesNodes.length.toString).append("\n")
+    if (lSourcesNodes.nonEmpty) {
+      lSourcesNodes.foreach { node =>
+        builder.append("  │   ┌─ ").append(node.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (vide)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // lBindNode
+    builder.append("\n  ┌─ LBIND NODE ────────────────────────────────────────\n")
+    builder.append("  │   Count: ").append(lBindNode.length.toString).append("\n")
+    if (lBindNode.nonEmpty) {
+      lBindNode.foreach { bind =>
+        builder.append("  │   ┌─ ").append(bind.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (vide)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // lSolutionSequenceModifierNode
+    builder.append("\n  ┌─ LSOLUTION SEQUENCE MODIFIER NODE ──────────────────\n")
+    builder.append("  │   Count: ").append(lSolutionSequenceModifierNode.length.toString).append("\n")
+    if (lSolutionSequenceModifierNode.nonEmpty) {
+      lSolutionSequenceModifierNode.foreach { modifier =>
+        builder.append("  │   ┌─ ").append(modifier.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (vide)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // Children
+    builder.append("\n  ┌─ CHILDREN ──────────────────────────────────────────\n")
+    builder.append("  │   Count: ").append(children.length.toString).append("\n")
+    if (children.nonEmpty) {
+      children.foreach { child =>
+        builder.append("  │   • ").append(child.toString).append("\n")
+      }
+    } else {
+      builder.append("  │   (aucun enfant)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    // Decorations
+    builder.append("\n  ┌─ DECORATIONS ───────────────────────────────────────\n")
+    if (decorations.nonEmpty) {
+      decorations.foreach { case (key, value) =>
+        builder.append("  │   ").append(key).append(" → ").append(value).append("\n")
+      }
+    } else {
+      builder.append("  │   (aucune décoration)\n")
+    }
+    builder.append("  └─────────────────────────────────────────────────────\n")
+
+    builder.append("\n═══════════════════════════════════════════════════════════\n")
+    builder.append("  END OF ROOT NODE\n")
+    builder.append("═══════════════════════════════════════════════════════════\n")
+
+    builder.toString
   }
 }
 

@@ -25,9 +25,9 @@ object UnravelSession {
 }
 
 case class UnravelSession(
-                           val config: UnravelConfig = UnravelConfig.init(),
-                           val rootNode: Root = Root(),
-                           val fn: Option[String] = None) {
+                           config: UnravelConfig = UnravelConfig.init(),
+                           rootNode: Root = Root(),
+                           fn: Option[String] = None) {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val focusNode: String = fn match {
@@ -364,19 +364,42 @@ case class UnravelSession(
 
   def console: UnravelSession = {
     debug(" -- console -- ")
-    println("USER REQUEST\n" +
-      pm.SimpleConsole().get(rootNode) + "\n" +
-      "FOCUS NODE:" + focusNode +
-      "\nSOURCE:" + config.sources.map(v => println(v.path)).mkString(",") + "\n\n" + {
-      "\n--------------------------------------------------------------------\n -- HTTP GET -- \n\n" +
-        sparql_get +
-        "\n--------------------------------------------------------------------\n -- HTTP CURL -- \n\n" +
-        sparql_curl +
-        "\n--------------------------------------------------------------------\n"
-    }
+
+    println(
+      "═══════════════════════════════════════════════════════════\n" +
+        "  USER REQUEST\n" +
+        "═══════════════════════════════════════════════════════════\n" +
+        pm.SimpleConsole().get(rootNode) + "\n" +
+
+        "═══════════════════════════════════════════════════════════\n" +
+        "  FOCUS NODE\n" +
+        "═══════════════════════════════════════════════════════════\n" +
+        focusNode + "\n" +
+
+        "═══════════════════════════════════════════════════════════\n" +
+        "  SOURCE\n" +
+        "═══════════════════════════════════════════════════════════\n" +
+        config.sources.map(v => v.path).mkString(",\n") + "\n" +
+
+        "\n═══════════════════════════════════════════════════════════\n" +
+        "  HTTP REQUESTS\n" +
+        "═══════════════════════════════════════════════════════════\n" +
+
+        "\n  ┌─ HTTP GET ──────────────────────────────────────────\n" +
+        "  │\n" +
+        sparql_get + "\n" +
+        "  └─────────────────────────────────────────────────────\n" +
+
+        "\n  ┌─ HTTP CURL ─────────────────────────────────────────\n" +
+        "  │\n" +
+        sparql_curl + "\n" +
+        "  └─────────────────────────────────────────────────────\n" +
+
+        "\n═══════════════════════════════════════════════════════════\n" +
+        "  END OF CONSOLE\n" +
+        "═══════════════════════════════════════════════════════════\n"
     )
-    //"QUERY PLANNER\n"+
-    //"todo....")
+
     this
   }
 
