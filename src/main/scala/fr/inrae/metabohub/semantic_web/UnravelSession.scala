@@ -187,10 +187,10 @@ case class UnravelSession(
 
   def focusManagement(n: Node): UnravelSession = {
     // get all node
-    println(s"focus management current:$focusNode")
+    //println(s"focus management current:$focusNode")
     val current =  pm.NodeVisitor.getNodeWithVariableRef(focusNode, rootNode).lastOption
       .getOrElse(throw UnravelException(s"$focusNode does not exist.\n${pm.SimpleConsole().get(rootNode)}"))
-    println(s"find :${current.idRef}")
+    //println(s"find :${current.idRef}")
     if (current.accept(n)) {
       val newRootNode = rootNode.addChildren(focusNode, n)
       /* with lambdas enclosure the focus is "this".focusNode */

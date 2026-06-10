@@ -43,7 +43,7 @@ object NodeVisitor  {
         root.lBindNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
         root.lSourcesNodes.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
         root.lSolutionSequenceModifierNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
-    case _ => println(s"visite:${n.idRef}"); n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+    case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
   }
 
   /**

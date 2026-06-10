@@ -63,7 +63,7 @@ object UnravelSessionSelectIterable extends TestSuite {
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
             _.set(URI("http://aa"))
-             .isSubjectOf(URI("http://bb"), "obj"))
+             .isSubjectOf(URI("http://bb"), "?obj"))
           .selectDistinctByPage( List("obj"))
           .map(args => {
             val nbSolution = args._1
@@ -90,7 +90,7 @@ object UnravelSessionSelectIterable extends TestSuite {
           .something(
             _.set(URI("http://aa"))
             .datatype(URI("http://fake/"),"fake")
-            .isSubjectOf(URI("http://bb"), "obj"))
+            .isSubjectOf(URI("http://bb"), "?obj"))
           .selectByPage( List("obj","fake"))
           .map(args => {
             val nSolutions : Int = args._1

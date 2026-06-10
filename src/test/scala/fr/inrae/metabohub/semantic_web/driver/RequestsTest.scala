@@ -156,6 +156,9 @@ object RequestsTest extends TestSuite {
          }
         """.stripMargin)
 
+  override def utestAfterAll(): Unit = {
+    DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
+  }
 
   def tests : Tests = Tests {
 

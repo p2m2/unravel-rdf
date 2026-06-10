@@ -125,7 +125,7 @@ case class UnravelSessionHelper(sw : UnravelSession) {
   /* backward */
   def subjectProperties(regex : String="", motherClassProperties: URI = URI(""), page : Int = 0 ) : Future[Seq[URI]] = {
     debug(" -- findSubjectProperties -- ")
-    println(s"focus node:${sw.focusNode}")
+    //println(s"focus node:${sw.focusNode}")
     val query = (if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type",

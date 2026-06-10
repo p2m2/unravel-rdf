@@ -43,6 +43,10 @@ object UnravelSessionFilterTest extends TestSuite {
 
   val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
 
+  override def utestAfterAll(): Unit = {
+    DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
+  }
+
   def tests: Tests = Tests {
 
     test("SW Filter isLiteral") {

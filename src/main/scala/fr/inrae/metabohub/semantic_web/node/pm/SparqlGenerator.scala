@@ -107,7 +107,7 @@ object SparqlGenerator  {
     trace(varIdSire+" - "+variableName)
 
     n match {
-      case node : SubjectOf          => println(s"SubjectOf ===${node.objectTerm}");"\t?" + varIdSire + " " + node.propertyTerm.toString + " " + node.objectTerm.toString + " .\n"
+      case node : SubjectOf          => "\t?" + varIdSire + " " + node.propertyTerm.toString + " " + node.objectTerm.toString + " .\n"
       case node : ObjectOf           => "\t" + node.subjectTerm.toString + " " + node.propertyTerm.toString + " " + "?"+ varIdSire + " .\n"
       case node : Value              => node.term match {
         case _ : QueryVariable => "\tBIND ( ?" + varIdSire +  " AS " + node.term.toString + ")"
