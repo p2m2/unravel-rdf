@@ -37,14 +37,12 @@ object UnravelSessionHelperTest  extends TestSuite  {
 
 
   def tests: Tests = Tests {
-    test("count") {
-      println("COUNT")
-      println(config)
+   test("count") {
      insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-          _.isSubjectOf(URI("http://bb2"),"obj"))
+          _.isSubjectOf(URI("http://bb2"),"?obj"))
           .from("obj").finder
           .count(Seq("h1"))
           .map(count => assert(count == 2))
@@ -56,7 +54,7 @@ object UnravelSessionHelperTest  extends TestSuite  {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-            _.isSubjectOf(URI("http://bb2"),"obj"))
+            _.isSubjectOf(URI("http://bb2"),"?obj"))
           .from("obj").finder
           .count(Seq("h1"),distinct = true)
           .map(count => assert(count == 1))
@@ -68,8 +66,8 @@ object UnravelSessionHelperTest  extends TestSuite  {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-             _.datatype(URI("http://fake/"),"dt1")
-             .isSubjectOf(URI("http://bb2"),"obj"))
+             _.datatype(URI("http://fake/"),"?dt1")
+             .isSubjectOf(URI("http://bb2"),"?obj"))
           .from("obj",_.finder
           .count(Seq("h1","dt1"))
           .map(count => assert(count == 2)))
@@ -209,31 +207,42 @@ object UnravelSessionHelperTest  extends TestSuite  {
       }).flatten
     }
 
-    test("subjectProperties") {
-      val query = UnravelSession(config).something("h1",_.set(URI("http://cc"))).finder
+    test("subjectProperties 1") {
+
+      val query = UnravelSession(config).something("h1", _.set(URI("http://cc")))
+      insertData.map(_ => {
+        query.from("h1",_.finder.subjectProperties().map(response => assert(response.length == 1)))
+      }).flatten
+    }
+
+    test("subjectProperties 2") {
+
+      val query = UnravelSession(config).something("h1", _.set(URI("http://cc")))
 
       insertData.map(_ => {
-        query.subjectProperties()
-          .map(response => assert(response.length == 1))
+        query.from("h1",_.finder.subjectProperties("bb").map(response => assert(response.length == 1)))
       }).flatten
 
+    }
+
+    test("subjectProperties 3") {
+
+      val query = UnravelSession(config).something("h1", _.set(URI("http://cc")))
       insertData.map(_ => {
-        query.subjectProperties("bb")
-          .map(response => assert(response.length == 1))
+        query.from("h1",_.finder.subjectProperties("bb", "").map(response => assert(response.length == 1)))
       }).flatten
+    }
+    test("subjectProperties 4") {
+      val query = UnravelSession(config).something("h1", _.set(URI("http://cc")))
+      insertData.map(_ => {
+        query.from("h1",_.finder.subjectProperties("bb", URI(":anything")).map(response => assert(response.isEmpty)))
+      }).flatten
+    }
+    test("subjectProperties 5") {
+      val query = UnravelSession(config).something("h1", _.set(URI("http://cc")))
 
       insertData.map(_ => {
-        query.subjectProperties("bb", "")
-          .map(response => assert(response.length == 1))
-      }).flatten
-
-      insertData.map(_ => {
-        query.subjectProperties("bb", URI(":anything"))
-          .map(response => assert(response.isEmpty))
-      }).flatten
-
-      insertData.map(_ => {
-        query.subjectProperties("bb", "", 1)
+        query.from("h1",_.finder.subjectProperties("bb", "", 1))
           .map(response => assert(response.isEmpty))
       }).flatten
     }

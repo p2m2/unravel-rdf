@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web
 
-import fr.inrae.metabohub.semantic_web.rdf.{QueryVariable, SparqlBuilder, URI}
+import fr.inrae.metabohub.semantic_web.rdf.{Literal, QueryVariable, SparqlBuilder, URI}
 import wvlet.log.Logger.rootLogger.debug
 
 import scala.concurrent.Future
@@ -8,12 +8,12 @@ import scala.concurrent.Future
 case class UnravelSessionHelper(sw : UnravelSession) {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  private val regex_avoid_prefix : String = "^("+ List(
+  private val regex_avoid_prefix: Literal[String] = Literal("^(" + List(
     "http://www.openlinksw.com/schemas/virtrdf#",
     "http://www.w3.org/2002/07/owl#",
     "http://www.w3.org/2000/01/rdf-schema#",
     "http://www.w3.org/1999/02/22-rdf-syntax-ns"
-  ).mkString("|") + ")"
+  ).mkString("|") + ")")
 
   def count(lRef : Seq[String],distinct : Boolean = false) : Future[Int] = {
     sw
@@ -125,22 +125,20 @@ case class UnravelSessionHelper(sw : UnravelSession) {
   /* backward */
   def subjectProperties(regex : String="", motherClassProperties: URI = URI(""), page : Int = 0 ) : Future[Seq[URI]] = {
     debug(" -- findSubjectProperties -- ")
-
+    println(s"focus node:${sw.focusNode}")
     val query = (if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type",
-          _.isObjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type"))
+          _.isObjectOf(QueryVariable("_esp___property"),QueryVariable(sw.focusNode))
            .isSubjectOf(URI("a"), motherClassProperties)
           )
 
     } else {
-      sw.root
-        .something("_esp___type",_.isObjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type")))
-
-    }).from("_esp___property",_.filter.not.regex(regex_avoid_prefix))
+      sw.isObjectOf(QueryVariable("_esp___property"))
+    })//.something("_esp___property",_.filter.not.regex(regex_avoid_prefix))
 
     (if ( regex.trim != "")
-      query.from("_esp___property",_.filter.regex(regex))
+      query.something("_esp___property",_.filter.regex(regex))
     else
       query)
 

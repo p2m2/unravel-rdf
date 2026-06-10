@@ -187,8 +187,11 @@ case class UnravelSession(
 
   def focusManagement(n: Node): UnravelSession = {
     // get all node
-    val current = rootNode.getChild[Node](rootNode.asInstanceOf[Node]).filter(_.idRef == focusNode)
-    if (current.lastOption.exists(_.accept(n))) {
+    println(s"focus management current:$focusNode")
+    val current =  pm.NodeVisitor.getNodeWithVariableRef(focusNode, rootNode).lastOption
+      .getOrElse(throw UnravelException(s"$focusNode does not exist.\n${pm.SimpleConsole().get(rootNode)}"))
+    println(s"find :${current.idRef}")
+    if (current.accept(n)) {
       val newRootNode = rootNode.addChildren(focusNode, n)
       /* with lambdas enclosure the focus is "this".focusNode */
       UnravelSession(config, newRootNode, Some(this.focusNode))
@@ -201,7 +204,7 @@ case class UnravelSession(
            |  $n
            |
            |Current focus:
-           |  ${this.focusNode}
+           |  ${this.focusNode} // type=${current.getClass.getSimpleName}
            |
            |The current focus does not accept nodes of type '${n.getClass.getSimpleName}'.
            |
@@ -230,7 +233,7 @@ case class UnravelSession(
   def something(ref: String = getUniqueRef("something"), f: UnravelSession => UnravelSession): UnravelSession = {
     debug(" -- something -- ")
     val focus_current = focusNode
-    val withSomething = focusManagement(Something(ref))
+    val withSomething = root.focusManagement(Something(ref))
     f(withSomething.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
@@ -307,7 +310,7 @@ case class UnravelSession(
           _isObjectOf(propertyTerm, getUniqueRef("subject"), subjectTermSparql, apply)
       }
     } else {
-      val id = getUniqueRef("object")
+      val id = getUniqueRef("subject")
       val subjectTermSparql = QueryVariable(id)
       _isObjectOf(propertyTerm, id, subjectTermSparql, apply)
     }

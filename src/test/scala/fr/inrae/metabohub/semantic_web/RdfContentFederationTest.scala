@@ -47,12 +47,12 @@ object RdfContentFederationTest extends TestSuite {
         .something("h1",
           _.isSubjectOf(URI("ns0:class"),QueryVariable("Mammal"))
             .datatype(URI("ns0:color"), "color")
-        )
+        ).console
         .select(List("h1", "color"))
         .commit()
         .raw
         .map { result =>
-          assert(result("results")("datatypes")("color").obj.size == 2)
+          assert(result("results")("datatypes")("color").obj.size == 3)
         }
     }
   }

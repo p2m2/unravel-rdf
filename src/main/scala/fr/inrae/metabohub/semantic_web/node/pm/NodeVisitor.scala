@@ -5,24 +5,45 @@ import fr.inrae.metabohub.semantic_web.rdf.QueryVariable
 
 object NodeVisitor  {
 
-  def getNodeWithVariableRef(ref: String, n: Node): Array[RdfNode] = n match {
+  def getNodeWithVariableRef(ref: String, n: Node): Array[Node] = n match {
+    case r:Root if r.idRef == ref => Array[Node](r)
     case s: SubjectOf =>
       (s.propertyTerm, s.objectTerm) match {
-        case (q: QueryVariable, _) if q.name == ref => Array[RdfNode](s)
-        case (_, q: QueryVariable) if q.name == ref => Array[RdfNode](s)
+        case (q: QueryVariable, _) if q.name == ref => Array[Node](SubjectOf
+        (
+          idRef = q.name,propertyTerm = s.propertyTerm, objectTerm = s.objectTerm, children = s.children,
+          decorations = s.decorations
+        ))
+        case (_, q: QueryVariable) if q.name == ref => Array[Node](SubjectOf
+        (
+          idRef = q.name,propertyTerm = s.propertyTerm, objectTerm = s.objectTerm, children = s.children,
+          decorations = s.decorations
+        ))
         case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
       }
 
     case o: ObjectOf =>
       (o.propertyTerm, o.subjectTerm) match {
-        case (q: QueryVariable, _) if q.name == ref => Array[RdfNode](o)
-        case (_, q: QueryVariable) if q.name == ref => Array[RdfNode](o)
+        case (q: QueryVariable, _) if q.name == ref => Array[Node](ObjectOf
+        (
+          idRef = q.name,propertyTerm = o.propertyTerm, subjectTerm = o.subjectTerm, children = o.children,
+          decorations = o.decorations
+        ))
+        case (_, q: QueryVariable) if q.name == ref => Array[Node](ObjectOf
+        (
+          idRef = q.name,propertyTerm = o.propertyTerm, subjectTerm = o.subjectTerm, children = o.children,
+          decorations = o.decorations
+        ))
         case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
       }
 
-    case node: RdfNode if node.reference() == ref => Array[RdfNode](node)
-
-    case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+    case node: Node if node.reference() == ref => Array[Node](node)
+    case root: Root =>
+      root.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
+        root.lBindNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
+        root.lSourcesNodes.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
+        root.lSolutionSequenceModifierNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+    case _ => println(s"visite:${n.idRef}"); n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
   }
 
   /**

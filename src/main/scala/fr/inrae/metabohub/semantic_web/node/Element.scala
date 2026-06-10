@@ -410,7 +410,7 @@ object SubjectOf {
 
 final case class SubjectOf(override val idRef: String = randomUUID.toString,
                            override val propertyTerm: SparqlDefinition,
-                           val objectTerm: SparqlDefinition,
+                           objectTerm: SparqlDefinition,
                            override val children: Seq[Node] = Seq[Node](),
                            override val decorations: Map[String, String] = Map())
   extends URIRdfNode(idRef, propertyTerm,objectTerm, children, decorations) {

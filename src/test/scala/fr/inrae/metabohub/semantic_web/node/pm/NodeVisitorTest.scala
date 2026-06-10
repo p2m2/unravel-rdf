@@ -1,5 +1,5 @@
 package fr.inrae.metabohub.semantic_web.node.pm
-import fr.inrae.metabohub.semantic_web.node.{RdfNode, Something}
+import fr.inrae.metabohub.semantic_web.node.{Node, RdfNode, Something}
 import utest.{TestSuite, Tests, test}
 
 
@@ -7,17 +7,17 @@ object NodeVisitorTest extends TestSuite {
 
   def tests = Tests {
     test("getNodeWithRef") {
-      val listNodes : Array[RdfNode] = NodeVisitor.getNodeWithVariableRef("test",Something("test"))
+      val listNodes : Array[Node] = NodeVisitor.getNodeWithVariableRef("test", Something("test"))
       assert(listNodes.length==1)
       assert(listNodes(0).idRef == "test")
     }
     test("getNodeWithRef empty") {
-      val listNodes : Array[RdfNode] = NodeVisitor.getNodeWithVariableRef("test",Something("autre"))
+      val listNodes : Array[Node] = NodeVisitor.getNodeWithVariableRef("test", Something("autre"))
       assert(listNodes.length==0)
     }
 
     test("getNodeWithRef deep") {
-      val listNodes : Array[RdfNode] = NodeVisitor.getNodeWithVariableRef("test",Something("autre",List(Something("test"))))
+      val listNodes : Array[Node] = NodeVisitor.getNodeWithVariableRef("test", Something("autre", List(Something("test"))))
       assert(listNodes.length==1)
     }
 

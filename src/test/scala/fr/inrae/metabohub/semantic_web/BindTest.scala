@@ -167,7 +167,7 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something(_.isSubjectOf(URI("http://bb"), "r",_.bind("dt").datatype()))
+          .something(_.isSubjectOf(URI("http://bb"), "r",_.bind("?dt").datatype()))
           .select(Seq("dt"))
           .distinct
           .commit()
@@ -183,7 +183,7 @@ object BindTest extends TestSuite {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
-            _.isObjectOf(URI("http://bb"), "r",_.bind("convert_str").str())
+            _.isObjectOf(URI("http://bb"), "r",_.bind("?convert_str").str())
             )
           .select(Seq("convert_str"))
           .distinct
