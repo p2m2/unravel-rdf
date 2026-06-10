@@ -72,7 +72,7 @@ object UnravelSessionTest extends TestSuite {
         startRequest
           .from("h1",
             _.set(URI("http://aa"))
-             .isSubjectOf(URI("http://bb"), "?var"))
+             .out(URI("http://bb"), "?var"))
           .select(List("var"))
           .commit()
           .raw
@@ -158,11 +158,11 @@ object UnravelSessionTest extends TestSuite {
     }
 
     test("use named graph") {
-      assert(Try(startRequest.from("h1",_.isSubjectOf(URI("http://bb2")))).isSuccess)
+      assert(Try(startRequest.from("h1",_.out(URI("http://bb2")))).isSuccess)
     }
 
     test("test console") {
-      assert(Try(startRequest.from("h1",_.isSubjectOf(URI("http://bb2"))).console).isSuccess)
+      assert(Try(startRequest.from("h1",_.out(URI("http://bb2"))).console).isSuccess)
     }
 
     test("refExist") {
@@ -196,12 +196,12 @@ object UnravelSessionTest extends TestSuite {
     test("Remove branch") {
       UnravelSession(config)
           .something("h1",
-            _.isObjectOf(URI("http://h1"),"?h2")
-             .isObjectOf(URI("http://h11"),"?h22")
+            _.in(URI("http://h1"),"?h2")
+             .in(URI("http://h11"),"?h22")
           )
           .something("d1",
-             _.isObjectOf(URI("http://d1"),"?d2")
-              .isObjectOf(URI("http://d11"),"?d22"))
+             _.in(URI("http://d1"),"?d2")
+              .in(URI("http://d11"),"?d22"))
             .remove("h1")
           .browse( (n: Node, _:Integer) => {
             n match {
@@ -214,7 +214,7 @@ object UnravelSessionTest extends TestSuite {
     test("browse") {
       val listBrowse : Seq[String] =
         startRequest
-          .something("h1",_.isSubjectOf("http://test",QueryVariable("h2")))
+          .something("h1",_.out("http://test",Var("h2")))
          .browse( (n : Node, _:Integer) => { n.idRef} )
       assert( listBrowse.contains("h1") )
       assert( listBrowse.contains("h2") )
@@ -222,13 +222,13 @@ object UnravelSessionTest extends TestSuite {
 
     test("sparql get") {
        assert(startRequest
-         .from("h1",_.isSubjectOf("http://test", "h2"))
+         .from("h1",_.out("http://test", "h2"))
          .sparql_get.nonEmpty)
     }
 
     test("sparql curl") {
       assert(startRequest
-        .from("h1",_.isSubjectOf("http://test", "h2"))
+        .from("h1",_.out("http://test", "h2"))
         .sparql_curl.nonEmpty)
     }
 
@@ -263,7 +263,7 @@ object UnravelSessionTest extends TestSuite {
       assert(
         startRequest
         .setConfig(DataTestFactory.getConfigVirtuoso2())
-         .from("h1",_.isObjectOf("http://test11"))
+         .from("h1",_.in("http://test11"))
           .getConfig.sources.head.id == DataTestFactory.getConfigVirtuoso2().sources.head.id )
     }
 

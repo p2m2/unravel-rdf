@@ -33,7 +33,7 @@ object BindTest extends TestSuite {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
-            _.isSubjectOf(URI("http://bb"), "?r",_.filter.regex(regexv))
+            _.out(URI("http://bb"), "?r",_.filter.regex(regexv))
             )
           .select(Seq("r", "reg"))
           .distinct
@@ -49,7 +49,7 @@ object BindTest extends TestSuite {
       val repl = "aaaaa"
       val req = UnravelSession(config)
         .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-        .something(_.isSubjectOf(URI("http://bb"), "?r",_.bind("rep").replace(pat, repl)))
+        .something(_.out(URI("http://bb"), "?r",_.bind("rep").replace(pat, repl)))
 
 
       insertData.map(_ => {
@@ -97,7 +97,7 @@ object BindTest extends TestSuite {
           .something(
             _.set(Literal("-5.5", "http://www.w3.org/2001/XMLSchema#decimal"))
             .bind("new_value").abs()
-            .isObjectOf(URI("http://test")))
+            .in(URI("http://test")))
           .select(Seq("new_value"))
           .commit()
           .raw.map(r => {
@@ -167,7 +167,7 @@ object BindTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .something(_.isSubjectOf(URI("http://bb"), "?r",_.bind("dt").datatype()))
+          .something(_.out(URI("http://bb"), "?r",_.bind("dt").datatype()))
           .select(Seq("dt"))
           .distinct
           .commit()
@@ -183,7 +183,7 @@ object BindTest extends TestSuite {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
-            _.isObjectOf(URI("http://bb"), "?r",_.bind("convert_str").str())
+            _.in(URI("http://bb"), "?r",_.bind("convert_str").str())
             )
           .select(Seq("convert_str"))
           .distinct

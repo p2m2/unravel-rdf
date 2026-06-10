@@ -4,7 +4,7 @@ import fr.inrae.metabohub.semantic_web.configuration.OptionPickler
 import fr.inrae.metabohub.semantic_web.exception._
 import fr.inrae.metabohub.semantic_web.event._
 import fr.inrae.metabohub.semantic_web.node._
-import fr.inrae.metabohub.semantic_web.rdf.{QueryVariable, SparqlDefinition, URI}
+import fr.inrae.metabohub.semantic_web.rdf.{Var, SparqlDefinition, URI}
 import fr.inrae.metabohub.semantic_web.sparql.QueryResult
 import fr.inrae.metabohub.semantic_web.strategy._
 import wvlet.log.Logger.rootLogger.{debug, trace}
@@ -150,14 +150,14 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
   def commit() : UnravelQuery = {
     notify(UnravelRequestEvent(UnravelStateRequestEvent.START))
-    val lSelectedVariable : Seq[QueryVariable] = sw.rootNode.getChild(Projection(List(),"")).lastOption match {
+    val lSelectedVariable : Seq[Var] = sw.rootNode.getChild(Projection(List(),"")).lastOption match {
       case Some(proj) => proj.variables.distinct
       case None =>
         notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
         throw UnravelException("projection/selected required variables are not defined.")
     }
     val lDatatype: Seq[DatatypeNode] =
-      sw.rootNode.getChild[DatatypeNode](DatatypeNode("",SubjectOf("", URI(""),QueryVariable("")),"unk"))
+      sw.rootNode.getChild[DatatypeNode](DatatypeNode("",SubjectOf("", URI(""),Var("")),"unk"))
         .filter(ld => lSelectedVariable.map(_.name).contains(ld.property.reference()))
 
     if ( lDatatype.count(datatypeNode => lSelectedVariable.map(_.name).contains(datatypeNode.refNode)) != lDatatype.length )
@@ -221,13 +221,13 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       sw.rootNode.lSolutionSequenceModifierNode.lastOption match {
         case Some(proj) =>
           sw.copy(fn = Some(proj.idRef)) // on se position sur le noeud Projection des SolutionSequenceModifier
-          .focusManagement(ProjectionExpression(QueryVariable(v),n,v)).transaction
+          .focusManagement(ProjectionExpression(Var(v),n,v)).transaction
         case None => throw UnravelException(s"Can not find Project node int the RootNode :: $sw")
       }
     }
 
     def count(lRef : Seq[String],distinct: Boolean=false) : UnravelQuery =
-        manage(Count(lRef.map(QueryVariable(_)),distinct,sw.getUniqueRef()))
+        manage(Count(lRef.map(Var(_)),distinct,sw.getUniqueRef()))
   }
 
   def aggregate(`var` : String) : ProjectionExpressionIncrement = ProjectionExpressionIncrement(`var`)
@@ -244,12 +244,12 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
       case Some(p) =>
-        val listVariable : Seq[QueryVariable] = p.variables ++  lRef.map(QueryVariable(_))
+        val listVariable : Seq[Var] = p.variables ++  lRef.map(Var(_))
         sw.copy(fn = Some(p.idRef)).focusManagement(
           Projection(listVariable,p.idRef,p.children))
           .transaction
       case None =>
-        sw.root.focusManagement(Projection(lRef.map(QueryVariable(_)),sw.getUniqueRef())).transaction
+        sw.root.focusManagement(Projection(lRef.map(Var(_)),sw.getUniqueRef())).transaction
     }
 
   }
@@ -263,19 +263,19 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
   def offset( value : Int ) : UnravelQuery = sw.root.focusManagement(Offset(value,sw.getUniqueRef())).transaction
 
   def orderByAsc( ref: String ) : UnravelQuery =
-    sw.refExist(ref).root.focusManagement(OrderByAsc(Seq(QueryVariable(ref)),sw.getUniqueRef())).transaction
+    sw.refExist(ref).root.focusManagement(OrderByAsc(Seq(Var(ref)),sw.getUniqueRef())).transaction
 
   def orderByAsc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
-    sw.root.focusManagement(OrderByAsc(lRef.map(QueryVariable(_)),sw.getUniqueRef())).transaction
+    sw.root.focusManagement(OrderByAsc(lRef.map(Var(_)),sw.getUniqueRef())).transaction
   }
 
   def orderByDesc( ref: String ) : UnravelQuery =
-    sw.refExist(ref).root.focusManagement(OrderByDesc(Seq(QueryVariable(ref)),sw.getUniqueRef())).transaction
+    sw.refExist(ref).root.focusManagement(OrderByDesc(Seq(Var(ref)),sw.getUniqueRef())).transaction
 
   def orderByDesc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
-    sw.root.focusManagement(OrderByDesc(lRef.map(QueryVariable(_)),sw.getUniqueRef())).transaction
+    sw.root.focusManagement(OrderByDesc(lRef.map(Var(_)),sw.getUniqueRef())).transaction
   }
   def getSerializedString : String = OptionPickler.write(this)
   def setSerializedString(query : String) : UnravelQuery = OptionPickler.read[UnravelQuery](query)

@@ -29,7 +29,7 @@ object FixLimitOrderByDescTest extends TestSuite {
     test("order by asc") {
       UnravelSession(config)
         .prefix("ns0", "http://www.some-ficticious-zoo.com/rdf#")
-        .something("animal",_.isSubjectOf(URI("ns0:name"), "name"))
+        .something("animal",_.out(URI("ns0:name"), "name"))
         .select(Seq("animal", "name"))
         .limit(10)
         .console
@@ -44,7 +44,7 @@ object FixLimitOrderByDescTest extends TestSuite {
     test("order by desc") {
       UnravelSession(config)
         .prefix("ns0", "http://www.some-ficticious-zoo.com/rdf#")
-        .something("animal",_.isSubjectOf(URI("ns0:name"), "name"))
+        .something("animal",_.out(URI("ns0:name"), "name"))
         .select(Seq("animal", "name"))
         .limit(10)
         .console

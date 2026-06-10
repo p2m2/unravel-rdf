@@ -3,7 +3,7 @@ package fr.inrae.metabohub.semantic_web.node.pm
 import fr.inrae.metabohub.data.{ApplyAllNode, DataTestFactory}
 import fr.inrae.metabohub.semantic_web.{UnravelSession, UnravelQuery}
 import fr.inrae.metabohub.semantic_web.node.Root
-import fr.inrae.metabohub.semantic_web.rdf.{Literal, QueryVariable, URI}
+import fr.inrae.metabohub.semantic_web.rdf.{Literal, Var, URI}
 import upickle.default.{read, write}
 import utest.{TestSuite, Tests, test}
 
@@ -37,7 +37,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization SubjectOf") {
       val sw =
         UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isSubjectOf(URI("bb")))
+          .something ("h1",_.out(URI("bb")))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()
@@ -47,7 +47,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization ObjectOf") {
       val sw =
         UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isObjectOf(URI("bb")))
+          .something ("h1",_.in(URI("bb")))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()
@@ -57,7 +57,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization Value QueryVariable") {
       val sw =
         UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.set(QueryVariable("bb")))
+          .something ("h1",_.set(Var("bb")))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()
@@ -108,7 +108,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization filter") {
       val sw =
         UnravelSession( DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isSubjectOf(URI("bb"),apply=_.filter.not.contains("filter")))
+          .something ("h1",_.out(URI("bb"),apply=_.filter.not.contains("filter")))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()
@@ -118,7 +118,7 @@ object SerializationBuilderTest extends TestSuite  {
     test("serialization datatype") {
       val sw =
         UnravelSession(DataTestFactory.getConfigVirtuoso1())
-          .something ("h1",_.isSubjectOf(URI("bb"),apply=(s => s.datatype(URI("some"),"v"))))
+          .something ("h1",_.out(URI("bb"),apply=(s => s.datatype(URI("some"),"v"))))
 
       assert(UnravelSession().setSerializedString(sw.getSerializedString) == sw)
       val swt : UnravelQuery = sw.select()

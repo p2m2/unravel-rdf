@@ -117,28 +117,28 @@ case class UnravelSessionJs(
     UnravelSessionJs(config, sw.something(ref, wrap(f)))
 
   @JSExport
-  def isSubjectOf(uri: Any): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isSubjectOf(toURI(uri)))
+  def out(uri: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.out(toURI(uri)))
 
   @JSExport
-  def isSubjectOf(uri: Any, ref: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isSubjectOf(toURI(uri), ref))
+  def out(uri: Any, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.out(toURI(uri), ref))
 
   @JSExport
-  def isSubjectOf(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isSubjectOf(toURI(uri), wrap(f)))
+  def out(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.out(toURI(uri), wrap(f)))
 
   @JSExport
-  def isObjectOf(uri: Any, ref: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isObjectOf(toURI(uri), ref))
+  def in(uri: Any, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.in(toURI(uri), ref))
 
   @JSExport
-  def isObjectOf(uri: Any): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isObjectOf(toURI(uri)))
+  def in(uri: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.in(toURI(uri)))
 
   @JSExport
-  def isObjectOf(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
-    UnravelSessionJs(config, sw.isObjectOf(toURI(uri), wrap(f)))
+  def in(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.in(toURI(uri), wrap(f)))
 
   @JSExport
   def isA(term: Any): UnravelSessionJs = UnravelSessionJs(config, sw.isA(term))

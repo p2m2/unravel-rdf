@@ -42,7 +42,7 @@ object UnravelSessionHelperTest  extends TestSuite  {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-          _.isSubjectOf(URI("http://bb2"),"?obj"))
+          _.out(URI("http://bb2"),"?obj"))
           .from("obj").finder
           .count(Seq("h1"))
           .map(count => assert(count == 2))
@@ -54,7 +54,7 @@ object UnravelSessionHelperTest  extends TestSuite  {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-            _.isSubjectOf(URI("http://bb2"),"?obj"))
+            _.out(URI("http://bb2"),"?obj"))
           .from("obj").finder
           .count(Seq("h1"),distinct = true)
           .map(count => assert(count == 1))
@@ -67,7 +67,7 @@ object UnravelSessionHelperTest  extends TestSuite  {
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
              _.datatype(URI("http://fake/"),"?dt1")
-             .isSubjectOf(URI("http://bb2"),"?obj"))
+             .out(URI("http://bb2"),"?obj"))
           .from("obj",_.finder
           .count(Seq("h1","dt1"))
           .map(count => assert(count == 2)))

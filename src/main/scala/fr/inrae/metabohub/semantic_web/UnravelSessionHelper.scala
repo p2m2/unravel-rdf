@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web
 
-import fr.inrae.metabohub.semantic_web.rdf.{Literal, QueryVariable, SparqlBuilder, URI}
+import fr.inrae.metabohub.semantic_web.rdf.{Literal, Var, SparqlBuilder, URI}
 import wvlet.log.Logger.rootLogger.debug
 
 import scala.concurrent.Future
@@ -36,9 +36,9 @@ case class UnravelSessionHelper(sw : UnravelSession) {
   def classes(regex : String="", motherClass: URI = URI(""), page : Int =0) : Future[Seq[URI]] = {
     debug(" -- findClasses -- ")
     val query = (motherClass match {
-      case uri : URI if uri == URI("")  => sw.isSubjectOf(URI("a"),"?_esp___type")
-      case _ : URI =>  sw.isSubjectOf(URI("a"),"?_esp___type",
-          _.isSubjectOf(URI("a"),motherClass))
+      case uri : URI if uri == URI("")  => sw.out(URI("a"),"?_esp___type")
+      case _ : URI =>  sw.out(URI("a"),"?_esp___type",
+          _.out(URI("a"),motherClass))
     }).from("_esp___type")
       .filter.not.regex(regex_avoid_prefix)
 
@@ -72,11 +72,11 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     val state = if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type",
-          _.isSubjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type"),
-            _.isSubjectOf(URI("a"),motherClassProperties)))
+          _.out(Var("_esp___property"),Var("_esp___type"),
+            _.out(URI("a"),motherClassProperties)))
     } else {
       sw.root
-        .something("_esp___type",_.isSubjectOf(QueryVariable("_esp___property"),QueryVariable("_esp___type")))
+        .something("_esp___type",_.out(Var("_esp___property"),Var("_esp___type")))
     }
 
     /* object or datatype properties owl def. */
@@ -129,12 +129,12 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     val query = (if (motherClassProperties != URI("")) {
       sw.root
         .something("_esp___type",
-          _.isObjectOf(QueryVariable("_esp___property"),QueryVariable(sw.focusNode))
-           .isSubjectOf(URI("a"), motherClassProperties)
+          _.in(Var("_esp___property"),Var(sw.focusNode))
+           .out(URI("a"), motherClassProperties)
           )
 
     } else {
-      sw.isObjectOf(QueryVariable("_esp___property"))
+      sw.in(Var("_esp___property"))
     })//.something("_esp___property",_.filter.not.regex(regex_avoid_prefix))
 
     (if ( regex.trim != "")

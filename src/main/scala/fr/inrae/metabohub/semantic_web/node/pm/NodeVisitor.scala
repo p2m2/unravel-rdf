@@ -1,7 +1,7 @@
 package fr.inrae.metabohub.semantic_web.node.pm
 
 import fr.inrae.metabohub.semantic_web.node._
-import fr.inrae.metabohub.semantic_web.rdf.QueryVariable
+import fr.inrae.metabohub.semantic_web.rdf.Var
 
 object NodeVisitor  {
 
@@ -9,12 +9,12 @@ object NodeVisitor  {
     case r:Root if r.idRef == ref => Array[Node](r)
     case s: SubjectOf =>
       (s.propertyTerm, s.objectTerm) match {
-        case (q: QueryVariable, _) if q.name == ref => Array[Node](SubjectOf
+        case (q: Var, _) if q.name == ref => Array[Node](SubjectOf
         (
           idRef = q.name,propertyTerm = s.propertyTerm, objectTerm = s.objectTerm, children = s.children,
           decorations = s.decorations
         ))
-        case (_, q: QueryVariable) if q.name == ref => Array[Node](SubjectOf
+        case (_, q: Var) if q.name == ref => Array[Node](SubjectOf
         (
           idRef = q.name,propertyTerm = s.propertyTerm, objectTerm = s.objectTerm, children = s.children,
           decorations = s.decorations
@@ -24,12 +24,12 @@ object NodeVisitor  {
 
     case o: ObjectOf =>
       (o.propertyTerm, o.subjectTerm) match {
-        case (q: QueryVariable, _) if q.name == ref => Array[Node](ObjectOf
+        case (q: Var, _) if q.name == ref => Array[Node](ObjectOf
         (
           idRef = q.name,propertyTerm = o.propertyTerm, subjectTerm = o.subjectTerm, children = o.children,
           decorations = o.decorations
         ))
-        case (_, q: QueryVariable) if q.name == ref => Array[Node](ObjectOf
+        case (_, q: Var) if q.name == ref => Array[Node](ObjectOf
         (
           idRef = q.name,propertyTerm = o.propertyTerm, subjectTerm = o.subjectTerm, children = o.children,
           decorations = o.decorations
@@ -72,25 +72,25 @@ object NodeVisitor  {
         node.children.flatMap(getAllAncestorsRef) ++
         node.lBindNode.flatMap(getAllAncestorsRef(_))
     case node: SubjectOf => node.objectTerm match {
-      case q: QueryVariable => node.propertyTerm match {
-        case q2 : QueryVariable =>
+      case q: Var => node.propertyTerm match {
+        case q2 : Var =>
           Seq(q.name,q2.name) ++ node.children.flatMap(getAllAncestorsRef)
         case _ => Seq(q.name) ++ node.children.flatMap(getAllAncestorsRef)
       }
       case _ => node.propertyTerm match {
-        case q2 : QueryVariable =>
+        case q2 : Var =>
           Seq(q2.name) ++ node.children.flatMap(getAllAncestorsRef)
         case _ => Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
       }
     }
     case node: ObjectOf => node.subjectTerm match {
-      case q: QueryVariable => node.propertyTerm match {
-        case q2 : QueryVariable =>
+      case q: Var => node.propertyTerm match {
+        case q2 : Var =>
           Seq(q.name,q2.name) ++ node.children.flatMap(getAllAncestorsRef)
         case _ => Seq(q.name) ++ node.children.flatMap(getAllAncestorsRef)
       }
       case _ => node.propertyTerm match {
-        case q2 : QueryVariable =>
+        case q2 : Var =>
           Seq(q2.name) ++ node.children.flatMap(getAllAncestorsRef)
         case _ => Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
       }

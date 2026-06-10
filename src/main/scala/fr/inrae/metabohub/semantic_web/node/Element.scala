@@ -855,7 +855,7 @@ object OrderByAsc {
 }
 
 final case class OrderByAsc(
-                             list : Seq[QueryVariable],
+                             list : Seq[Var],
                              override val idRef : String,
                              override val children: Seq[Node]=Seq[Node](),
                              override val decorations: Map[String,String] = Map()
@@ -871,10 +871,10 @@ object OrderByDesc {
 }
 
 final case class OrderByDesc(
-                        list : Seq[QueryVariable],
-                        override val idRef : String,
-                        override val children: Seq[Node] = Seq[Node](),
-                        override val decorations: Map[String,String] = Map()
+                              list : Seq[Var],
+                              override val idRef : String,
+                              override val children: Seq[Node] = Seq[Node](),
+                              override val decorations: Map[String,String] = Map()
                         ) extends SolutionSequenceModifierNode(idRef,children,decorations) {
 
 
@@ -894,7 +894,7 @@ object Projection {
 }
 
 final case class Projection(
-                             variables : Seq[QueryVariable],
+                             variables : Seq[Var],
                              override val idRef : String,
                              override val children: Seq[Node]=Seq(),
                              override val decorations: Map[String,String] = Map()
@@ -1357,11 +1357,11 @@ object ProjectionExpression {
 }
 
 final case class ProjectionExpression(
-                                 `var` : QueryVariable,
-                                 expression : AggregateNode,
-                                 override val idRef : String,
-                                 override val children: Seq[Node] = Seq[Node](),
-                                 override val decorations: Map[String,String] = Map()
+                                       `var` : Var,
+                                       expression : AggregateNode,
+                                       override val idRef : String,
+                                       override val children: Seq[Node] = Seq[Node](),
+                                       override val decorations: Map[String,String] = Map()
                         ) extends Node(idRef,children,decorations) {
   override def copy(
                      children: Seq[Node]=children,
@@ -1387,11 +1387,11 @@ object Count {
 }
 
 final case class Count(
-                 listVarToCount : Seq[QueryVariable],
-                 distinct : Boolean = false,
-                 override val idRef : String,
-                 override val children: Seq[Node] = Seq[Node](),
-                 override val decorations: Map[String,String] = Map()
+                        listVarToCount : Seq[Var],
+                        distinct : Boolean = false,
+                        override val idRef : String,
+                        override val children: Seq[Node] = Seq[Node](),
+                        override val decorations: Map[String,String] = Map()
                  ) extends AggregateNode(idRef,children,decorations) {
   override def copy(
                      children: Seq[Node]=children,

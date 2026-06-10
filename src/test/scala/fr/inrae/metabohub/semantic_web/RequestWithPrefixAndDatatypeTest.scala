@@ -41,7 +41,7 @@ object RequestWithPrefixAndDatatypeTest  extends TestSuite  {
         .prefix("v","http://www.some-ficticious-zoo.com/rdf#")
         .something("h1",
           _.datatype("v:name","name")
-           .isSubjectOf(URI("v:class"),apply=_.set("Mammal")))
+           .out(URI("v:class"),apply=_.set("Mammal")))
         .select(List("h1","name"))
         .distinct
         .commit()

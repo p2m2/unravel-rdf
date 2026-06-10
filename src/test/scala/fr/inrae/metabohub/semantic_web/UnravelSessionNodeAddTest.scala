@@ -20,7 +20,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
     }
 
     test("isSubjectOf on the root") {
-      Try(UnravelSession(config).isSubjectOf(URI("bb"), "var")) match {
+      Try(UnravelSession(config).out(URI("bb"), "var")) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
@@ -28,7 +28,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
 
     test("isSubjectOf") {
       val s = UnravelSession(config)
-               .something("h1",_.isSubjectOf(URI("bb"), "?var"))
+               .something("h1",_.out(URI("bb"), "?var"))
 
       val triplet: Regex = "\\?h1+ <bb> \\?var+".r
 
@@ -40,7 +40,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
 
     test("isObjectOf on the root") {
       Try(UnravelSession(config)
-        .from("h1",_.isObjectOf(URI("bb"), "var"))) match {
+        .from("h1",_.in(URI("bb"), "var"))) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
@@ -48,7 +48,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
 
     test("isObjectOf") {
       val s = UnravelSession(config)
-        .something("h1",_.isObjectOf(URI("bb"), "?var"))
+        .something("h1",_.in(URI("bb"), "?var"))
 
       val triplet: Regex = "\\?var <bb> \\?h1".r
       triplet.findFirstMatchIn(s.sparql) match {
@@ -59,7 +59,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
 
     test("isLinkTo on the root") {
 
-      Try(UnravelSession(config).from("h1",_.isSubjectOf(QueryVariable("var"),URI("bb")))) match {
+      Try(UnravelSession(config).from("h1",_.out(Var("var"),URI("bb")))) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
@@ -67,7 +67,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
 
     test("isLinkTo") {
       val s = UnravelSession(config)
-        .something("h1",_.isSubjectOf(QueryVariable("var"),URI("bb")))
+        .something("h1",_.out(Var("var"),URI("bb")))
 
       val triplet: Regex = "\\?h1 \\?var+ <bb>".r
 
@@ -78,7 +78,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
     }
 
     test("isLinkFrom on the root") {
-      Try(UnravelSession(config).from("h1",_.isObjectOf(QueryVariable("var"),URI("bb")))) match {
+      Try(UnravelSession(config).from("h1",_.in(Var("var"),URI("bb")))) match {
         case Success(_) => assert(false)
         case Failure(_) => assert(true)
       }
@@ -87,7 +87,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
     test("isLinkFrom") {
       val s =
         UnravelSession(config)
-          .something("h1",_.isObjectOf(QueryVariable("var"),URI("<bb>")))
+          .something("h1",_.in(Var("var"),URI("<bb>")))
 
       val triplet: Regex = "<bb> \\?var \\?h1".r
 
@@ -100,7 +100,7 @@ object UnravelSessionNodeAddTest extends TestSuite {
     test("isLinkFrom QueryVariable") {
       val s =
         UnravelSession(config)
-        .something("h1",_.isObjectOf(QueryVariable("var"),URI("<bb>")))
+        .something("h1",_.in(Var("var"),URI("<bb>")))
 
       val triplet: Regex = "<bb> \\?var \\?h1".r
       println(s.sparql)

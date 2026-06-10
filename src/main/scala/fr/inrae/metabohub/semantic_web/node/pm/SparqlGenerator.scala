@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web.node.pm
 import fr.inrae.metabohub.semantic_web.node._
-import fr.inrae.metabohub.semantic_web.rdf.{IRI, QueryVariable}
+import fr.inrae.metabohub.semantic_web.rdf.{IRI, Var}
 import wvlet.log.Logger.rootLogger._
 
 
@@ -110,7 +110,7 @@ object SparqlGenerator  {
       case node : SubjectOf          => "\t?" + varIdSire + " " + node.propertyTerm.toString + " " + node.objectTerm.toString + " .\n"
       case node : ObjectOf           => "\t" + node.subjectTerm.toString + " " + node.propertyTerm.toString + " " + "?"+ varIdSire + " .\n"
       case node : Value              => node.term match {
-        case _ : QueryVariable => "\tBIND ( ?" + varIdSire +  " AS " + node.term.toString + ")"
+        case _ : Var => "\tBIND ( ?" + varIdSire +  " AS " + node.term.toString + ")"
         case _  =>  "\tVALUES ?" +varIdSire+ " { " + node.term.toString + " } .\n" }
       case node : ListValues         => "\tVALUES ?" +varIdSire+ " { " + node.terms.map(t => t.sparql).mkString(" ") + " } .\n"
       case node : ProjectionExpression  => "(" + sparqlNode(node.expression,node.idRef,variableName) + " AS "+ node.`var` + ") "

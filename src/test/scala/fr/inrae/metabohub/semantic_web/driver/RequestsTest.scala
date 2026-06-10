@@ -165,7 +165,7 @@ object RequestsTest extends TestSuite {
     test("inline turtle") {
       insertData.map(_ => {
         UnravelSession(config2)
-          .something("h1",_.isSubjectOf(URI("http://iibbbbbb2")))
+          .something("h1",_.out(URI("http://iibbbbbb2")))
           .select(List("h1"))
           .commit()
           .raw
@@ -179,7 +179,7 @@ object RequestsTest extends TestSuite {
     test("inline turtle 2") {
       insertData.map(_ => {
         UnravelSession(config3)
-          .something("h1",_.isSubjectOf(URI("http://bbbbbb2"), "?v"))
+          .something("h1",_.out(URI("http://bbbbbb2"), "?v"))
           .select(List("v"))
           .commit()
           .raw
@@ -197,7 +197,7 @@ object RequestsTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config4)
           .prefix("dc","http://purl.org/dc/elements/1.1/")
-          .something("h1",_.isSubjectOf(URI("dc:title"), "?v"))
+          .something("h1",_.out(URI("dc:title"), "?v"))
           .select(List("v"))
           .commit()
           .raw
@@ -211,7 +211,7 @@ object RequestsTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config5)
           .prefix("ns0","http://www.some-ficticious-zoo.com/rdf#")
-          .something("h1",_.isSubjectOf(URI("ns0:name"), "?v"))
+          .something("h1",_.out(URI("ns0:name"), "?v"))
           .select(List("v"))
           .commit()
           .raw

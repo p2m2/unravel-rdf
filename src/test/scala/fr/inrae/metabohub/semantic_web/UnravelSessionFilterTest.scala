@@ -53,7 +53,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.isLiteral))
+            _.out(Var("prop"),apply=_.filter.isLiteral))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .transaction
           .distinct
@@ -70,7 +70,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.isUri))
+            _.out(Var("prop"),apply=_.filter.isUri))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -86,7 +86,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.isBlank))
+            _.out(Var("prop"),apply=_.filter.isBlank))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .transaction
           .distinct
@@ -104,7 +104,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something("x",
-            _.isSubjectOf(URI("http://propContains"),apply=_.filter.contains("regex_expected")))
+            _.out(URI("http://propContains"),apply=_.filter.contains("regex_expected")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("x"))
           .commit()
@@ -119,7 +119,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(URI("http://propContains"),apply=_.filter.not.contains("regex_expected")))
+            _.out(URI("http://propContains"),apply=_.filter.not.contains("regex_expected")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -134,7 +134,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(URI("propContains"),
+            _.out(URI("propContains"),
               apply=_.filter.contains("bidon")
               .filter.not.contains("regex_expected")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
@@ -152,7 +152,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.strStarts("tes")))
+            _.out(Var("prop"),apply=_.filter.strStarts("tes")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -168,7 +168,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"),apply=_.filter.strEnds("est")))
+            _.out(Var("prop"),apply=_.filter.strEnds("est")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -184,7 +184,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf("?prop", "?value",_.filter.equal("test")))
+            _.out("?prop", "?value",_.filter.equal("test")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("prop"))
           .commit()
@@ -200,7 +200,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(QueryVariable("prop"), "?v",_.filter.notEqual("test")))
+            _.out(Var("prop"), "?v",_.filter.notEqual("test")))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("v"))
           .commit()
@@ -215,7 +215,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(URI("http://propNum"), "?value",_.filter.inf(5))
+            _.out(URI("http://propNum"), "?value",_.filter.inf(5))
           )
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("value"))
@@ -231,7 +231,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(URI("http://propDate"), "?value",
+            _.out(URI("http://propDate"), "?value",
               _.filter.inf(Literal("1900-01-01", URI("date", "xsd"))))
              )
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
@@ -247,7 +247,7 @@ object UnravelSessionFilterTest extends TestSuite {
     test("SW Filter infEqual") {
       insertData.map(_ => {
         UnravelSession(config)
-          .something(_.isSubjectOf(URI("http://propNum"), "?value",_.filter.infEqual(5)))
+          .something(_.out(URI("http://propNum"), "?value",_.filter.infEqual(5)))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("value"))
           .commit()
@@ -262,7 +262,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(URI("http://propNum"), "?value",_.filter.sup(5)))
+            _.out(URI("http://propNum"), "?value",_.filter.sup(5)))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("value"))
           .commit()
@@ -277,7 +277,7 @@ object UnravelSessionFilterTest extends TestSuite {
       insertData.map(_ => {
         UnravelSession(config)
           .something(
-            _.isSubjectOf(URI("http://propNum"), "?value",_.filter.supEqual(5)))
+            _.out(URI("http://propNum"), "?value",_.filter.supEqual(5)))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("value"))
           .commit()

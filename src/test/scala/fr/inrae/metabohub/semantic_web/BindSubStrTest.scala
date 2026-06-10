@@ -29,7 +29,7 @@ object BindSubStrTest extends TestSuite {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
-            _.isSubjectOf(URI("http://bb"),
+            _.out(URI("http://bb"),
               apply=_.bind("res").subStr(0,3)))
           .select(Seq("res"))
           .distinct
@@ -45,7 +45,7 @@ object BindSubStrTest extends TestSuite {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
-            _.isSubjectOf(URI("http://bb"),
+            _.out(URI("http://bb"),
               apply=_.bind("res")
                 .subStr(0,3)
                 .filter.equal("abc")))

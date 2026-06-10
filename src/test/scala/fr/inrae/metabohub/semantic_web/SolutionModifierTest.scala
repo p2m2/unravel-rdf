@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web
 import fr.inrae.metabohub.data.DataTestFactory
-import fr.inrae.metabohub.semantic_web.rdf.{IRI, Literal, QueryVariable, URI}
+import fr.inrae.metabohub.semantic_web.rdf.{IRI, Literal, Var, URI}
 import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, test}
 
@@ -24,19 +24,19 @@ object SolutionModifierTest extends TestSuite {
   val basereq : UnravelQuery = UnravelSession(config)
     .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
     .prefix("foaf","http://xmlns.com/foaf/0.1/")
-    .something(_.isSubjectOf(URI("name","foaf"), "?name"))
+    .something(_.out(URI("name","foaf"), "?name"))
     .select(Seq("name"))
 
   val basereq2 : UnravelQuery = UnravelSession(config)
     .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
     .prefix("foaf","http://xmlns.com/foaf/0.1/")
-    .something(_.isSubjectOf("?var", Literal("Alice")))
+    .something(_.out("?var", Literal("Alice")))
     .select(Seq("var"))
 
   val basereq3 : UnravelQuery = UnravelSession(config)
     .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
     .prefix("foaf","http://xmlns.com/foaf/0.1/")
-    .something(_.isObjectOf("?var", "<http://p1>"))
+    .something(_.in("?var", "<http://p1>"))
     .select(Seq("var"))
 
   def tests = Tests {

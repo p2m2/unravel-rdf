@@ -106,7 +106,7 @@ case class UnravelSession(
     /* uri fun */
     def datatype(): UnravelSession = manage(Datatype(getUniqueRef()))
 
-    def str(): UnravelSession = manage(Str(QueryVariable(`var`), getUniqueRef()))
+    def str(): UnravelSession = manage(Str(Var(`var`), getUniqueRef()))
   }
 
   def bind(`var`: String, f: UnravelSession => UnravelSession = identity): BindIncrement = BindIncrement(`var`, f)
@@ -221,10 +221,10 @@ case class UnravelSession(
 
   def getUniqueRef(baseNameVar: String = ""): String = {
     baseNameVar + (baseNameVar match {
-      case "object" => rootNode.getChild(ObjectOf("", URI(""), QueryVariable(""))).length
-      case "subject" => rootNode.getChild(SubjectOf("", URI(""), QueryVariable(""))).length
+      case "object" => rootNode.getChild(ObjectOf("", URI(""), Var(""))).length
+      case "subject" => rootNode.getChild(SubjectOf("", URI(""), Var(""))).length
       case "something" => rootNode.getChild(Something("")).length
-      case "datatype" => rootNode.getChild(DatatypeNode("", SubjectOf("", URI(""), QueryVariable("")), "")).length
+      case "datatype" => rootNode.getChild(DatatypeNode("", SubjectOf("", URI(""), Var("")), "")).length
       case _ => randomUUID.toString
     }).toString
   }
@@ -258,7 +258,7 @@ case class UnravelSession(
   }
 
   // Méthode principale avec paramètre nommé
-  def isSubjectOf(
+  def out(
                    propertyTerm: SparqlDefinition,
                    objectTermSparql: SparqlDefinition = null,
                    apply: UnravelSession => UnravelSession = identity
@@ -267,14 +267,14 @@ case class UnravelSession(
    if (objectTermSparql != null) {
       // Cas SparqlDefinition
       objectTermSparql match {
-        case QueryVariable(id) =>
+        case Var(id) =>
           _isSubjectOf(propertyTerm, id, objectTermSparql, apply)
         case _ =>
           _isSubjectOf(propertyTerm, getUniqueRef("object"), objectTermSparql, apply)
       }
     } else {
       val id = getUniqueRef("object")
-      val objectTermVar = QueryVariable(id)
+      val objectTermVar = Var(id)
       _isSubjectOf(propertyTerm, id, objectTermVar, apply)
     }
   }
@@ -295,7 +295,7 @@ case class UnravelSession(
     f(inner.copy(fn = Some(ref))).copy(fn = Some(focus_current))
   }
 
-  def isObjectOf(
+  def in(
                   propertyTerm: SparqlDefinition,
                   subjectTermSparql: SparqlDefinition = null,
                   apply: UnravelSession => UnravelSession = identity
@@ -304,14 +304,14 @@ case class UnravelSession(
     if (subjectTermSparql != null) {
       // Cas SparqlDefinition
       subjectTermSparql match {
-        case QueryVariable(id) =>
+        case Var(id) =>
           _isObjectOf(propertyTerm, id, subjectTermSparql, apply)
         case _ =>
           _isObjectOf(propertyTerm, getUniqueRef("subject"), subjectTermSparql, apply)
       }
     } else {
       val id = getUniqueRef("subject")
-      val subjectTermSparql = QueryVariable(id)
+      val subjectTermSparql = Var(id)
       _isObjectOf(propertyTerm, id, subjectTermSparql, apply)
     }
   }
@@ -321,7 +321,7 @@ case class UnravelSession(
   ?focusId a <uri>
   */
   def isA(term: SparqlDefinition): UnravelSession =
-    isSubjectOf(URI("rdf:type"), term)
+    out(URI("rdf:type"), term)
 
   /*
   Get attribute value of an object.
@@ -336,7 +336,7 @@ case class UnravelSession(
     val withDatatype = root.focusManagement(
       DatatypeNode(
         focus_current, // parent = le SubjectOf déjà créé
-        SubjectOf(ref, uri, QueryVariable(ref)), // le SubjectOf que l’on veut typer
+        SubjectOf(ref, uri, Var(ref)), // le SubjectOf que l’on veut typer
         ref
       )
     )

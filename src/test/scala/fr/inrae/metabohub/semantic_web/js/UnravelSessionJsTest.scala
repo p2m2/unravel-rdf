@@ -48,13 +48,13 @@ object UnravelSessionJsTest extends TestSuite{
       startRequest.root().something("http://test")
     }
     test("isSubjectOf") {
-      startRequest.from("h1",_.isSubjectOf("http://test"))
+      startRequest.from("h1",_.out("http://test"))
     }
     test("isObjectOf") {
-      startRequest.from("h1",_.isSubjectOf("http://test"))
+      startRequest.from("h1",_.out("http://test"))
     }
     test("isLinkTo") {
-      startRequest.from("h1",_.isSubjectOf("http://test"))
+      startRequest.from("h1",_.out("http://test"))
     }
     test("isA") {
       startRequest.from("h1",_.isA("http://test"))

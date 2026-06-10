@@ -46,7 +46,7 @@ object UnravelSessionSubscribeEventTest extends TestSuite {
 
     val sw = UnravelSession(config)
 
-    val swr = sw.something("h1",_.isSubjectOf(URI("http://bb")))
+    val swr = sw.something("h1",_.out(URI("http://bb")))
       .select(List("h1"))
 
     if(! unsubscribe) {
@@ -88,7 +88,7 @@ object UnravelSessionSubscribeEventTest extends TestSuite {
       )
 
        val swr =
-        UnravelSession(config).something("h1",_.isSubjectOf(URI("http://bb")))
+        UnravelSession(config).something("h1",_.out(URI("http://bb")))
         .select(List("h1"))
 
       swr.commit().raw
@@ -100,7 +100,7 @@ object UnravelSessionSubscribeEventTest extends TestSuite {
 
     test("MalformedQueryException -  ERROR_HTTP_REQUEST") {
       val conf : UnravelConfig = UnravelConfig.init().rdfContent("<a> <b> <c> .")
-      UnravelSession(conf).something("a",_.isObjectOf("some:toto")).select(List("a"))
+      UnravelSession(conf).something("a",_.in("some:toto")).select(List("a"))
         .commit().raw
         .map( _=> assert(false))
         .recover( _ => {

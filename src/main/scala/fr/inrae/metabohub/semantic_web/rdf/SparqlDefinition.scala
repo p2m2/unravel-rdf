@@ -23,7 +23,7 @@ object SparqlDefinition {
       case bool: Boolean => Literal(bool)
       case stringVar: String
         if (stringVar.startsWith("?")||stringVar.startsWith("$")) &&
-          stringVar.length > 1 => QueryVariable(stringVar.substring(1, stringVar.length))
+          stringVar.length > 1 => Var(stringVar.substring(1, stringVar.length))
       case string: String if string.startsWith("<")&&string.endsWith(">") => URI(string)
       case string: String if string.contains(":") && string.matches("\\S+") => URI(string)
       case string: String => Literal(string)
@@ -44,7 +44,7 @@ object SparqlDefinition {
     Anonymous.rw,
     PropertyPath.rw,
     Literal.rw,
-    QueryVariable.rw,
+    Var.rw,
   )
 
   def cleanString(str : String): String = {
@@ -184,12 +184,12 @@ case class Literal[T](value : T,datatype : URI = URI.empty,ta : String="") exten
 }
 
 
-object QueryVariable {
-  implicit val rw: OptionPickler.ReadWriter[QueryVariable] = OptionPickler.macroRW
+object Var {
+  implicit val rw: OptionPickler.ReadWriter[Var] = OptionPickler.macroRW
 }
 
-@JSExportTopLevel(name="QueryVariable")
-case class QueryVariable (var name : String) extends SparqlDefinition {
+@JSExportTopLevel(name="Var")
+case class Var(var name : String) extends SparqlDefinition {
   name = SparqlDefinition.cleanString(name)
   override def toString : String = {
     if (name != "*") "?"+name else name

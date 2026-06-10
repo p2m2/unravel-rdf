@@ -22,7 +22,7 @@ object ElementTest extends TestSuite {
 
       test("Root getRdfNode") {
         val v : Root = Root()
-        val n = SubjectOf("t1234", new URI("test"),QueryVariable("t1234"))
+        val n = SubjectOf("t1234", new URI("test"),Var("t1234"))
 
         v.addChildren(n).getRdfNode("t1234") match {
           case Some(v) => assert(v == n )
@@ -36,9 +36,9 @@ object ElementTest extends TestSuite {
 
     test("reference children") {
       val p = Something("h1",
-        Seq(SubjectOf("h2", URI(""),QueryVariable("h2")),
-          SubjectOf("h3", URI(""),QueryVariable("h3"),
-            Seq(ObjectOf("h4", URI(""),QueryVariable("h4")))))).referencesChildren()
+        Seq(SubjectOf("h2", URI(""),Var("h2")),
+          SubjectOf("h3", URI(""),Var("h3"),
+            Seq(ObjectOf("h4", URI(""),Var("h4")))))).referencesChildren()
 
       assert (p == List("h1","h2","h3","h4"))
     }

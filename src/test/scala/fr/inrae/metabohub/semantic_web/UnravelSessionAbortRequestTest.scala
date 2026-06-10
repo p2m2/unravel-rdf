@@ -23,7 +23,7 @@ object UnravelSessionAbortRequestTest extends TestSuite {
     test("Abort Request steps") {
       insertData.map(_ => {
       val swr =
-        UnravelSession(config).something("h1",_.isSubjectOf(QueryVariable("h2"),"h3"))
+        UnravelSession(config).something("h1",_.out(Var("h2"),"h3"))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .select(List("h1","h2","h3"))
 

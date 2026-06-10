@@ -215,9 +215,9 @@ problem with js generation and round
     test("any queryvariable") {
       val v : String = "?aaaa"
       val v2 = SparqlDefinition.fromAny(v.asInstanceOf[Any])
-      assert(v2 == QueryVariable(v))
+      assert(v2 == Var(v))
       val s : String = OptionPickler.write(v2)
-      val v3 = OptionPickler.read[QueryVariable](s)
+      val v3 = OptionPickler.read[Var](s)
       assert(v2 == v3)
     }
 
