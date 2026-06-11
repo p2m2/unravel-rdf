@@ -101,8 +101,7 @@ object NodeVisitor  {
       Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
     case node: FilterNode =>
       Seq(node.reference()) ++ node.children.flatMap(getAllAncestorsRef)
-    case _ =>
-      Seq()
+    case node => node.children.flatMap(getAllAncestorsRef)
   }
 
   /**

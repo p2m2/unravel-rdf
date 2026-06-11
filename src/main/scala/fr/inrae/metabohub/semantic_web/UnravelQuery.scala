@@ -93,7 +93,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       val tx = UnravelSession(sw.config)
         .prefixes(root.getPrefixes)
         .something("val_uri",
-          _.setList(onlyUris).focusManagement(datatypeNode.property)
+          _.setList(onlyUris).addNodeAndRestoreFocus(datatypeNode.property)
         ).select(List("val_uri", labelProperty)).commit()
 
       tx.raw.map { json =>
@@ -150,12 +150,14 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
   def commit() : UnravelQuery = {
     notify(UnravelRequestEvent(UnravelStateRequestEvent.START))
+
     val lSelectedVariable : Seq[Var] = sw.rootNode.getChild(Projection(List(),"")).lastOption match {
-      case Some(proj) => proj.variables.distinct
+      case Some(proj) =>proj.variables.distinct
       case None =>
         notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
         throw UnravelException("projection/selected required variables are not defined.")
     }
+
     val lDatatype: Seq[DatatypeNode] =
       sw.rootNode.getChild[DatatypeNode](DatatypeNode("",SubjectOf("", URI(""),Var("")),"unk"))
         .filter(ld => lSelectedVariable.map(_.name).contains(ld.property.reference()))
@@ -221,7 +223,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       sw.rootNode.lSolutionSequenceModifierNode.lastOption match {
         case Some(proj) =>
           sw.copy(fn = Some(proj.idRef)) // on se position sur le noeud Projection des SolutionSequenceModifier
-          .focusManagement(ProjectionExpression(Var(v),n,v)).transaction
+          .addNodeAndRestoreFocus(ProjectionExpression(Var(v),n,v)).transaction
         case None => throw UnravelException(s"Can not find Project node int the RootNode :: $sw")
       }
     }
@@ -236,46 +238,45 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
     /* check if a projection exist or create a new one */
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
       case Some(p) => sw.copy(fn = Some(p.idRef)).transaction
-      case None => sw.root.focusManagement(Projection(Seq(),sw.getUniqueRef())).transaction
+      case None => sw.root.addNodeAndRestoreFocus(Projection(Seq(),sw.getUniqueRef())).transaction
     }
   }
 
   def projection( lRef: Seq[String] )  : UnravelQuery = {
-
     sw.rootNode.getChild(Projection(Seq(),"")).lastOption match {
       case Some(p) =>
         val listVariable : Seq[Var] = p.variables ++  lRef.map(Var(_))
-        sw.copy(fn = Some(p.idRef)).focusManagement(
+        sw.copy(fn = Some(p.idRef)).addNodeAndRestoreFocus(
           Projection(listVariable,p.idRef,p.children))
           .transaction
       case None =>
-        sw.root.focusManagement(Projection(lRef.map(Var(_)),sw.getUniqueRef())).transaction
+        sw.root.addNodeAndRestoreFocus(Projection(lRef.map(Var(_)),sw.getUniqueRef())).transaction
     }
 
   }
 
-  def distinct : UnravelQuery = sw.root.focusManagement(Distinct(sw.getUniqueRef())).transaction
+  def distinct : UnravelQuery = sw.root.addNodeAndRestoreFocus(Distinct(sw.getUniqueRef())).transaction
 
-  def reduced : UnravelQuery = sw.root.focusManagement(Reduced(sw.getUniqueRef())).transaction
+  def reduced : UnravelQuery = sw.root.addNodeAndRestoreFocus(Reduced(sw.getUniqueRef())).transaction
 
-  def limit( value : Int ) : UnravelQuery = sw.root.focusManagement(Limit(value,sw.getUniqueRef())).transaction
+  def limit( value : Int ) : UnravelQuery = sw.root.addNodeAndRestoreFocus(Limit(value,sw.getUniqueRef())).transaction
 
-  def offset( value : Int ) : UnravelQuery = sw.root.focusManagement(Offset(value,sw.getUniqueRef())).transaction
+  def offset( value : Int ) : UnravelQuery = sw.root.addNodeAndRestoreFocus(Offset(value,sw.getUniqueRef())).transaction
 
   def orderByAsc( ref: String ) : UnravelQuery =
-    sw.refExist(ref).root.focusManagement(OrderByAsc(Seq(Var(ref)),sw.getUniqueRef())).transaction
+    sw.refExist(ref).root.addNodeAndRestoreFocus(OrderByAsc(Seq(Var(ref)),sw.getUniqueRef())).transaction
 
   def orderByAsc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
-    sw.root.focusManagement(OrderByAsc(lRef.map(Var(_)),sw.getUniqueRef())).transaction
+    sw.root.addNodeAndRestoreFocus(OrderByAsc(lRef.map(Var(_)),sw.getUniqueRef())).transaction
   }
 
   def orderByDesc( ref: String ) : UnravelQuery =
-    sw.refExist(ref).root.focusManagement(OrderByDesc(Seq(Var(ref)),sw.getUniqueRef())).transaction
+    sw.refExist(ref).root.addNodeAndRestoreFocus(OrderByDesc(Seq(Var(ref)),sw.getUniqueRef())).transaction
 
   def orderByDesc( lRef: Seq[String] ) : UnravelQuery = {
     lRef.foreach( sw.refExist )
-    sw.root.focusManagement(OrderByDesc(lRef.map(Var(_)),sw.getUniqueRef())).transaction
+    sw.root.addNodeAndRestoreFocus(OrderByDesc(lRef.map(Var(_)),sw.getUniqueRef())).transaction
   }
   def getSerializedString : String = OptionPickler.write(this)
   def setSerializedString(query : String) : UnravelQuery = OptionPickler.read[UnravelQuery](query)

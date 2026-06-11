@@ -107,21 +107,21 @@ object SparqlGenerator  {
     trace(varIdSire+" - "+variableName)
 
     n match {
-      case node : SubjectOf          => "\t?" + varIdSire + " " + node.propertyTerm.toString + " " + node.objectTerm.toString + " .\n"
-      case node : ObjectOf           => "\t" + node.subjectTerm.toString + " " + node.propertyTerm.toString + " " + "?"+ varIdSire + " .\n"
+      case node : SubjectOf          => "\t?" + varIdSire + " " + node.propertyTerm.toString + " " + node.objectTerm.toString + " .\t"
+      case node : ObjectOf           => "\t" + node.subjectTerm.toString + " " + node.propertyTerm.toString + " " + "?"+ varIdSire + " .\t"
       case node : Value              => node.term match {
         case _ : Var => "\tBIND ( ?" + varIdSire +  " AS " + node.term.toString + ")"
-        case _  =>  "\tVALUES ?" +varIdSire+ " { " + node.term.toString + " } .\n" }
-      case node : ListValues         => "\tVALUES ?" +varIdSire+ " { " + node.terms.map(t => t.sparql).mkString(" ") + " } .\n"
+        case _  =>  "\tVALUES ?" +varIdSire+ " { " + node.term.toString + " } ." }
+      case node : ListValues         => "\tVALUES ?" +varIdSire+ " { " + node.terms.map(t => t.sparql).mkString(" ") + " } ."
       case node : ProjectionExpression  => "(" + sparqlNode(node.expression,node.idRef,variableName) + " AS "+ node.`var` + ") "
-      case node : Bind               => "\tBIND (" + sparqlNode(node.expression,varIdSire,variableName) + " AS "+ "?" + node.idRef + ") \n"
+      case node : Bind               => "\tBIND (" + sparqlNode(node.expression,varIdSire,variableName) + " AS "+ "?" + node.idRef + ") "
       case node : Count              => "COUNT ("+ { if (node.distinct) "DISTINCT" else "" } +
         " concat("+ node.listVarToCount.map("str("+_.sparql+")").mkString(",") +"))"
    //   case node : CountAll           => "COUNT ("+ { if (node.distinct) "DISTINCT" else "" } + " * )"
       case _ : Distinct              => "DISTINCT "
       case _ : Reduced               => "REDUCED "
-      case node : Projection if node.variables.length>0     => node.variables.mkString(" ")
-      case node : Projection if node.variables.length == 0  => ""
+      case node : Projection if node.variables.nonEmpty => node.variables.mkString(" ")
+      case node : Projection if node.variables.isEmpty => ""
       case node : Limit              => "LIMIT " + node.value + " "
       case node : Offset             => "OFFSET " + node.value + " "
       case node : OrderByAsc         => node.list.mkString(" ")
@@ -171,13 +171,11 @@ object SparqlGenerator  {
                                             "{ " + "?"+ variableName + " " + "?property_"+variableName+" "+ "?object_"+variableName +
                                            " } UNION { [] " + "?"+ variableName + " [] " + "} UNION { "+
                                                              " "+ "?subject_"+variableName + " "+ "?property_"+variableName+ " ?"+ variableName  + " }" + " }"
-      case u : UnionBlock    if u.children.nonEmpty => "{ " +
-        u.children.map( block => {  sparqlNode(block,u.s.idRef,variableName) + " }" }).mkString(" } UNION { ") +" }"
       case _ : UnionBlock                           => ""
-      case _ : NotBlock                             => "???????????????"
+      case _ : NotBlock                             => "????????NotBlock???????"
       case _ : DatatypeNode                         => ""
       case _ : SourcesNode                          => ""
-      case _ :   SparqlDefinitionExpression         => "???????????????"
+      case _ : SparqlDefinitionExpression           => "???????SparqlDefinitionExpression????????"
       case _                                        => throw new Error("Not implemented yet :"+n.getClass.getName)
     }
   }
@@ -186,6 +184,11 @@ object SparqlGenerator  {
            varIdSire : String = "" /* sire variable */
           )  : String = {
     val variableName : String = n.idRef
-    sparqlNode(n,varIdSire,variableName) + n.children.map( child => body( child, variableName)).mkString("")
+
+    n match {
+      case u : UnionBlock    if u.children.nonEmpty => "\t{\n" +
+        u.children.map( child => {  "\t\t{" + body(child,variableName) + " }" }).mkString(" UNION \n") +" \n\t}\n"
+      case _ : Node => sparqlNode(n,varIdSire,variableName) + n.children.map( child => body( child, variableName)).mkString("\n")
+    }
   }
 }

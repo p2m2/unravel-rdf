@@ -215,6 +215,7 @@ final case class Root(
     case _: DatatypeNode => true
     case _: Bind => true
     case _: SolutionSequenceModifierNode => true
+    case _: UnionBlock => true
     case _ => false
   }
 
@@ -374,6 +375,7 @@ abstract class RdfNode(
     case _ : Value      => true
     case _ : ListValues => true
     case _ : Bind       => true
+    case _ : UnionBlock => true
     case _              => false
   }
 }
@@ -499,7 +501,7 @@ object LogicNode {
 }
 
 sealed abstract class LogicNode(
-                                 val sire : Node,idRef : String=randomUUID.toString,
+                                 idRef : String=randomUUID.toString,
                                  override val children: Seq[Node],
                                  override val decorations: Map[String,String]
                                ) extends Node(idRef,children,decorations)
@@ -510,12 +512,11 @@ object UnionBlock {
 
 final case class UnionBlock(
                              override val idRef : String=randomUUID.toString,
-                             s : Node,
                              override val children: Seq[Node] = Seq[Node](),
                              override val decorations: Map[String,String] = Map()
-                           ) extends LogicNode(s,idRef,children,decorations) {
+                           ) extends LogicNode(idRef,children,decorations) {
   def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node =
-    UnionBlock(idRef,s,children,decoratingAttributeMap)
+    UnionBlock(idRef,children,decoratingAttributeMap)
 }
 
 object NotBlock {
@@ -523,13 +524,12 @@ object NotBlock {
 }
 
 final case class NotBlock(
-                           override val idRef : String,
-                           s : Node,
+                           override val idRef : String=randomUUID.toString,
                            override val children: Seq[Node] = Seq[Node](),
                            override val decorations: Map[String,String] = Map()
-                         ) extends LogicNode(s,idRef,children,decorations) {
+                         ) extends LogicNode(idRef,children,decorations) {
   def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : NotBlock =
-    NotBlock(idRef,s,children,decoratingAttributeMap)
+    NotBlock(idRef,children,decoratingAttributeMap)
 }
 
 
