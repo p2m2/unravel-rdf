@@ -5,47 +5,36 @@ import fr.inrae.metabohub.semantic_web.rdf.Var
 
 object NodeVisitor  {
 
-  def getNodeWithVariableRef(ref: String, n: Node): Array[Node] = n match {
-    case r:Root if r.idRef == ref => Array[Node](r)
-    case s: SubjectOf =>
-      (s.propertyTerm, s.objectTerm) match {
-        case (q: Var, _) if q.name == ref => Array[Node](SubjectOf
-        (
-          idRef = q.name,propertyTerm = s.propertyTerm, objectTerm = s.objectTerm, children = s.children,
-          decorations = s.decorations
-        ))
-        case (_, q: Var) if q.name == ref => Array[Node](SubjectOf
-        (
-          idRef = q.name,propertyTerm = s.propertyTerm, objectTerm = s.objectTerm, children = s.children,
-          decorations = s.decorations
-        ))
-        case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
-      }
+def getNodeWithVariableRef(ref: String, n: Node): Array[Node] = n match {
+  case r:Root if r.idRef == ref => Array[Node](r)
+  case s: SubjectOf =>
+    s.objectTerm match {
+      case q: Var if q.name == ref => Array[Node](SubjectOf
+      (
+        idRef = q.name,propertyTerm = s.propertyTerm, objectTerm = s.objectTerm, children = s.children,
+        decorations = s.decorations
+      ))
+      case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+    }
 
-    case o: ObjectOf =>
-      (o.propertyTerm, o.subjectTerm) match {
-        case (q: Var, _) if q.name == ref => Array[Node](ObjectOf
-        (
-          idRef = q.name,propertyTerm = o.propertyTerm, subjectTerm = o.subjectTerm, children = o.children,
-          decorations = o.decorations
-        ))
-        case (_, q: Var) if q.name == ref => Array[Node](ObjectOf
-        (
-          idRef = q.name,propertyTerm = o.propertyTerm, subjectTerm = o.subjectTerm, children = o.children,
-          decorations = o.decorations
-        ))
-        case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
-      }
+  case o: ObjectOf =>
+   o.subjectTerm match {
+      case q: Var if q.name == ref => Array[Node](ObjectOf
+      (
+        idRef = q.name,propertyTerm = o.propertyTerm, subjectTerm = o.subjectTerm, children = o.children,
+        decorations = o.decorations
+      ))
+      case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+    }
 
-    case node: Node if node.reference() == ref => Array[Node](node)
-    case root: Root =>
-      root.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
-        root.lBindNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
-        root.lSourcesNodes.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
-        root.lSolutionSequenceModifierNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
-    case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
-  }
-
+  case node: Node if node.reference() == ref => Array[Node](node)
+  case root: Root =>
+    root.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
+      root.lBindNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
+      root.lSourcesNodes.toArray.flatMap(child => getNodeWithVariableRef(ref, child)) ++
+      root.lSolutionSequenceModifierNode.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+  case _ => n.children.toArray.flatMap(child => getNodeWithVariableRef(ref, child))
+}
   /**
    * Get All ancestors croissant order
    * @param childRef

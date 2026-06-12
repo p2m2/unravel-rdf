@@ -36,12 +36,10 @@ case class QueryResult(results: String, mimetype : String = "json") {
 
   /* get column results */
   def getValues( key : String ): Seq[SparqlDefinition] = {
-    json("results")("bindings").arr.flatMap(kv => kv match {
-      case o: ujson.Obj => {
-        Some(SparqlBuilder.create(o(key)))
-      }
+    json("results")("bindings").arr.flatMap {
+      case o: ujson.Obj => Some(SparqlBuilder.create(o(key)))
       case _ => None
-    }).toSeq
+    }.toSeq
   }
 
   def setDatatype( key : String , uri_values : Map[String,ujson.Value] ): Unit = {

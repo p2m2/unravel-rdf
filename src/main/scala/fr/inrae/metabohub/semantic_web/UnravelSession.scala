@@ -149,6 +149,8 @@ case class UnravelSession(
     else {
       val node = pm.NodeVisitor.getNodeWithVariableRef(ref, rootNode).lastOption
         .getOrElse(throw UnravelException(s"$ref does not exist."))
+     // println(s"positionOn ref=$ref node=$node")
+      //println(UnravelSession(config, rootNode, Some(node.reference())).sparql)
       UnravelSession(config, rootNode, Some(node.reference()))
     }
   }
@@ -193,8 +195,14 @@ case class UnravelSession(
     val current = getCurrentNode
 
     if (current.accept(node)) {
+      //println(s"=============ADD NODE $node ================")
+      //println(current.toString)
       val newRootNode = rootNode.addChildren(focusNode, node)
+      //println(UnravelSession(config, newRootNode, Some(nextFocus)).getCurrentNode.toString)
+      //println("=============================")
+      //println(UnravelSession(config, newRootNode, Some(nextFocus)).sparql)
       UnravelSession(config, newRootNode, Some(nextFocus))
+
     } else {
       throw UnravelException(
         s"""
@@ -243,6 +251,15 @@ case class UnravelSession(
 
   def something(f: UnravelSession => UnravelSession): UnravelSession = something(getUniqueRef("something"), f);
 
+  def _somethingVar(ref: String = getUniqueRef("something"), f: UnravelSession => UnravelSession): UnravelSession = {
+    debug(" -- something -- ")
+    val focus_current = focusNode
+    val withSomething = root.addNodeAndRestoreFocus(SomethingVar(ref))
+    f(withSomething.copy(fn = Some(ref))).copy(fn = Some(focus_current))
+  }
+
+  def _somethingVar(ref: String): UnravelSession = _somethingVar(ref, identity)
+
   /* create node which focus is the subject : ?focusId <uri> ?target */
   private def _isSubjectOf(
                             propertyTerm: SparqlDefinition,
@@ -251,7 +268,21 @@ case class UnravelSession(
                             f: UnravelSession => UnravelSession
                           ): UnravelSession = {
     val focusCurrent = focusNode
-    val inner = addNodeAndRestoreFocus(SubjectOf(ref, propertyTerm, objectTerm), ref)
+    /* manage variable
+    * propertyTerm could be a Var SparqlDefinition.
+    * objectTerm is the possible target Var of this Object.
+    * We have to definine a Something for future target of the propertyTerm Var !
+    * */
+    val inner = (propertyTerm match {
+      case v : Var =>
+        // if the var exist in the query tree, no need to add a new something node
+        pm.NodeVisitor.getNodeWithVariableRef(v.name, rootNode).lastOption match {
+          case Some(_) =>this
+          case None => _somethingVar(v.name)
+        }
+      case _ => this
+    }).addNodeAndRestoreFocus(SubjectOf(ref, propertyTerm, objectTerm), ref)
+
     f(inner).copy(fn = Some(focusCurrent))
   }
 
@@ -288,7 +319,21 @@ case class UnravelSession(
                            f: UnravelSession => UnravelSession
                          ): UnravelSession = {
     val focusCurrent = focusNode
-    val inner = addNodeAndRestoreFocus(ObjectOf(ref, propertyTerm, subjectTerm), ref)
+    /* manage variable
+    * propertyTerm could be a Var SparqlDefinition.
+    * objectTerm is the possible target Var of this Object.
+    * We have to definine a Something for future target of the propertyTerm Var !
+    * */
+    val inner = (propertyTerm match {
+      case v : Var =>
+        // if the var exist in the query tree, no need to add a new something node
+        pm.NodeVisitor.getNodeWithVariableRef(v.name, rootNode).lastOption match {
+          case Some(_) =>this
+          case None => _somethingVar(v.name)
+        }
+      case _ => this
+    }).addNodeAndRestoreFocus(ObjectOf(ref, propertyTerm, subjectTerm), ref)
+
     f(inner).copy(fn = Some(focusCurrent))
   }
 
@@ -320,7 +365,20 @@ case class UnravelSession(
                 f: UnravelSession => UnravelSession) : UnravelSession = {
 
     val focusCurrent = focusNode
-    val inner = addNodeAndRestoreFocus(
+    /* manage variable
+    * propertyTerm could be a Var SparqlDefinition.
+    * objectTerm is the possible target Var of this Object.
+    * We have to definine a Something for future target of the propertyTerm Var !
+    * */
+    val inner = (propertyTerm match {
+      case v : Var =>
+        // if the var exist in the query tree, no need to add a new something node
+        pm.NodeVisitor.getNodeWithVariableRef(v.name, rootNode).lastOption match {
+          case Some(_) =>this
+          case None => _somethingVar(v.name)
+        }
+      case _ => this
+    }).addNodeAndRestoreFocus(
       UnionBlock(
         idRef=focusCurrent,
         children = Seq(

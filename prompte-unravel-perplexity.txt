@@ -21,7 +21,7 @@ Nous migrons le DSL SWDiscovery vers une nouvelle API. Voici les décisions pris
 3. PRIMITIVES DE TRAVERSÉE
    - out(p, ref) : ?focus <p> ?ref  (ancien isSubjectOf)
    - in(p, ref)  : ?ref <p> ?focus  (ancien isObjectOf)
-   - p et ref acceptent URI | Var | Literal (orthogonalité totale)
+   - p accepte URI | Var  et ref accepte URI | Var | Literal (orthogonalité totale)
    - isLinkTo / isLinkFrom → out(Var(...)) / in(Var(...))
 
 4. ALIAS DOCUMENTÉS (sucre syntaxique sur out/in)
@@ -49,7 +49,7 @@ Ordre de migration ([ ] = à faire, [x] = terminé, [~] = en cours) :
 
   [X] Passe 1 — Renommage pur (SWDiscovery→UnravelSession, etc.)
   [X] Passe 2 — Fermetures imbriquées (ajouter f=identity sur toutes les traversées)
-  [ ] Passe 3 — Primitives out/in avec SparqlDefinition unifié
+  [X] Passe 3 — Primitives out/in avec SparqlDefinition unifié
   [ ] Passe 4 — traverse + alias
   [ ] Passe 8 — Documentation (après Passe 4, avant Passes 5-7)
                - README : nouveaux exemples avec fermetures imbriquées, out/in, traverse
@@ -128,4 +128,4 @@ Avancement : X/13 passes terminées (~X%)
 Point de vigilance : datatype() restaure fn manuellement,
 vérifier absence de double restauration dans les closures.
 
-Nous sommes à la passe [X]. Voici ce que je veux faire : verifie que tout est ok sur la premiere tache
+Nous sommes à la passe [4]. Voici ce que je veux faire : verifie que tout est ok sur la premiere tache

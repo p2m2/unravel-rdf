@@ -168,7 +168,6 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
         throw UnravelException("The user have to select node of interest before setup a desired datatype ["+lDatatype.map(d=>d.idRef + "->"+d.refNode).mkString(" ,")+"]")
       }
 
-    
     Try(StrategyRequestBuilder.build(sw.config)) match {
       case Failure(e) => _prom_raw failure e
       case Success(driver) =>

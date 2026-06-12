@@ -165,12 +165,15 @@ object SparqlGenerator  {
           case _ => throw new Exception("SparqlGenerator::sparqlNode . [Devel error] Node undefined ["+n.toString+"]")
         }
       } + " )\n"
-      case _ : Root                             => { "" }
+      case _ : Root                             => ""
+      case s : SomethingVar                     => ""
       case s : Something if s.children.nonEmpty => ""
       case s : Something if s.children.isEmpty => "{ " +
                                             "{ " + "?"+ variableName + " " + "?property_"+variableName+" "+ "?object_"+variableName +
                                            " } UNION { [] " + "?"+ variableName + " [] " + "} UNION { "+
                                                              " "+ "?subject_"+variableName + " "+ "?property_"+variableName+ " ?"+ variableName  + " }" + " }"
+
+
       case _ : UnionBlock                           => ""
       case _ : NotBlock                             => "????????NotBlock???????"
       case _ : DatatypeNode                         => ""
@@ -184,7 +187,6 @@ object SparqlGenerator  {
            varIdSire : String = "" /* sire variable */
           )  : String = {
     val variableName : String = n.idRef
-
     n match {
       case u : UnionBlock    if u.children.nonEmpty => "\t{\n" +
         u.children.map( child => {  "\t\t{" + body(child,variableName) + " }" }).mkString(" UNION \n") +" \n\t}\n"

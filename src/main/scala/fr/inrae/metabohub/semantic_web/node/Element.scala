@@ -25,7 +25,8 @@ sealed abstract class Node(
 
   def addChildren(focusId : String, n: Node): Node =  {
     focusId match {
-      case _ if focusId == idRef && accept(n) => copy(children.map( _.addChildren(focusId,n) ) :+ n )
+      //case _ if focusId == idRef && accept(n) => copy(children.map( _.addChildren(focusId,n) ) :+ n )
+      case _ if focusId == idRef && accept(n) => copy(children :+ n )
       case _ if focusId == idRef && !accept(n) =>
         throw UnravelException(s"cannot add this child [${n.getClass.getSimpleName}] to the current node [${getClass.getSimpleName}]")
       case _ => copy(children.map( _.addChildren(focusId,n) ))
@@ -211,6 +212,7 @@ final case class Root(
   /* Accept only something on the root */
   override def accept(n: Node): Boolean = n match {
     case _: Something => true
+    case _: SomethingVar => true
     case _: SourcesNode => true
     case _: DatatypeNode => true
     case _: Bind => true
@@ -404,6 +406,22 @@ final case class Something(
     Something(idRef,children,decoratingAttributeMap)
   }
 }
+
+object SomethingVar {
+  implicit val rw: OptionPickler.ReadWriter[SomethingVar] = OptionPickler.macroRW
+}
+
+final case class SomethingVar(
+                            override val idRef: String,
+                            override val children: Seq[Node] = Seq[Node](),
+                            override val decorations: Map[String,String] = Map()
+                          ) extends RdfNode(idRef,children,decorations) {
+
+  def copy(children : Seq[Node]=children,decoratingAttributeMap : Map[String,String]=decorations) : Node = {
+    SomethingVar(idRef,children,decoratingAttributeMap)
+  }
+}
+
 
 object SubjectOf {
   implicit val rw: OptionPickler.ReadWriter[SubjectOf] = OptionPickler.macroRW

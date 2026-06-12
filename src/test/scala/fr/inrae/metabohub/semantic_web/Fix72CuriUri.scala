@@ -28,12 +28,11 @@ object Fix72CuriUri extends TestSuite {
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .prefix("test","http://test#")
           .something("h1", h1 => h1.datatype(URI("dd","test"),"dt"))
-          //.console
          .select(Seq("h1","dt"))
           .commit()
           .raw.map(r => {
-            println(r)
             assert(r("results")("bindings").arr.length == 6)
+            assert(r("results")("datatypes").obj.nonEmpty)
         })
       }).flatten
     }
