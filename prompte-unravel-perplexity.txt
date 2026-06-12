@@ -50,7 +50,7 @@ Ordre de migration ([ ] = à faire, [x] = terminé, [~] = en cours) :
   [X] Passe 1 — Renommage pur (SWDiscovery→UnravelSession, etc.)
   [X] Passe 2 — Fermetures imbriquées (ajouter f=identity sur toutes les traversées)
   [X] Passe 3 — Primitives out/in avec SparqlDefinition unifié
-  [ ] Passe 4 — traverse + alias
+  [X] Passe 4 — traverse + alias
   [ ] Passe 8 — Documentation (après Passe 4, avant Passes 5-7)
                - README : nouveaux exemples avec fermetures imbriquées, out/in, traverse
                - API reference : alias documentés explicitement comme sucre sur out/in

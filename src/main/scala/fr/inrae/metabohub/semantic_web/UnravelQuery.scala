@@ -178,7 +178,7 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
           .map((qr: QueryResult) => {
             notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_BUILD))
             /* create an empty set of datatype */
-            qr.json("results").update("datatype", ujson.Obj())
+            qr.json("results").update("datatypes", ujson.Obj())
             trace(qr.json)
             /* manage datatype */
             trace("  lDatatype ====> " + lDatatype.toString())

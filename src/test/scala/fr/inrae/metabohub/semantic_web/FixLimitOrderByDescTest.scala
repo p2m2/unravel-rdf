@@ -37,7 +37,7 @@ object FixLimitOrderByDescTest extends TestSuite {
         .raw
         .map { response =>
           println(response("results")("bindings"))
-          println(response("results")("datatype"))
+          println(response("results")("datatypes"))
         }
     }
 
@@ -52,7 +52,7 @@ object FixLimitOrderByDescTest extends TestSuite {
         .raw
         .map { response =>
           println(response("results")("bindings"))
-          println(response("results")("datatype"))
+          println(response("results")("datatypes"))
         }
     }
   }
