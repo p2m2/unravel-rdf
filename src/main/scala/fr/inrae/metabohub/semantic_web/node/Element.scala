@@ -7,7 +7,6 @@ import wvlet.log.Logger.rootLogger.debug
 
 import java.util.UUID.randomUUID
 import scala.reflect.ClassTag
-import scala.scalajs.js.annotation.JSExportTopLevel
 
 sealed abstract class Node(
                             val idRef : String,
@@ -94,7 +93,6 @@ object Root {
 }
 
 /* Node case */
-@JSExportTopLevel(name="Root")
 final case class Root(
                  override val idRef : String=randomUUID.toString,
                  prefixes : Map[String,IRI] = Map(
@@ -395,7 +393,6 @@ object Something {
   implicit val rw: OptionPickler.ReadWriter[Something] = OptionPickler.macroRW
 }
 
-@JSExportTopLevel(name="Something")
 final case class Something(
                       override val idRef: String,
                       override val children: Seq[Node] = Seq[Node](),
@@ -446,7 +443,6 @@ object ObjectOf {
   implicit val rw: OptionPickler.ReadWriter[ObjectOf] = OptionPickler.macroRW
 }
 
-@JSExportTopLevel(name="ObjectOf")
 final case class ObjectOf(override val idRef: String,
                           override val propertyTerm: SparqlDefinition,
                           val subjectTerm: SparqlDefinition,

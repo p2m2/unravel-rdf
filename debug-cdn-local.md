@@ -38,15 +38,22 @@ cat target/cdn/unravel-rdf.min.js >> target/cdn/test.html
 cat >> target/cdn/test.html << 'EOF'
 </script>
 <script>
-  const out = document.getElementById("out")
-  const lib = window.UnravelRdf
+    const out = document.getElementById("out")
+    const lib = window.UnravelRdf
 
-  if (!lib) {
-    out.textContent = "❌ window.UnravelRdf non défini"
-  } else {
-    out.textContent = "✅ Exports disponibles :\n" +
-      JSON.stringify(Object.keys(lib), null, 2)
-  }
+    if (!lib) {
+      out.textContent = "❌ window.UnravelRdf non défini"
+    } else {
+      out.textContent = "✅ Exports disponibles :\n" +
+        JSON.stringify(Object.keys(lib), null, 2) + "\n\n"
+
+      const s = new lib.UnravelSession()
+      out.textContent += "✅ Prototype UnravelSession :\n" +
+        JSON.stringify(Object.getOwnPropertyNames(Object.getPrototypeOf(s)), null, 2) + "\n\n"
+
+      out.textContent += "✅ Prototype UnravelQuery :\n" +
+        JSON.stringify(Object.getOwnPropertyNames(Object.getPrototypeOf(lib.UnravelQuery)), null, 2) + "\n"
+    }
 </script>
 </body>
 </html>
