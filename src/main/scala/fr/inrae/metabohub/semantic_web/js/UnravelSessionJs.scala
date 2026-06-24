@@ -13,128 +13,291 @@ import scala.scalajs.js.{Dynamic, JSON}
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
-@JSExportTopLevel(name="UnravelSession")
+/**
+ * JavaScript wrapper around an RDF traversal session.
+ *
+ * String values are interpreted as follows:
+ *  - a string starting with `?` is treated as a variable;
+ *  - a string starting with `http` or using a prefixed name such as `rdf:type`
+ *    is treated as an RDF IRI.
+ *
+ * Typed values can also be used directly:
+ *  - `Var("metabolite")` is equivalent to `"?metabolite"`;
+ *  - `URI("http://some/some2")` is equivalent to `"http://some/some2"`.
+ *
+ * @note Methods such as [[out]], [[in]], and [[traverse]] accept either
+ *       string shortcuts or explicit RDF values.
+ */
+@JSExportTopLevel(name = "UnravelSession")
 case class UnravelSessionJs(
-                             config: UnravelConfig=UnravelConfig(),
+                             config: UnravelConfig = UnravelConfig(),
                              swArg: UnravelSession = null
                            ) {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
+  implicit val ec: scala.concurrent.ExecutionContext =
+    scala.scalajs.concurrent.JSExecutionContext.queue
 
   val sw: UnravelSession = swArg match {
     case null => UnravelSession(config)
-    case v => v
+    case v    => v
   }
 
   def toIRI(any: Any): IRI = any match {
     case v: IRI    => v
     case v: URI    => IRI(v.sparql)
     case s: String => s
-    case _         => throw UnravelException(any.toString + " can not be cast into IRI.")
+    case _         =>
+      throw UnravelException(
+        s"Unsupported IRI value: $any (expected IRI, URI, or String)"
+      )
   }
 
-  /** Adapte une closure JS (UnravelSessionJs => UnravelSessionJs)
-   *  en closure Scala (UnravelSession => UnravelSession). */
-  private def wrap(f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSession => UnravelSession =
+  /** Adapts a JS closure (UnravelSessionJs => UnravelSessionJs)
+   *  to a Scala closure (UnravelSession => UnravelSession). */
+  private def wrap(
+                    f: js.Function1[UnravelSessionJs, UnravelSessionJs]
+                  ): UnravelSession => UnravelSession =
     inner => f(UnravelSessionJs(config, inner)).sw
 
   // ------------------------------------------------------------------ //
-  //  Accesseurs / configuration                                          //
+  //  Accessors / configuration                                         //
   // ------------------------------------------------------------------ //
 
   @JSExport
   val filter: FilterIncrementJs = FilterIncrementJs(this)
 
   @JSExport
-  def helper(regex: String = ""): UnravelSessionJs = { HtmlView(sw, regex); UnravelSessionJs(config, sw) }
+  def helper(regex: String = ""): UnravelSessionJs = {
+    HtmlView(sw, regex)
+    UnravelSessionJs(config, sw)
+  }
 
   @JSExport
-  def bind(`var`: String): BindIncrementJs = BindIncrementJs(this, `var`)
+  def bind(`var`: String): BindIncrementJs =
+    BindIncrementJs(this, `var`)
 
   @JSExport
-  def finder: UnravelSessionHelperJs = UnravelSessionHelperJs(sw)
+  def finder: UnravelSessionHelperJs =
+    UnravelSessionHelperJs(sw)
 
   @JSExport
-  def setConfig(newConfig: UnravelConfig): UnravelSessionJs = UnravelSessionJs(newConfig, sw.setConfig(newConfig))
+  def setConfig(newConfig: UnravelConfig): UnravelSessionJs =
+    UnravelSessionJs(newConfig, sw.setConfig(newConfig))
 
   @JSExport
   def getConfig(): UnravelConfig = sw.getConfig
 
   @JSExport
-  def prefix(short: String, long: Any): UnravelSessionJs = UnravelSessionJs(config, sw.prefix(short, toIRI(long)))
+  def prefix(short: String, long: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.prefix(short, toIRI(long)))
 
   @JSExport
-  def getPrefix(short: String): Any = sw.getPrefix(short)
+  def getPrefix(short: String): Any =
+    sw.getPrefix(short)
 
   @JSExport
-  def directive(directive: String): UnravelSessionJs = UnravelSessionJs(config, sw.directive(directive))
+  def directive(directive: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.directive(directive))
 
   @JSExport
-  def graph(graph: Any): UnravelSessionJs = UnravelSessionJs(config, sw.graph(toIRI(graph)))
+  def graph(graph: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.graph(toIRI(graph)))
 
   @JSExport
-  def root(): UnravelSessionJs = UnravelSessionJs(config, sw.root)
+  def root(): UnravelSessionJs =
+    UnravelSessionJs(config, sw.root)
 
   @JSExport
   def current(): String = sw.focusNode
 
   @JSExport
-  def namedGraph(graph: Any): UnravelSessionJs = UnravelSessionJs(config, sw.namedGraph(toIRI(graph)))
+  def namedGraph(graph: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.namedGraph(toIRI(graph)))
 
-  /** Positionne le curseur sur ref (sans closure). */
+  /** Positions the cursor on `ref` (no closure). */
   @JSExport
   def from(ref: String): UnravelSessionJs =
     UnravelSessionJs(config, sw.from(ref))
 
-  /** Positionne le curseur sur ref, applique la closure, restaure le focus parent. */
+  /** Positions the cursor on `ref`, applies the closure, then restores the parent focus. */
   @JSExport
-  def from(ref: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+  def from(
+            ref: String,
+            f: js.Function1[UnravelSessionJs, UnravelSessionJs]
+          ): UnravelSessionJs =
     UnravelSessionJs(config, sw.from(ref, wrap(f)))
-
-  // ------------------------------------------------------------------ //
-  //  Traversée                                                           //
-  // ------------------------------------------------------------------ //
 
   @JSExport
   def something(ref: String): UnravelSessionJs =
     UnravelSessionJs(config, sw.something(ref))
 
   @JSExport
-  def something(ref: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+  def something(
+                 ref: String,
+                 f: js.Function1[UnravelSessionJs, UnravelSessionJs]
+               ): UnravelSessionJs =
     UnravelSessionJs(config, sw.something(ref, wrap(f)))
 
+  // ------------------------------------------------------------------ //
+  //  Traversal                                                         //
+  // ------------------------------------------------------------------ //
+
+  /**
+   * Follows an RDF property from the current subject to its object(s).
+   *
+   * The property and object can be fixed IRIs or variables.
+   *
+   * @example
+   * {{{
+   * session.out("rdf:type")
+   * session.out("?p")
+   * session.out(Var("p"))
+   * }}}
+   */
   @JSExport
   def out(property: Any): UnravelSessionJs =
     UnravelSessionJs(config, sw.out(property, null, identity))
 
+  /**
+   * Follows an RDF property from the current subject to a given object.
+   *
+   * Both property and object can be fixed IRIs or variables.
+   *
+   * @example
+   * {{{
+   * session.out("rdf:type", "owl:Class")
+   * session.out("http://example.org/p", "?o")
+   * session.out(URI("http://example.org/p"), Var("o"))
+   * }}}
+   */
   @JSExport
   def out(property: Any, `object`: Any): UnravelSessionJs =
     UnravelSessionJs(config, sw.out(property, `object`, identity))
 
+  /**
+   * Follows an RDF property from the current subject to a given object,
+   * then applies a transformation to the resulting session.
+   *
+   * @example
+   * {{{
+   * session.out("rdf:type", "owl:Class", s => s.out("rdfs:label"))
+   * }}}
+   */
   @JSExport
-  def out(property: Any, `object`: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+  def out(
+           property: Any,
+           `object`: Any,
+           f: js.Function1[UnravelSessionJs, UnravelSessionJs]
+         ): UnravelSessionJs =
     UnravelSessionJs(config, sw.out(property, `object`, wrap(f)))
 
+  /**
+   * Follows an RDF property from an object back to its subject(s).
+   *
+   * The property and subject can be fixed IRIs or variables.
+   *
+   * @example
+   * {{{
+   * session.in("rdf:type")
+   * session.in("?p")
+   * session.in(Var("p"))
+   * }}}
+   */
   @JSExport
   def in(property: Any): UnravelSessionJs =
     UnravelSessionJs(config, sw.in(property, null, identity))
 
+  /**
+   * Follows an RDF property from a given object back to a given subject.
+   *
+   * Both property and subject can be fixed IRIs or variables.
+   *
+   * @example
+   * {{{
+   * session.in("rdf:type", "?s")
+   * session.in("rdfs:subClassOf", "ex:Metabolite")
+   * session.in(URI("http://example.org/p"), Var("s"))
+   * }}}
+   */
   @JSExport
-  def in(property: Any, subject: String): UnravelSessionJs =
+  def in(property: Any, subject: Any): UnravelSessionJs =
     UnravelSessionJs(config, sw.in(property, subject, identity))
 
+  /**
+   * Follows an RDF property from a given object back to a given subject,
+   * then applies a transformation to the resulting session.
+   *
+   * @example
+   * {{{
+   * session.in("rdf:type", "?s", s => s.out("rdfs:label"))
+   * }}}
+   */
   @JSExport
-  def in(property: Any, subject: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+  def in(
+          property: Any,
+          subject: Any,
+          f: js.Function1[UnravelSessionJs, UnravelSessionJs]
+        ): UnravelSessionJs =
     UnravelSessionJs(config, sw.in(property, subject, wrap(f)))
 
+  /**
+   * Traverses an RDF property in either direction, combining [[out]] and [[in]].
+   *
+   * The starting node may be a subject or an object. Property and node
+   * can be fixed IRIs or variables.
+   *
+   * @example
+   * {{{
+   * session.traverse("rdf:type")
+   * session.traverse("?p")
+   * session.traverse(Var("p"))
+   * }}}
+   */
   @JSExport
-  def isA(term: Any): UnravelSessionJs = UnravelSessionJs(config, sw.isA(term))
+  def traverse(property: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.traverse(property, null, identity))
+
+  /**
+   * Traverses an RDF property in either direction from the given node.
+   *
+   * @example
+   * {{{
+   * session.traverse("rdf:type", "?x")
+   * session.traverse("http://example.org/p", "ex:Metabolite")
+   * session.traverse(URI("http://example.org/p"), Var("x"))
+   * }}}
+   */
+  @JSExport
+  def traverse(property: Any, subject: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.traverse(property, subject, identity))
+
+  /**
+   * Traverses an RDF property in either direction, then applies a transformation
+   * to the resulting session.
+   *
+   * @example
+   * {{{
+   * session.traverse("rdf:type", "?x", s => s.out("rdfs:label"))
+   * }}}
+   */
+  @JSExport
+  def traverse(
+                property: Any,
+                subject: Any,
+                f: js.Function1[UnravelSessionJs, UnravelSessionJs]
+              ): UnravelSessionJs =
+    UnravelSessionJs(config, sw.traverse(property, subject, wrap(f)))
+
+  @JSExport
+  def isA(term: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.isA(term))
 
   // ------------------------------------------------------------------ //
-  //  Valeurs                                                             //
+  //  Values                                                            //
   // ------------------------------------------------------------------ //
 
   @JSExport
-  def set(term: Any): UnravelSessionJs = UnravelSessionJs(config, sw.set(term))
+  def set(term: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.set(term))
 
   @JSExport
   def setList(terms: Any*): UnravelSessionJs =
@@ -145,10 +308,11 @@ case class UnravelSessionJs(
     UnravelSessionJs(config, sw.datatype(datatypeProperty, ref))
 
   @JSExport
-  def remove(focus: String): UnravelSessionJs = UnravelSessionJs(config, sw.remove(focus))
+  def remove(focus: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.remove(focus))
 
   // ------------------------------------------------------------------ //
-  //  Décoration                                                          //
+  //  Decoration                                                        //
   // ------------------------------------------------------------------ //
 
   @JSExport
@@ -156,14 +320,16 @@ case class UnravelSessionJs(
     UnravelSessionJs(config, sw.setDecoration(key, value))
 
   @JSExport
-  def getDecoration(key: String): String = sw.getDecoration(key)
+  def getDecoration(key: String): String =
+    sw.getDecoration(key)
 
   // ------------------------------------------------------------------ //
-  //  Debug / SPARQL                                                      //
+  //  Debug / SPARQL                                                    //
   // ------------------------------------------------------------------ //
 
   @JSExport
-  def console(): UnravelSessionJs = UnravelSessionJs(config, sw.console)
+  def console(): UnravelSessionJs =
+    UnravelSessionJs(config, sw.console)
 
   @JSExport
   def sparql(): String = sw.sparql
@@ -175,7 +341,8 @@ case class UnravelSessionJs(
   def sparql_curl(): String = sw.sparql_curl
 
   @JSExport
-  def getSerializedString(): String = sw.getSerializedString
+  def getSerializedString(): String =
+    sw.getSerializedString
 
   @JSExport
   def setSerializedString(query: String): UnravelSessionJs =
@@ -183,25 +350,33 @@ case class UnravelSessionJs(
 
   @JSExport
   def browse[A](visitor: js.Function2[Dynamic, Integer, A]): js.Array[A] = {
-    val visitor2: (Node, Integer) => A = (n, p) => visitor(JSON.parse(OptionPickler.write(n)), p)
+    val visitor2: (Node, Integer) => A =
+      (n, p) => visitor(JSON.parse(OptionPickler.write(n)), p)
     sw.browse(visitor2).toJSArray
   }
 
   // ------------------------------------------------------------------ //
-  //  Requêtes                                                            //
+  //  Queries                                                           //
   // ------------------------------------------------------------------ //
 
   @JSExport
-  def select(lRef: String*): UnravelQueryJs = UnravelQueryJs(sw.select(lRef))
+  def select(lRef: String*): UnravelQueryJs =
+    UnravelQueryJs(sw.select(lRef))
 
   @JSExport
-  def select(lRef: js.Array[String], limit: Int = 0, offset: Int = 0): UnravelQueryJs =
+  def select(
+              lRef: js.Array[String],
+              limit: Int = 0,
+              offset: Int = 0
+            ): UnravelQueryJs =
     UnravelQueryJs(sw.select(lRef.toSeq, limit, offset))
 
   @JSExport
-  def selectByPage(lRef: js.Array[String]): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+  def selectByPage(
+                    lRef: js.Array[String]
+                  ): js.Promise[(Int, js.Array[UnravelQueryJs])] =
     sw.selectByPage(lRef.toSeq).map { res =>
-      val n: Int = res._1
+      val n: Int            = res._1
       val l: Seq[UnravelQuery] = res._2
       (n, l.map(UnravelQueryJs(_)).toJSArray)
     }.toJSPromise
@@ -211,14 +386,18 @@ case class UnravelSessionJs(
     selectByPage(lRef.toJSArray)
 
   @JSExport
-  def selectDistinctByPage(lRef: js.Array[String]): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+  def selectDistinctByPage(
+                            lRef: js.Array[String]
+                          ): js.Promise[(Int, js.Array[UnravelQueryJs])] =
     sw.selectDistinctByPage(lRef.toSeq).map { res =>
-      val n: Int = res._1
+      val n: Int            = res._1
       val l: Seq[UnravelQuery] = res._2
       (n, l.map(UnravelQueryJs(_)).toJSArray)
     }.toJSPromise
 
   @JSExport
-  def selectDistinctByPage(lRef: String*): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+  def selectDistinctByPage(
+                            lRef: String*
+                          ): js.Promise[(Int, js.Array[UnravelQueryJs])] =
     selectDistinctByPage(lRef.toJSArray)
 }

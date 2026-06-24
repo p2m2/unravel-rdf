@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>UnravelRdf – Tests</title>
+  <script src="../target/cdn-debug/unravel-rdf.min.js"></script>
+  <style>
+    body { font-family: monospace; margin: 0; background: #1e1e1e; color: #d4d4d4; }
+    #banner { display: none; position: fixed; top: 0; left: 0; right: 0;
+      background: #f59e0b; color: #1c1917; font-size: 13px;
+      padding: 8px 16px; z-index: 9999; border-bottom: 2px solid #d97706; }
+    #app { padding: 16px; }
+    h1 { color: #569cd6; font-size: 16px; margin: 0 0 16px; }
+    .suite { margin-bottom: 24px; }
+    .suite-title { color: #9cdcfe; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+    .test { margin-bottom: 12px; }
+    .test-name { font-size: 13px; margin-bottom: 4px; }
+    .test-name.running::before { content: "⏳ "; }
+    .test-name.ok::before     { content: "✅ "; }
+    .test-name.fail::before   { content: "❌ "; }
+    .result { background: #252526; border: 1px solid #3c3c3c; border-radius: 4px;
+      padding: 8px; font-size: 12px; max-height: 300px; overflow: auto; white-space: pre; }
+    .result.error { border-color: #f14c4c; color: #f14c4c; }
+    .run-btn { background: #0e639c; color: #fff; border: none; padding: 6px 14px;
+      font-family: monospace; font-size: 13px; cursor: pointer; border-radius: 3px; margin-bottom: 16px; }
+    .run-btn:hover { background: #1177bb; }
+    .summary { font-size: 13px; margin-bottom: 12px; color: #808080; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <h1>UnravelRdf – Tests manuels</h1>
+  <button class="run-btn" onclick="runAll()">▶ Lancer tous les tests</button>
+  <div id="summary" class="summary"></div>
+  <div id="suites"></div>
+</div>
+
+<script src="runner.js"></script>
+<script>
+const { UnravelSession, UnravelConfig, URI, Var } = window.UnravelRdf;
+
+const configMetaNetX = UnravelConfig
+        .init()
+        .sparqlEndpoint("https://rdf.metanetx.org/sparql/");
+
+const configDbpedia = UnravelConfig
+        .init()
+        .sparqlEndpoint("https://dbpedia.org/sparql");
+
+</script>
+<!-- TEST_SCRIPTS_START -->
+<script src="1_test_sparql_basic.js"></script>
+<script src="2_test_count.js"></script>
+<script src="3_test_dbpedia.js"></script>
+
+<!-- TEST_SCRIPTS_END -->
+
+<script>
+  // --- Helpers d'affichage ---
+  function renderValue(v, depth) {
+    depth = depth || 0;
+
+    if (v === null || v === undefined) return String(v);
+
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '[]';
+      const items = v.map(item => '  '.repeat(depth + 1) + renderValue(item, depth + 1));
+      return '[\n' + items.join(',\n') + '\n' + '  '.repeat(depth) + ']';
+    }
+
+    if (typeof v === 'object') {
+      const keys = Object.keys(v);
+      if (keys.length === 0) return '{}';
+      const items = keys.map(k => '  '.repeat(depth + 1) + k + ': ' + renderValue(v[k], depth + 1));
+      return '{\n' + items.join(',\n') + '\n' + '  '.repeat(depth) + '}';
+    }
+
+    return JSON.stringify(v);
+  }
+
+  function renderError(err) {
+    if (!err) return 'Erreur inconnue';
+    return err.stack || err.message || String(err);
+  }
+
+  function isPopupMode() {
+    return new URLSearchParams(window.location.search).get('popup') === '1';
+  }
+
+  // --- Runner ---
+  function runAll() {
+    const suitesEl = document.getElementById('suites');
+    const summaryEl = document.getElementById('summary');
+
+    suitesEl.innerHTML = '';
+    summaryEl.textContent = 'Exécution en cours…';
+
+    let total = 0, passed = 0, failed = 0;
+    const promises = [];
+
+    if (isPopupMode()) {
+      document.title = 'UnravelRdf – Debug';
+      summaryEl.textContent = 'Exécution en cours dans la fenêtre de debug…';
+      console.clear();
+      console.log('Mode debug popup activé');
+    }
+
+    SUITES.forEach(suite => {
+      const suiteEl = document.createElement('div');
+      suiteEl.className = 'suite';
+      suiteEl.innerHTML = '<div class="suite-title">' + suite.name + '</div>';
+      suitesEl.appendChild(suiteEl);
+
+      suite.tests.forEach(test => {
+        total++;
+
+        const testEl = document.createElement('div');
+        testEl.className = 'test';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'test-name running';
+        nameEl.textContent = test.name;
+
+        const resultEl = document.createElement('pre');
+        resultEl.className = 'result';
+
+        testEl.appendChild(nameEl);
+        testEl.appendChild(resultEl);
+        suiteEl.appendChild(testEl);
+
+        const p = Promise.resolve()
+                .then(() => {
+                  if (isPopupMode()) {
+                    console.group('TEST: ' + suite.name + ' / ' + test.name);
+                    console.trace('Avant exécution');
+                  }
+
+                  // Décommente la ligne suivante si tu veux arrêter l'exécution
+                  // automatiquement dans les DevTools de la popup.
+                  // if (isPopupMode()) debugger;
+
+                  return test.run();
+                })
+                .then(result => {
+                  if (test.check) test.check(result);
+
+                  nameEl.className = 'test-name ok';
+                  resultEl.textContent = renderValue(result);
+                  passed++;
+
+                  if (isPopupMode()) {
+                    console.log('Résultat:', result);
+                    console.groupEnd();
+                  }
+                })
+                .catch(err => {
+                  nameEl.className = 'test-name fail';
+                  resultEl.className = 'result error';
+                  resultEl.textContent = renderError(err);
+                  failed++;
+
+                  console.error('Échec: ' + suite.name + ' / ' + test.name, err);
+                  if (!err || !err.stack) {
+                    console.trace('Stack trace complémentaire');
+                  }
+
+                  if (isPopupMode()) {
+                    console.groupEnd();
+                  }
+                });
+
+        promises.push(p);
+      });
+    });
+
+    Promise.all(promises).then(() => {
+      summaryEl.textContent =
+              total + ' test(s) — ' + passed + ' ✅  ' + failed + ' ❌';
+    });
+  }
+
+  // --- Auto-run au chargement ---
+  document.addEventListener('DOMContentLoaded', () => {
+    runAll();
+  });
+</script>
+</body>
+</html>
