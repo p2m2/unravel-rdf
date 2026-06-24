@@ -97,7 +97,7 @@ scala_js_tests:
         || echo "WARNING: HTTP server not responding"
       cd $CI_PROJECT_DIR
   script:
-    - sbt clean test
+    - sbt "clean; test"
   artifacts:
     when: always
     paths:
