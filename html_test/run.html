@@ -176,6 +176,10 @@ const configDbpedia = UnravelConfig
     Promise.all(promises).then(() => {
       summaryEl.textContent =
               total + ' test(s) — ' + passed + ' ✅  ' + failed + ' ❌';
+              document.body.setAttribute('data-tests-finished', 'true');
+              document.body.setAttribute('data-tests-total', String(total));
+              document.body.setAttribute('data-tests-passed', String(passed));
+              document.body.setAttribute('data-tests-failed', String(failed));
     });
   }
 

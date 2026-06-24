@@ -107,6 +107,47 @@ scala_js_tests:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
 
+html_js_tests:
+  stage: test
+  variables:
+    SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
+    COURSIER_CACHE: ".cache/coursier"
+    IVY_HOME: ".ivy2"
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  before_script:
+    - *setup_java_sbt
+    - apt-get update -y
+    - apt-get install -y python3
+  script:
+    - sbt fastOptJS npmPrepareDebugRelease
+    - cd html_test
+    - npm ci
+    - npm install -D @playwright/test
+    - npx playwright install chromium --with-deps
+    - cd $CI_PROJECT_DIR
+    - python3 -m http.server 8080 >/tmp/html-test-server.log 2>&1 &
+    - |
+      for i in $(seq 1 30); do
+        if curl -fsS "http://127.0.0.1:8080/html_test/run.html" >/dev/null; then
+          echo "HTML test server ready"
+          break
+        fi
+        echo "Waiting for HTML test server ($i/30)"
+        sleep 1
+      done
+    - cd html_test
+    - npx playwright test
+  artifacts:
+    when: always
+    paths:
+      - html_test/test-results/
+      - html_test/playwright-report/
+      - /tmp/html-test-server.log
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
 # ═════════════════════════════════════════════
 # STAGE : build
 # ═════════════════════════════════════════════
