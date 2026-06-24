@@ -4,9 +4,6 @@ stages:
   - publish
   - pages
 
-# ─────────────────────────────────────────────
-# Anchor: Java + sbt setup
-# ─────────────────────────────────────────────
 .setup_java_sbt: &setup_java_sbt
   - apt-get update -y
   - apt-get install -y curl gnupg ca-certificates openjdk-17-jdk python3
@@ -26,17 +23,11 @@ stages:
     sbt sbtVersion
   - test -f build.sbt
 
-# ─────────────────────────────────────────────
-# Anchor: GitLab npm registry setup
-# ─────────────────────────────────────────────
 .setup_npm_registry: &setup_npm_registry
   - |
     echo "@p2m2:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/" > .npmrc
     echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
 
-# ─────────────────────────────────────────────
-# Shared image and cache
-# ─────────────────────────────────────────────
 default:
   image: node:20-bookworm
   cache:
@@ -50,9 +41,6 @@ default:
       - html_test/node_modules/
       - target/
 
-# ═════════════════════════════════════════════
-# STAGE: test
-# ═════════════════════════════════════════════
 scala_js_tests:
   stage: test
   services:
@@ -94,8 +82,9 @@ scala_js_tests:
       done
     - |
       echo "Starting HTTP server for test resources..."
+      mkdir -p .ci-logs
       cd src/test/resources
-      python3 -m http.server 8080 >/tmp/test-resources-http.log 2>&1 &
+      python3 -m http.server 8080 > "$CI_PROJECT_DIR/.ci-logs/test-resources-http.log" 2>&1 &
       sleep 1
       curl -fsS "http://127.0.0.1:8080/animals_basic.ttl" >/dev/null \
         && echo "HTTP server ready on port 8080" \
@@ -107,7 +96,7 @@ scala_js_tests:
     when: always
     paths:
       - target/
-      - /tmp/test-resources-http.log
+      - .ci-logs/
     expire_in: 1 week
   rules:
     - if: $CI_COMMIT_BRANCH
@@ -125,11 +114,12 @@ html_js_tests:
     - *setup_java_sbt
   script:
     - 'sbt ";fastOptJS;npmPrepareDebugRelease"'
+    - mkdir -p .ci-logs
     - cd html_test
-    - npm ci
+    - npm install
     - npx playwright install chromium --with-deps
     - cd "$CI_PROJECT_DIR"
-    - python3 -m http.server 8080 >/tmp/html-test-server.log 2>&1 &
+    - python3 -m http.server 8080 > .ci-logs/html-test-server.log 2>&1 &
     - |
       echo "Waiting for HTML test server..."
       for i in $(seq 1 30); do
@@ -145,17 +135,13 @@ html_js_tests:
   artifacts:
     when: always
     paths:
+      - .ci-logs/
       - html_test/test-results/
       - html_test/playwright-report/
-      - /tmp/html-test-server.log
     expire_in: 1 week
   rules:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
-
-# ═════════════════════════════════════════════
-# STAGE: build
-# ═════════════════════════════════════════════
 
 build_release:
   stage: build
@@ -207,10 +193,6 @@ build_debug:
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /-debug$/'
 
-# ═════════════════════════════════════════════
-# STAGE: publish (GitLab npm registry)
-# ═════════════════════════════════════════════
-
 publish_npm_release:
   stage: publish
   needs: ["build_release"]
@@ -235,10 +217,6 @@ publish_npm_debug:
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /-debug$/'
 
-# ═════════════════════════════════════════════
-# STAGE: pages (CDN + Jekyll docs)
-# ═════════════════════════════════════════════
-
 pages:
   stage: pages
   needs: ["build_release"]
@@ -254,17 +232,13 @@ pages:
       cd docs
       bundle exec jekyll build --destination ../public
       cd ..
-
     - mkdir -p "public/cdn/${CI_COMMIT_TAG}"
     - cp target/cdn/unravel-rdf.min.js "public/cdn/${CI_COMMIT_TAG}/unravel-rdf.min.js"
-
     - mkdir -p public/cdn/latest
     - cp target/cdn/unravel-rdf.min.js public/cdn/latest/unravel-rdf.min.js
-
     - |
       VERSIONS=$(ls public/cdn/ | grep -v latest | grep -v versions.json | sort -V | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')
       echo "{\"latest\":\"${CI_COMMIT_TAG}\",\"versions\":[${VERSIONS}]}" > public/cdn/versions.json
-
     - |
       echo "================================================"
       echo "Documentation : https://${CI_PAGES_DOMAIN}/"
