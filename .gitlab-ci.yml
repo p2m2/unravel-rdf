@@ -113,7 +113,7 @@ html_js_tests:
   before_script:
     - *setup_java_sbt
   script:
-    - 'sbt ";fastOptJS;npmPrepareDebugRelease"'
+    - 'sbt ";fastOptJS;npmPrepareDebugRelease;cdnDebugPrepare"'
     - mkdir -p .ci-logs
     - cd html_test
     - npm install
