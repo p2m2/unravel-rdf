@@ -5,17 +5,19 @@ stages:
   - pages
 
 # ─────────────────────────────────────────────
-# Ancre : installation Java + sbt
+# Anchor: Java + sbt setup
 # ─────────────────────────────────────────────
 .setup_java_sbt: &setup_java_sbt
   - apt-get update -y
-  - apt-get install -y curl gnupg ca-certificates openjdk-17-jdk
+  - apt-get install -y curl gnupg ca-certificates openjdk-17-jdk python3
   - java -version
   - node --version
   - npm --version
   - |
-    echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list
-    echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" \
+      | tee /etc/apt/sources.list.d/sbt.list
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian /" \
+      | tee /etc/apt/sources.list.d/sbt_old.list
     curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" \
       | gpg --dearmor \
       | tee /etc/apt/trusted.gpg.d/scalasbt-release.gpg >/dev/null
@@ -25,7 +27,7 @@ stages:
   - test -f build.sbt
 
 # ─────────────────────────────────────────────
-# Ancre : configuration npm registry GitLab
+# Anchor: GitLab npm registry setup
 # ─────────────────────────────────────────────
 .setup_npm_registry: &setup_npm_registry
   - |
@@ -33,7 +35,7 @@ stages:
     echo "//${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}" >> .npmrc
 
 # ─────────────────────────────────────────────
-# Image et cache communs
+# Shared image and cache
 # ─────────────────────────────────────────────
 default:
   image: node:20-bookworm
@@ -43,11 +45,13 @@ default:
       - .ivy2/cache
       - .sbt
       - .cache/coursier
+      - .npm/
       - node_modules/
+      - html_test/node_modules/
       - target/
 
 # ═════════════════════════════════════════════
-# STAGE : test
+# STAGE: test
 # ═════════════════════════════════════════════
 scala_js_tests:
   stage: test
@@ -90,18 +94,20 @@ scala_js_tests:
       done
     - |
       echo "Starting HTTP server for test resources..."
-      cd src/test/resources && python3 -m http.server 8080 &
+      cd src/test/resources
+      python3 -m http.server 8080 >/tmp/test-resources-http.log 2>&1 &
       sleep 1
-      curl -fsS "http://localhost:8080/animals_basic.ttl" >/dev/null \
+      curl -fsS "http://127.0.0.1:8080/animals_basic.ttl" >/dev/null \
         && echo "HTTP server ready on port 8080" \
-        || echo "WARNING: HTTP server not responding"
-      cd $CI_PROJECT_DIR
+        || (echo "ERROR: HTTP server not responding" && exit 1)
+      cd "$CI_PROJECT_DIR"
   script:
-    - sbt "clean; test"
+    - 'sbt ";clean;test"'
   artifacts:
     when: always
     paths:
       - target/
+      - /tmp/test-resources-http.log
     expire_in: 1 week
   rules:
     - if: $CI_COMMIT_BRANCH
@@ -114,19 +120,18 @@ html_js_tests:
     COURSIER_CACHE: ".cache/coursier"
     IVY_HOME: ".ivy2"
     npm_config_cache: "$CI_PROJECT_DIR/.npm"
+    PLAYWRIGHT_BROWSERS_PATH: "$CI_PROJECT_DIR/.cache/ms-playwright"
   before_script:
     - *setup_java_sbt
-    - apt-get update -y
-    - apt-get install -y python3
   script:
-    - sbt fastOptJS npmPrepareDebugRelease
+    - 'sbt ";fastOptJS;npmPrepareDebugRelease"'
     - cd html_test
     - npm ci
-    - npm install -D @playwright/test
     - npx playwright install chromium --with-deps
-    - cd $CI_PROJECT_DIR
+    - cd "$CI_PROJECT_DIR"
     - python3 -m http.server 8080 >/tmp/html-test-server.log 2>&1 &
     - |
+      echo "Waiting for HTML test server..."
       for i in $(seq 1 30); do
         if curl -fsS "http://127.0.0.1:8080/html_test/run.html" >/dev/null; then
           echo "HTML test server ready"
@@ -149,13 +154,14 @@ html_js_tests:
     - if: $CI_COMMIT_TAG
 
 # ═════════════════════════════════════════════
-# STAGE : build
+# STAGE: build
 # ═════════════════════════════════════════════
 
-# Build optimisé (release) : fullOptJS + cdnPrepare (webpack UMD browser-ready)
 build_release:
   stage: build
-  needs: ["scala_js_tests"]
+  needs:
+    - scala_js_tests
+    - html_js_tests
   variables:
     SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
     COURSIER_CACHE: ".cache/coursier"
@@ -165,9 +171,7 @@ build_release:
   before_script:
     - *setup_java_sbt
   script:
-    # fullOptJS : compile Scala.js en CommonJS optimisé
-    # cdnPrepare : npm install dans target/npm/ + webpack UMD → target/cdn/unravel-rdf.min.js
-    - sbt fullOptJS cdnPrepare npmPrepareRelease
+    - 'sbt ";fullOptJS;cdnPrepare;npmPrepareRelease"'
     - |
       echo "npm bundle size : $(du -sh target/npm/unravel-rdf.js | cut -f1)"
       echo "CDN bundle size : $(du -sh target/cdn/unravel-rdf.min.js | cut -f1)"
@@ -180,10 +184,11 @@ build_release:
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /-debug$/'
 
-# Build debug : fastOptJS + source maps
 build_debug:
   stage: build
-  needs: ["scala_js_tests"]
+  needs:
+    - scala_js_tests
+    - html_js_tests
   variables:
     SBT_OPTS: "-Dsbt.ci=true -Dsbt.color=false"
     COURSIER_CACHE: ".cache/coursier"
@@ -193,7 +198,7 @@ build_debug:
   before_script:
     - *setup_java_sbt
   script:
-    - sbt fastOptJS npmPrepareDebugRelease
+    - 'sbt ";fastOptJS;npmPrepareDebugRelease"'
   artifacts:
     when: always
     paths:
@@ -203,7 +208,7 @@ build_debug:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /-debug$/'
 
 # ═════════════════════════════════════════════
-# STAGE : publish (npm registry GitLab)
+# STAGE: publish (GitLab npm registry)
 # ═════════════════════════════════════════════
 
 publish_npm_release:
@@ -231,41 +236,35 @@ publish_npm_debug:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /-debug$/'
 
 # ═════════════════════════════════════════════
-# STAGE : pages (CDN + documentation Jekyll)
+# STAGE: pages (CDN + Jekyll docs)
 # ═════════════════════════════════════════════
 
-# Job pages — déclenché sur tag release (doc Jekyll + CDN)
 pages:
   stage: pages
   needs: ["build_release"]
   variables:
     DISCOVERY_VERSION: "$CI_COMMIT_TAG"
   before_script:
-    - apt-get update -y && apt-get install -y ruby-full build-essential
+    - apt-get update -y
+    - apt-get install -y ruby-full build-essential
     - gem install bundler
     - cd docs && bundle install && cd ..
   script:
-    # ── 1. Documentation Jekyll ──────────────────────────────────────────
     - |
       cd docs
       bundle exec jekyll build --destination ../public
       cd ..
 
-    # ── 2. CDN : version épinglée (bundle UMD browser-ready) ─────────────
-    - mkdir -p public/cdn/${CI_COMMIT_TAG}
-    - cp target/cdn/unravel-rdf.min.js public/cdn/${CI_COMMIT_TAG}/unravel-rdf.min.js
+    - mkdir -p "public/cdn/${CI_COMMIT_TAG}"
+    - cp target/cdn/unravel-rdf.min.js "public/cdn/${CI_COMMIT_TAG}/unravel-rdf.min.js"
 
-    # ── 3. CDN : alias "latest" ──────────────────────────────────────────
     - mkdir -p public/cdn/latest
     - cp target/cdn/unravel-rdf.min.js public/cdn/latest/unravel-rdf.min.js
 
-    # ── 4. CDN : index des versions disponibles (JSON) ───────────────────
     - |
-      VERSIONS=$(ls public/cdn/ | grep -v latest | grep -v versions.json | sort -V | sed 's/.*/\"&\"/' | tr '\n' ',' | sed 's/,$//')
-      echo "{\"latest\":\"${CI_COMMIT_TAG}\",\"versions\":[${VERSIONS}]}" \
-        > public/cdn/versions.json
+      VERSIONS=$(ls public/cdn/ | grep -v latest | grep -v versions.json | sort -V | sed 's/.*/"&"/' | tr '\n' ',' | sed 's/,$//')
+      echo "{\"latest\":\"${CI_COMMIT_TAG}\",\"versions\":[${VERSIONS}]}" > public/cdn/versions.json
 
-    # ── 5. Résumé des URLs publiées ──────────────────────────────────────
     - |
       echo "================================================"
       echo "Documentation : https://${CI_PAGES_DOMAIN}/"
@@ -276,6 +275,5 @@ pages:
   artifacts:
     paths:
       - public
-    # Pas d'expire_in sur pages : GitLab Pages gère sa propre rétention
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /-debug$/'
