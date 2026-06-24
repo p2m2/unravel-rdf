@@ -124,7 +124,11 @@ def prepareNpmDir(
   if (!bundledJs.exists())
     sys.error(s"Missing bundled artifact: ${bundledJs.getAbsolutePath}. Run the appropriate Scala.js task first.")
 
-  IO.delete(npmDir)
+  // Remplace IO.delete(npmDir) par :
+  IO.delete(npmDir / s"$projectName.js")
+  IO.delete(npmDir / s"$projectName.js.map")
+  IO.delete(npmDir / s"$projectName-fastopt.js.map")
+  IO.delete(npmDir / "package.json")
   IO.createDirectory(npmDir)
   IO.copyFile(bundledJs, outputJs)
 
@@ -208,14 +212,28 @@ def runCdnBundle(
   taskLabel: String,
   debug: Boolean = false
 ): File = {
-  log.info(s"Installing npm dependencies in ${npmDir.getAbsolutePath}...")
-  val installResult = Process("npm install", npmDir).!(log)
-  if (installResult != 0) sys.error(s"npm install failed in ${npmDir.getAbsolutePath}")
+  val nodeModules = npmDir / "node_modules"
+  val packageJson = npmDir / "package.json"
+
+  // npm install seulement si node_modules absent ou package.json plus récent
+  val needsInstall = !nodeModules.exists() ||
+    packageJson.lastModified > nodeModules.lastModified
+
+  if (needsInstall) {
+    log.info(s"Installing npm dependencies in ${npmDir.getAbsolutePath}...")
+    val installResult = Process("npm install", npmDir).!(log)
+    if (installResult != 0) sys.error(s"npm install failed in ${npmDir.getAbsolutePath}")
+  } else {
+    log.info("npm dependencies up to date, skipping install.")
+  }
 
   if (debug) {
-    log.info("Installing source-map-loader...")
-    val smResult = Process("npm install source-map-loader --save-dev", npmDir).!(log)
-    if (smResult != 0) sys.error("npm install source-map-loader failed")
+    val needsSourceMapLoader = !(npmDir / "node_modules" / "source-map-loader").exists()
+    if (needsSourceMapLoader) {
+        log.info("Installing source-map-loader...")
+        val smResult = Process("npm install source-map-loader --save-dev", npmDir).!(log)
+        if (smResult != 0) sys.error("npm install source-map-loader failed")
+      }
   }
 
   log.info(s"Running webpack $taskLabel bundle...")

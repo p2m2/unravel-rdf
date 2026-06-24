@@ -13,7 +13,9 @@ case class UnravelSessionHelperJs(sw : UnravelSession) {
   implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   @JSExport
-  def count(lRef: js.Array[String],distinct : Boolean=false): Promise[Int] = { sw.finder.count(lRef.toSeq,distinct).toJSPromise }
+  def count(lRef: js.Array[String],distinct : Boolean=false): Promise[Int] = {
+    sw.finder.count(lRef.toSeq,distinct).toJSPromise
+  }
 
   @JSExport
   def classes(regex : String = "",uri:URI = URI(""), page : Int = 0 ): Promise[js.Array[URI]] =

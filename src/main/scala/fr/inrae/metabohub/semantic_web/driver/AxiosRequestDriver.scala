@@ -35,14 +35,37 @@ case class AxiosRequestDriver(
   private def handleError(e: Throwable): Nothing = {
     publish(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_HTTP_REQUEST))
 
-    println("====================================")
-    println("HTTP ERROR")
-    println("====================================")
-    println(s"class   = ${e.getClass.getName}")
-    println(s"message = ${e.getMessage}")
-    println(s"error   = $e")
+    val raw: js.Dynamic = e match {
+      case jse: js.JavaScriptException =>
+        jse.exception.asInstanceOf[js.Dynamic]
+      case _ =>
+        e.asInstanceOf[js.Dynamic]
+    }
 
-    throw UnravelException(Option(e.getMessage).getOrElse(e.toString))
+    val axiosMessage =
+      if (!js.isUndefined(raw.message) && raw.message != null)
+        raw.message.toString.replaceFirst("^AxiosError:\\s*", "").trim
+      else
+        Option(e.getMessage).getOrElse(e.toString).replaceFirst("^AxiosError:\\s*", "").trim
+
+    val response =
+      if (js.isUndefined(raw.response) || raw.response == null) null
+      else raw.response
+
+    val serverMessage =
+      if (response != null && !js.isUndefined(response.data) && response.data != null) {
+        val d = response.data
+        if (js.typeOf(d) == "string") d.toString.trim
+        else JSON.stringify(d)
+      } else ""
+
+    val finalMessage =
+      if (serverMessage.nonEmpty && serverMessage != axiosMessage)
+        s"$axiosMessage\n$serverMessage"
+      else
+        axiosMessage
+
+    throw UnravelException(finalMessage)
   }
 
   def get(query: String): Future[QueryResult] = {

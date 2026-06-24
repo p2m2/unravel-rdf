@@ -33,7 +33,8 @@ case class Source(
     "text/turtle",
     "text/n3",
     "text/rdf-xml",
-    "application/rdf+xml"
+    "application/rdf+xml",
+    "application/n-triples"
   )
 
   mimetype match {

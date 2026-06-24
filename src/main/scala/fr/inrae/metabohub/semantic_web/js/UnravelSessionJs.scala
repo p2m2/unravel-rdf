@@ -32,12 +32,6 @@ case class UnravelSessionJs(
     case _         => throw UnravelException(any.toString + " can not be cast into IRI.")
   }
 
-  def toURI(any: Any): URI = any match {
-    case v: URI    => v
-    case s: String => s
-    case _         => throw UnravelException(any.toString + " can not be cast into URI.")
-  }
-
   /** Adapte une closure JS (UnravelSessionJs => UnravelSessionJs)
    *  en closure Scala (UnravelSession => UnravelSession). */
   private def wrap(f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSession => UnravelSession =
@@ -109,28 +103,28 @@ case class UnravelSessionJs(
     UnravelSessionJs(config, sw.something(ref, wrap(f)))
 
   @JSExport
-  def out(uri: Any): UnravelSessionJs =
-    UnravelSessionJs(config, sw.out(toURI(uri)))
+  def out(property: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.out(property, null, identity))
 
   @JSExport
-  def out(uri: Any, ref: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.out(toURI(uri), ref))
+  def out(property: Any, `object`: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.out(property, `object`, identity))
 
   @JSExport
-  def out(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
-    UnravelSessionJs(config, sw.out(toURI(uri), wrap(f)))
+  def out(property: Any, `object`: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.out(property, `object`, wrap(f)))
 
   @JSExport
-  def in(uri: Any, ref: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.in(toURI(uri), ref))
+  def in(property: Any): UnravelSessionJs =
+    UnravelSessionJs(config, sw.in(property, null, identity))
 
   @JSExport
-  def in(uri: Any): UnravelSessionJs =
-    UnravelSessionJs(config, sw.in(toURI(uri)))
+  def in(property: Any, subject: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.in(property, subject, identity))
 
   @JSExport
-  def in(uri: Any, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
-    UnravelSessionJs(config, sw.in(toURI(uri), wrap(f)))
+  def in(property: Any, subject: String, f: js.Function1[UnravelSessionJs, UnravelSessionJs]): UnravelSessionJs =
+    UnravelSessionJs(config, sw.in(property, subject, wrap(f)))
 
   @JSExport
   def isA(term: Any): UnravelSessionJs = UnravelSessionJs(config, sw.isA(term))
@@ -147,8 +141,8 @@ case class UnravelSessionJs(
     UnravelSessionJs(config, sw.setList(terms.map(SparqlDefinition.fromAny)))
 
   @JSExport
-  def datatype(uri: Any, ref: String): UnravelSessionJs =
-    UnravelSessionJs(config, sw.datatype(toURI(uri), ref))
+  def datatype(datatypeProperty: String, ref: String): UnravelSessionJs =
+    UnravelSessionJs(config, sw.datatype(datatypeProperty, ref))
 
   @JSExport
   def remove(focus: String): UnravelSessionJs = UnravelSessionJs(config, sw.remove(focus))

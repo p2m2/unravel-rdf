@@ -34,8 +34,9 @@ object ComunicaRequestDriver {
     val p = Promise[N3Store]()
 
     val format = mimetype match {
-      case "text/turtle" => N3FormatOption.Turtle
-      case "text/n3"     => N3FormatOption.N3
+      case "text/turtle"           => N3FormatOption.Turtle
+      case "text/n3"               => N3FormatOption.N3
+      case "application/n-triples" => N3FormatOption.N3
       case _             => throw UnravelException(s"$mimetype format is not managed")
     }
 
