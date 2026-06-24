@@ -5,7 +5,7 @@ import fr.inrae.metabohub.semantic_web.rdf.URI
 import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, assert, test}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 object Fix83PrefixUnknownTest extends TestSuite {
   val insert_data = DataTestFactory.insertVirtuoso1(

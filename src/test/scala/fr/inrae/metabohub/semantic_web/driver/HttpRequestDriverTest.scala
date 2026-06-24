@@ -8,7 +8,7 @@ import wvlet.log.{LogLevel, Logger}
 import scala.concurrent.Future
 
 object HttpRequestDriverTest extends TestSuite {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
   val turtleBase: String = NodeEnv.get("TURTLE_BASE_URL", "http://localhost:8080")
 
   val insertData : Future[Any] = DataTestFactory.insertVirtuoso1(

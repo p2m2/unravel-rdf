@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 
 object ComunicaRequestDriver {
   implicit val ec: scala.concurrent.ExecutionContext =
-    scala.concurrent.ExecutionContext.global
+    scala.scalajs.concurrent.JSExecutionContext.queue
 
   type SourceComunica = String | SourceDefinitionNewQueryEngine | N3Store
 

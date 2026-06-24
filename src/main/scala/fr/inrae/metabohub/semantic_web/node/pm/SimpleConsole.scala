@@ -6,7 +6,7 @@ import fr.inrae.metabohub.semantic_web.node._
  *
  */
 case class SimpleConsole(consoleColor : Boolean = true,displayRootStyle : Boolean = true) {
-    implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+    implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
     //full block
     def fullb : String = new String(Character.toChars(0x2588))
     //left half block

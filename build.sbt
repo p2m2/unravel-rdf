@@ -2,7 +2,6 @@ import org.scalajs.jsenv.nodejs.NodeJSEnv
 import sbt.*
 import sbt.Keys.*
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.*
-
 import scala.sys.process.Process
 
 val staticVersionBuild = "local.build"
@@ -12,7 +11,7 @@ val generateUnravelVersionFile = taskKey[Unit]("Generate Unravel version file")
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
 val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
 val cdnPrepare = taskKey[File]("Build a browser-ready UMD bundle in target/cdn")
-
+val cdnDebugPrepare = taskKey[File]("Build a browser-ready debug bundle in target/cdn-debug")
 
 lazy val lihaoyiUtestVersion = "0.9.5"
 lazy val lihaoyiUpickleVersion = "4.4.3"
@@ -38,38 +37,39 @@ def bundledArtifact(base: File, scalaBinary: String, projectName: String, optimi
 def bundledSourceMap(base: File, scalaBinary: String, projectName: String): File =
   base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"$projectName-fastopt.js.map"
 
-def renderPackageJson(
-                       packageName: String,
-                       description: String,
-                       version: String,
-                       mainFile: String,
-                       includedFiles: Seq[String],
-                       dependencies: Seq[(String, String)],
-                       registryUrl: String,
-                       cdnFile: Option[String] = None
-                     ): String = {
+def jsonEscape(s: String): String =
+  s.replace("\\", "\\\\").replace("\"", "\\\"")
 
+def renderPackageJson(
+  packageName: String,
+  description: String,
+  version: String,
+  mainFile: String,
+  includedFiles: Seq[String],
+  dependencies: Seq[(String, String)],
+  registryUrl: String,
+  cdnFile: Option[String] = None
+): String = {
   val cdnFields = cdnFile.map { f =>
-    s"""  "browser": "$f",
-       |  "unpkg": "$f",
-       |  "jsdelivr": "$f",""".stripMargin
+    s"""  "browser": "${jsonEscape(f)}",
+       |  "unpkg": "${jsonEscape(f)}",
+       |  "jsdelivr": "${jsonEscape(f)}",""".stripMargin
   }.getOrElse("")
 
   val dependenciesJson =
     if (dependencies.isEmpty) ""
     else dependencies.map { case (dep, ver) =>
-      val safeVer = ver.replace("\"", "\\\"")
-      s"""    "$dep": "$safeVer""""
+      s"""    "${jsonEscape(dep)}": "${jsonEscape(ver)}""""
     }.mkString(",\n")
 
   val filesJson =
-    includedFiles.map(f => s"""    "$f"""").mkString(",\n")
+    includedFiles.map(f => s"""    "${jsonEscape(f)}"""").mkString(",\n")
 
   s"""{
-     |  "name": "$packageName",
-     |  "description": "$description",
-     |  "version": "$version",
-     |  "main": "$mainFile",
+     |  "name": "${jsonEscape(packageName)}",
+     |  "description": "${jsonEscape(description)}",
+     |  "version": "${jsonEscape(version)}",
+     |  "main": "${jsonEscape(mainFile)}",
      |$cdnFields
      |  "files": [
      |$filesJson
@@ -92,7 +92,7 @@ def renderPackageJson(
      |  },
      |  "homepage": "https://forge.inrae.fr/p2m2/unravel-rdf",
      |  "publishConfig": {
-     |    "registry": "$registryUrl"
+     |    "registry": "${jsonEscape(registryUrl)}"
      |  },
      |  "dependencies": {
      |$dependenciesJson
@@ -102,18 +102,18 @@ def renderPackageJson(
 }
 
 def prepareNpmDir(
-                   base: File,
-                   scalaBinary: String,
-                   projectName: String,
-                   orgName: String,
-                   projectVersion: String,
-                   projectDescription: String,
-                   npmDeps: Seq[(String, String)],
-                   optimized: Boolean,
-                   outputDirName: String,
-                   log: Logger,
-                   cdnFile: Option[String] = None
-                 ): File = {
+  base: File,
+  scalaBinary: String,
+  projectName: String,
+  orgName: String,
+  projectVersion: String,
+  projectDescription: String,
+  npmDeps: Seq[(String, String)],
+  optimized: Boolean,
+  outputDirName: String,
+  log: Logger,
+  cdnFile: Option[String] = None
+): File = {
   val bundledJs = bundledArtifact(base, scalaBinary, projectName, optimized)
   val sourceMap = bundledSourceMap(base, scalaBinary, projectName)
   val npmDir = base / "target" / outputDirName
@@ -128,12 +128,13 @@ def prepareNpmDir(
   IO.createDirectory(npmDir)
   IO.copyFile(bundledJs, outputJs)
 
-  var includedFiles = Seq(s"$projectName.js")
-
-  if (!optimized && sourceMap.exists()) {
-    IO.copyFile(sourceMap, npmDir / s"$projectName.js.map")
-    includedFiles = includedFiles :+ s"$projectName.js.map"
-  }
+  val includedFiles0 = Seq(s"$projectName.js")
+  val includedFiles =
+    if (!optimized && sourceMap.exists()) {
+      IO.copyFile(sourceMap, npmDir / s"$projectName.js.map")
+      IO.copyFile(sourceMap, npmDir / s"$projectName-fastopt.js.map")
+      includedFiles0 :+ s"$projectName.js.map"
+    } else includedFiles0
 
   val packageJsonContent = renderPackageJson(
     packageName = s"@$orgName/$projectName",
@@ -151,47 +152,117 @@ def prepareNpmDir(
   npmDir
 }
 
-generateUnravelVersionFile := {
-  val file =
-    baseDirectory.value / "src" / "main" / "scala" / "fr" / "inrae" / "metabohub" / "semantic_web" / "UnravelSessionVersionAtBuildTime.scala"
+def patchSourceMapWithContents(
+  mapFile: File,   // maintenant unravel-rdf.min.js.map
+  npmDir: File,
+  baseDir: File,
+  cdnDir: File,
+  log: Logger
+): Unit = {
+  if (!mapFile.exists())
+    sys.error(s"Missing source map: ${mapFile.getAbsolutePath}")
 
-  IO.write(
-    file,
-    s"""|package fr.inrae.metabohub.semantic_web
-        |
-        |object UnravelSessionVersionAtBuildTime {
-        |  val version: String = "${version.value}"
-        |}
-        |""".stripMargin
-  )
+  val scriptFile = IO.createTemporaryDirectory / "patch_sourcemap.py"
+  val script =
+    "import json, os\n" +
+    "with open('" + mapFile.getAbsolutePath + "') as f:\n" +
+    "    m = json.load(f)\n" +
+    "sources = m.get('sources', [])\n" +
+    "contents = []\n" +
+    "for s in sources:\n" +
+    "    stripped = s\n" +
+    "    while stripped.startswith('../'):\n" +
+    "        stripped = stripped[3:]\n" +
+    "    if os.path.isabs(stripped):\n" +
+    "        idx = stripped.find('/src/')\n" +
+    "        if idx >= 0:\n" +
+    "            stripped = stripped[idx+1:]\n" +
+    "        else:\n" +
+    "            contents.append(None)\n" +
+    "            continue\n" +
+    "    resolved = os.path.normpath(os.path.join('" + baseDir.getAbsolutePath + "', stripped))\n" +
+    "    if os.path.exists(resolved):\n" +
+    "        with open(resolved) as sf:\n" +
+    "            contents.append(sf.read())\n" +
+    "    else:\n" +
+    "        contents.append(None)\n" +
+    "m['sourcesContent'] = contents\n" +
+    "resolved_count = sum(1 for c in contents if c is not None)\n" +
+    "total = len(contents)\n" +
+    "with open('" + mapFile.getAbsolutePath + "', 'w') as f:\n" +
+    "    json.dump(m, f)\n" +
+    "print('Patched: ' + str(resolved_count) + ' / ' + str(total) + ' sources resolved')\n"
+
+  IO.write(scriptFile, script)
+  val result = Process(Seq("python3", scriptFile.getAbsolutePath)).!(log)
+  if (result != 0) sys.error("Failed to patch source map with sourcesContent")
+  log.info(s"Patched ${mapFile.getName} in place")
 }
 
-organization := "fr.inrae.metabohub.p2m2"
-organizationName := "p2m2"
-name := "unravel-rdf"
-version := versionBuild
-scalaVersion := "2.13.18"
-organizationHomepage := Some(url("https://www6.inrae.fr/p2m2"))
-licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php"))
-homepage := Some(url("https://forge.inrae.fr/p2m2/unravel-rdf"))
-description := "Unravel RDF graphs — interactive SPARQL session management with lazy pagination, serialization, and graph traversal."
+def runCdnBundle(
+  npmDir: File,
+  cdnDir: File,
+  baseDir: File,
+  webpackConfig: String,
+  log: Logger,
+  taskLabel: String,
+  debug: Boolean = false
+): File = {
+  log.info(s"Installing npm dependencies in ${npmDir.getAbsolutePath}...")
+  val installResult = Process("npm install", npmDir).!(log)
+  if (installResult != 0) sys.error(s"npm install failed in ${npmDir.getAbsolutePath}")
+
+  if (debug) {
+    log.info("Installing source-map-loader...")
+    val smResult = Process("npm install source-map-loader --save-dev", npmDir).!(log)
+    if (smResult != 0) sys.error("npm install source-map-loader failed")
+  }
+
+  log.info(s"Running webpack $taskLabel bundle...")
+  val env = Seq(
+    "UNRAVEL_ENTRY"       -> (npmDir / "unravel-rdf.js").getAbsolutePath,
+    "UNRAVEL_OUTPUT_PATH" -> cdnDir.getAbsolutePath,
+    "UNRAVEL_DEBUG"       -> (if (debug) "1" else "0")
+  )
+  val bundleResult = Process(
+    Seq("npx", "webpack-cli", "--config", webpackConfig, "--no-cache"),
+    npmDir,
+    env: _*
+  ).!(log)
+  if (bundleResult != 0) sys.error(s"webpack $taskLabel bundle failed")
+
+  // Patch le map APRES webpack pour ne pas se faire ecraser
+  if (debug) {
+    val webpackMap = cdnDir / "unravel-rdf.min.js.map"
+    patchSourceMapWithContents(webpackMap, npmDir, baseDir, cdnDir, log)
+  }
+
+  log.info(s"$taskLabel bundle ready in ${cdnDir.getAbsolutePath}")
+  cdnDir
+}
 
 lazy val root = (project in file("."))
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
   .settings(
-    useYarn := false,
+    organization := "fr.inrae.metabohub.p2m2",
+    organizationName := "p2m2",
+    name := "unravel-rdf",
+    version := versionBuild,
+    scalaVersion := "2.13.18",
+    organizationHomepage := Some(url("https://www6.inrae.fr/p2m2")),
+    licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php")),
+    homepage := Some(url("https://forge.inrae.fr/p2m2/unravel-rdf")),
+    description := "Unravel RDF graphs — interactive SPARQL session management with lazy pagination, serialization, and graph traversal.",
 
+    useYarn := false,
     testFrameworks += new TestFramework("utest.runner.Framework"),
+    Test / parallelExecution := false,
+    webpackBundlingMode := BundlingMode.LibraryOnly(),
 
     scalacOptions ++= Seq(
       "-deprecation",
-      "-feature",
-      "-P:scalajs:nowarnGlobalExecutionContext"
+      "-feature"
     ),
-
-    Test / parallelExecution := false,
-
-    webpackBundlingMode := BundlingMode.LibraryOnly(),
 
     libraryDependencies ++= Seq(
       "com.lihaoyi" %%% "upickle" % lihaoyiUpickleVersion,
@@ -214,20 +285,25 @@ lazy val root = (project in file("."))
       "qs" -> npmQsVersion
     ),
 
-    Test / npmDependencies ++= Seq(
-      "axios" -> npmAxiosVersion,
-      "showdown" -> npmShowdownVersion,
-      "@comunica/query-sparql" -> npmComunicaVersion,
-      "n3" -> npmN3Version,
-      "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
-      "@types/node" -> npmTypesNodeVersion,
-      "typescript" -> npmTypescriptVersion,
-      "qs" -> npmQsVersion
-    ),
+    Test / npmDependencies ++= (Compile / npmDependencies).value,
 
     Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
-
     Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false).withModuleKind(ModuleKind.CommonJSModule) },
+
+    generateUnravelVersionFile := {
+      val file =
+        baseDirectory.value / "src" / "main" / "scala" / "fr" / "inrae" / "metabohub" / "semantic_web" / "UnravelSessionVersionAtBuildTime.scala"
+
+      IO.write(
+        file,
+        s"""|package fr.inrae.metabohub.semantic_web
+            |
+            |object UnravelSessionVersionAtBuildTime {
+            |  val version: String = "${version.value}"
+            |}
+            |""".stripMargin
+      )
+    },
 
     npmPrepareRelease := prepareNpmDir(
       base = baseDirectory.value,
@@ -257,26 +333,19 @@ lazy val root = (project in file("."))
     ),
 
     cdnPrepare := {
-      val npmDir = npmPrepareRelease.value  // génère target/npm/ avec package.json + unravel-rdf.js
-      val cdnDir = baseDirectory.value / "target" / "cdn"
+      val npmDir        = npmPrepareRelease.value
+      val cdnDir        = baseDirectory.value / "target" / "cdn"
       val webpackConfig = (baseDirectory.value / "webpack.cdn.config.js").getAbsolutePath
-      val log = streams.value.log
+      val log           = streams.value.log
+      runCdnBundle(npmDir, cdnDir, baseDirectory.value, webpackConfig, log, taskLabel = "CDN", debug = false)
+    },
 
-      // npm install dans target/npm/ — isole les deps du scope test
-      log.info(s"Installing npm dependencies in ${npmDir.getAbsolutePath}...")
-      val installResult = Process("npm install", npmDir).!(log)
-      if (installResult != 0) sys.error("npm install failed in target/npm")
-
-      // webpack depuis target/npm/ — node_modules local résolu automatiquement
-      log.info("Running webpack CDN bundle...")
-      val bundleResult = Process(
-        Seq("npx", "webpack-cli", "--config", webpackConfig, "--no-cache"),
-        npmDir
-      ).!(log)
-      if (bundleResult != 0) sys.error("webpack CDN bundle failed")
-
-      log.info(s"CDN bundle ready in ${cdnDir.getAbsolutePath}")
-      cdnDir
+    cdnDebugPrepare := {
+      val npmDir        = npmPrepareDebugRelease.value
+      val cdnDir        = baseDirectory.value / "target" / "cdn-debug"
+      val webpackConfig = (baseDirectory.value / "webpack.cdn.config.js").getAbsolutePath
+      val log           = streams.value.log
+      runCdnBundle(npmDir, cdnDir, baseDirectory.value, webpackConfig, log, taskLabel = "CDN debug", debug = true)
     }
   )
 

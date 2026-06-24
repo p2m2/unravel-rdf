@@ -8,7 +8,7 @@ final case class DataTestFactoryException(private val message: String = "",
                                           private val cause: Throwable = None.orNull) extends Exception(message,cause)
 
 object DataTestFactory  {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
   val urlEndpoint: String = NodeEnv.get("VIRTUOSO_URL", "http://localhost:8890/sparql")
 
   def graph1(classname: String): String = "graph:test:discovery:virtuoso1:" + classname.replace("$","")

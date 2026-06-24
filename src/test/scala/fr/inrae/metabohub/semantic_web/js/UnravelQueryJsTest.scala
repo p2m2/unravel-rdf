@@ -7,7 +7,7 @@ import utest.{TestSuite, Tests, test}
 import scala.scalajs.js.JSConverters._
 
 object UnravelQueryJsTest extends TestSuite{
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   val insertData = DataTestFactory.insertVirtuoso1(
     """<aa> <bb> <cc> .

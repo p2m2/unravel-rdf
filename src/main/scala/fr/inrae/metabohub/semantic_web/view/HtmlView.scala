@@ -9,7 +9,7 @@ import scala.scalajs.js.Dynamic
 import facade.npm._
 
 case class HtmlView(sw: UnravelSession, regex : String = "") {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   private val limitValues = 10
 

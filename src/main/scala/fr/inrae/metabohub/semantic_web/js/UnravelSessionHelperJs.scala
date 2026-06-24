@@ -10,7 +10,7 @@ import scala.scalajs.js.JSConverters._
 
 @JSExportTopLevel(name="UnravelSessionHelper")
 case class UnravelSessionHelperJs(sw : UnravelSession) {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   @JSExport
   def count(lRef: js.Array[String],distinct : Boolean=false): Promise[Int] = { sw.finder.count(lRef.toSeq,distinct).toJSPromise }

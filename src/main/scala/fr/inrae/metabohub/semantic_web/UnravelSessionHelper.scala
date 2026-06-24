@@ -6,7 +6,7 @@ import wvlet.log.Logger.rootLogger.debug
 import scala.concurrent.Future
 
 case class UnravelSessionHelper(sw : UnravelSession) {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   private val regex_avoid_prefix: Literal[String] = Literal("^(" + List(
     "http://www.openlinksw.com/schemas/virtrdf#",

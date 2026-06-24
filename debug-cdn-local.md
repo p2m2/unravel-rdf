@@ -10,8 +10,12 @@ sans serveur distant et sans passer par npm.
 Avoir compilé et bundlé le projet :
 
 ```bash
-sbt "fullOptJS; cdnPrepare"
+sbt "fullOptJS;npmPrepareRelease;cdnPrepare"
 # → target/cdn/unravel-rdf.min.js
+```
+```bash
+sbt "fastOptJS;npmPrepareDebugRelease;cdnDebugPrepare"
+# → target/npm-debug/unravel-rdf.min.js
 ```
 
 ---

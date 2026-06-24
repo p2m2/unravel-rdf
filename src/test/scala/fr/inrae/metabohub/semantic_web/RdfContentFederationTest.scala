@@ -4,7 +4,7 @@ import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
 import fr.inrae.metabohub.semantic_web.rdf.{Var, URI}
 import utest.{TestSuite, Tests, test}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 object RdfContentFederationTest extends TestSuite {
 

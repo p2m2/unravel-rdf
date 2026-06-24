@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import scala.scalajs.js.JSConverters._
 
 object UnravelSessionJsTest extends TestSuite{
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
     """<aa> <bb> <cc> .

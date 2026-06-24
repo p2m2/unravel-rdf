@@ -11,7 +11,7 @@ import fr.inrae.metabohub.semantic_web.exception._
 import scala.concurrent.Future
 
 case class ComunicaFederatedStrategy(sources: Seq[Source]) extends StrategyRequest {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
   /* Manage N3Store for content definition */
   val lSourcesDefinition : Future[List[SourceComunica]] =
     Future.sequence(sources.toList.collect {

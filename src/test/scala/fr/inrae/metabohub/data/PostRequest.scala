@@ -6,7 +6,7 @@ import fr.inrae.metabohub.semantic_web.exception.UnravelException
 import scala.scalajs.js
 
 case object PostRequest {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   def put(stringQuery: String, url_endpoint: String) = {
     val configAxios: AxiosConfig = js.Dynamic.literal(

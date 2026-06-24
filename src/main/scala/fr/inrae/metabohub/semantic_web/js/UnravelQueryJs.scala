@@ -10,7 +10,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 @JSExportTopLevel(name="UnravelQuery")
 case class UnravelQueryJs(transaction : UnravelQuery) {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   @JSExport
   def progression(  callBack  : js.Function1[Double,Unit]  ): UnravelQueryJs = UnravelQueryJs(transaction.progression(callBack))

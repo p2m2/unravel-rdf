@@ -6,7 +6,7 @@ import fr.inrae.metabohub.semantic_web.rdf._
 import fr.inrae.metabohub.semantic_web.configuration._
 import utest._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}

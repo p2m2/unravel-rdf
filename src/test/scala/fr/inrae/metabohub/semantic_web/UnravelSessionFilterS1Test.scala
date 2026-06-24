@@ -8,7 +8,7 @@ import utest._
 import scala.concurrent.Future
 
 object UnravelSessionFilterS1Test extends TestSuite {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   val insertData: Future[Any] =
     DataTestFactory.insertVirtuoso1(

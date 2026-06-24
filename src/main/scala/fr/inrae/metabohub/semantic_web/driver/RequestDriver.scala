@@ -7,7 +7,7 @@ import wvlet.log.Logger.rootLogger.debug
 import scala.concurrent.Future
 
 trait RequestDriver extends Publisher[UnravelRequestEvent] {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   def request(query: String): Future[QueryResult] = {
 

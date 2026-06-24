@@ -28,7 +28,8 @@ case class UnravelSession(
                            config: UnravelConfig = UnravelConfig.init(),
                            rootNode: Root = Root(),
                            fn: Option[String] = None) {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+                            
+    implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   val focusNode: String = fn match {
     case Some(v) => v

@@ -18,7 +18,7 @@ case class UnravelSessionJs(
                              config: UnravelConfig=UnravelConfig(),
                              swArg: UnravelSession = null
                            ) {
-  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
   val sw: UnravelSession = swArg match {
     case null => UnravelSession(config)
@@ -85,14 +85,6 @@ case class UnravelSessionJs(
 
   @JSExport
   def namedGraph(graph: Any): UnravelSessionJs = UnravelSessionJs(config, sw.namedGraph(toIRI(graph)))
-
-  // ------------------------------------------------------------------ //
-  //  Navigation : focus (deprecated) / from                             //
-  // ------------------------------------------------------------------ //
-
-  @JSExport
-  @deprecated("Use from() instead", "0.5")
-  def focus(ref: String): UnravelSessionJs = UnravelSessionJs(config, sw.from(ref))
 
   /** Positionne le curseur sur ref (sans closure). */
   @JSExport
