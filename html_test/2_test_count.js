@@ -10,7 +10,7 @@ registerSuite({
                     .prefix("CHEBI", "http://purl.obolibrary.org/obo/CHEBI_")
                     .something(
                         "subject",
-                        subject => subject.out(
+                        subject => subject.in().out(
                             "?rel",
                             URI("CHEBI:106243")
                         ))

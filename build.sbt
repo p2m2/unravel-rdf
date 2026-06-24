@@ -29,6 +29,10 @@ lazy val npmTypesNodeVersion = "18.11.18"
 lazy val npmTypescriptVersion = "6.0.3"
 lazy val npmQsVersion = "6.15.2"
 
+lazy val npmWebpackVersion = "5.102.1"
+lazy val npmWebpackCliVersion = "5.1.4"
+lazy val npmSourceMapLoaderVersion = "5.0.0"
+
 def bundledArtifact(base: File, scalaBinary: String, projectName: String, optimized: Boolean): File = {
   val suffix = if (optimized) "opt" else "fastopt"
   base / "target" / s"scala-$scalaBinary" / "scalajs-bundler" / "main" / s"$projectName-$suffix.js"
@@ -169,33 +173,39 @@ def patchSourceMapWithContents(
   val scriptFile = IO.createTemporaryDirectory / "patch_sourcemap.py"
   val script =
     "import json, os\n" +
-    "with open('" + mapFile.getAbsolutePath + "') as f:\n" +
-    "    m = json.load(f)\n" +
-    "sources = m.get('sources', [])\n" +
-    "contents = []\n" +
-    "for s in sources:\n" +
-    "    stripped = s\n" +
-    "    while stripped.startswith('../'):\n" +
-    "        stripped = stripped[3:]\n" +
-    "    if os.path.isabs(stripped):\n" +
-    "        idx = stripped.find('/src/')\n" +
-    "        if idx >= 0:\n" +
-    "            stripped = stripped[idx+1:]\n" +
-    "        else:\n" +
-    "            contents.append(None)\n" +
-    "            continue\n" +
-    "    resolved = os.path.normpath(os.path.join('" + baseDir.getAbsolutePath + "', stripped))\n" +
-    "    if os.path.exists(resolved):\n" +
-    "        with open(resolved) as sf:\n" +
-    "            contents.append(sf.read())\n" +
-    "    else:\n" +
-    "        contents.append(None)\n" +
-    "m['sourcesContent'] = contents\n" +
-    "resolved_count = sum(1 for c in contents if c is not None)\n" +
-    "total = len(contents)\n" +
-    "with open('" + mapFile.getAbsolutePath + "', 'w') as f:\n" +
-    "    json.dump(m, f)\n" +
-    "print('Patched: ' + str(resolved_count) + ' / ' + str(total) + ' sources resolved')\n"
+      "with open('" + mapFile.getAbsolutePath + "') as f:\n" +
+      "    m = json.load(f)\n" +
+      "sources = m.get('sources', [])\n" +
+      "contents = []\n" +
+      "rewritten_sources = []\n" +
+      "for s in sources:\n" +
+      "    stripped = s\n" +
+      "    if stripped.startswith('webpack:///'):\n" +
+      "        stripped = stripped[len('webpack:///'):]\n" +
+      "    elif stripped.startswith('webpack://'):\n" +
+      "        stripped = stripped[len('webpack://'):]\n" +
+      "    while stripped.startswith('./'):\n" +
+      "        stripped = stripped[2:]\n" +
+      "    while stripped.startswith('../'):\n" +
+      "        stripped = stripped[3:]\n" +
+      "    if os.path.isabs(stripped):\n" +
+      "        resolved = os.path.normpath(stripped)\n" +
+      "    else:\n" +
+      "        resolved = os.path.normpath(os.path.join('" + baseDir.getAbsolutePath + "', stripped))\n" +
+      "    if os.path.exists(resolved):\n" +
+      "        with open(resolved, encoding='utf-8', errors='replace') as sf:\n" +
+      "            contents.append(sf.read())\n" +
+      "        rewritten_sources.append('file://' + resolved)\n" +
+      "    else:\n" +
+      "        contents.append(None)\n" +
+      "        rewritten_sources.append(s)\n" +
+      "m['sources'] = rewritten_sources\n" +
+      "m['sourcesContent'] = contents\n" +
+      "resolved_count = sum(1 for c in contents if c is not None)\n" +
+      "total = len(contents)\n" +
+      "with open('" + mapFile.getAbsolutePath + "', 'w') as f:\n" +
+      "    json.dump(m, f)\n" +
+      "print('Patched: ' + str(resolved_count) + ' / ' + str(total) + ' sources resolved')\n"
 
   IO.write(scriptFile, script)
   val result = Process(Seq("python3", scriptFile.getAbsolutePath)).!(log)
@@ -225,15 +235,6 @@ def runCdnBundle(
     if (installResult != 0) sys.error(s"npm install failed in ${npmDir.getAbsolutePath}")
   } else {
     log.info("npm dependencies up to date, skipping install.")
-  }
-
-  if (debug) {
-    val needsSourceMapLoader = !(npmDir / "node_modules" / "source-map-loader").exists()
-    if (needsSourceMapLoader) {
-        log.info("Installing source-map-loader...")
-        val smResult = Process("npm install source-map-loader --save-dev", npmDir).!(log)
-        if (smResult != 0) sys.error("npm install source-map-loader failed")
-      }
   }
 
   log.info(s"Running webpack $taskLabel bundle...")
@@ -300,7 +301,10 @@ lazy val root = (project in file("."))
       "rdfxml-streaming-parser" -> npmRdfxmlStreamingParserVersion,
       "@types/node" -> npmTypesNodeVersion,
       "typescript" -> npmTypescriptVersion,
-      "qs" -> npmQsVersion
+      "qs" -> npmQsVersion,
+      "webpack" -> npmWebpackVersion,
+      "webpack-cli" -> npmWebpackCliVersion,
+      "source-map-loader" -> npmSourceMapLoaderVersion
     ),
 
     Test / npmDependencies ++= (Compile / npmDependencies).value,
