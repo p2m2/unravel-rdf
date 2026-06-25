@@ -1,5 +1,8 @@
 # Unravel RDF
 
+> Lambda Enclosure is the current programming model of Unravel RDF:
+> a closure-based, graph-first way to build SPARQL queries from RDF graphs.
+
 Unravel RDF is a JavaScript/TypeScript library for building **interactive RDF exploration sessions** against SPARQL endpoints and RDF data sources.
 It is implemented in Scala.js and published as an npm package.
 
@@ -17,6 +20,38 @@ The core idea: an Unravel RDF session is not just a query — it is a **stateful
 ---
 
 ## Key concepts
+
+### Lambda Enclosure in practice
+
+Example of a Lambda Enclosure traversal on MetaNetX:
+
+```js
+UnravelSession(configMetaNetX)
+  .prefix("CHEBI", "http://purl.obolibrary.org/obo/CHEBI_")
+  .something(
+    "subject",
+    subject => subject.out(
+      "?rel",
+      "CHEBI:106243"
+    )
+  )
+  .select("subject", "rel")
+  .limit(3)
+  .commit()
+  .raw()
+  .then(response => {
+    for (const row of response.results.bindings) {
+      console.log(row["subject"].value, row["rel"].value)
+    }
+  });
+```
+
+Here:
+
+- `something("subject", subject => ...)` creates a **lambda enclosure** around the current focus `subject`.
+- Inside the closure, `out("?rel", "CHEBI:106243")` searches for RDF triples where `subject` is connected to `CHEBI:106243` by some relation bound to `?rel`.
+- `select("subject", "rel")` turns this traversal into a query projection.
+- `limit(3).commit().raw()` executes the resulting query and returns the raw SPARQL JSON response.
 
 ### Immutable, serializable sessions
 
