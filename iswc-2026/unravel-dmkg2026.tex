@@ -143,25 +143,19 @@ such as query builders, domain-specific languages (DSLs), and object-relational 
 modularity, and maintainability while preserving access to the underlying query language. Comparable abstractions remain 
 limited within the Semantic Web ecosystem, particularly for JavaScript applications targeting RDF data sources.
 
-To address this gap, we introduce Unravel-RDF, a JavaScript framework that provides a composable API for constructing 
-SPARQL queries, managing variable scope, and integrating query execution within event-driven applications. 
-Unravel-RDF promotes a tighter integration between RDF query construction and application logic, simplifying 
-the development of software built on knowledge graphs. Rather than replacing SPARQL or existing query engines, 
-Unravel-RDF builds on top of Comunica to offer higher-level programming abstractions that improve developer productivity while preserving the expressiveness of SPARQL.
+To address this gap, we introduce \texttt{Unravel-RDF}, a JavaScript framework that combines a domain-specific language (DSL) for 
+SPARQL query construction with a composable API enabling modular query building, and supports their execution within event-driven 
+user interface applications.
 
-We evaluate and illustrate \texttt{Unravel-RDF} through the FORVM ecosystem, a family of knowledge graph construction pipelines 
-based on statistical co-occurrence betwwen two concepts annoting the scientific literature. The case study combines two complementary 
-resources: \textit{FORVM ChemDisease}, which links MeSH terms to chemical compounds using curated PubMed annotations, 
-and \textit{FORVM Plants}, an extension of the methodology to plant-related knowledge using ontology-based semantic annotation.
+We evaluate and illustrate \texttt{Unravel-RDF} using the FORVM ecosystem, which comprises a reference biomedical knowledge graph 
+and an experimental extension targeting plant sciences. We demonstrate a cross-domain exploration workflow in which biomedical 
+and plant-related knowledge graphs are interconnected through shared chemical entities, enabling interactive navigation of 
+metabolomics relationships across domains. This workflow is implemented as a Web application built with \texttt{Unravel-RDF}, 
+which bridges query construction and interface logic by orchestrating SPARQL query composition, reuse, and execution across 
+multiple endpoints within an event-driven architecture, while providing an interactive visualization layer for exploring 
+heterogeneous RDF data sources.
 
-We demonstrate a cross-domain exploration workflow where biomedical concepts are connected to plant knowledge through 
-shared chemical entities, enabling interactive exploration of metabolomics relationships across domains. 
-This workflow is implemented as a Web application combining multiple SPARQL endpoints and an interactive visualization layer.
-
-This case study highlights the need for flexible query composition, variable management, and UI integration 
-when developing applications over several RDF knowledge graphs, which directly motivates the design of \texttt{Unravel-RDF}.
-
-\section{Unravel-RDF Architecture}
+\section{Architecture}
 
 \begin{figure}[t]
     \centering
@@ -170,470 +164,129 @@ when developing applications over several RDF knowledge graphs, which directly m
     \label{fig:architecture}
 \end{figure}
 
-\subsection{Design Goals}
+\subsection{Overview}
 
-Unravel-RDF is designed with three main objectives: (i) simplify federated SPARQL query construction, (ii) 
-decouple query logic from application code, and (iii) support reusable query workflows through compositional abstractions.
-Unravel-RDF is implemented as a lightweight abstraction layer over the Comunica engine. 
-It does not replace SPARQL execution but structures query construction and interaction patterns at a higher level.
+Figure~\ref{fig:architecture} illustrates the architecture of Unravel-RDF, which is organized as a layered system connecting RDF data sources, a compositional query abstraction layer, and event-driven application components.
+
+At its core, Unravel-RDF provides a domain-specific language (DSL) for constructing SPARQL queries programmatically. This DSL replaces raw query strings with structured, composable query fragments that support modular construction and variable scoping. Queries are incrementally assembled and compiled into executable SPARQL expressions.
+
+Query execution is delegated to the Comunica framework, which handles access to distributed RDF data sources. Unravel-RDF does not reimplement query processing; instead, it focuses on bridging high-level query composition with execution through a typed Scala.js facade that wraps the Comunica JavaScript API. This facade ensures type-safe interaction between the Scala-based abstraction layer and the underlying JavaScript runtime.
+
+Finally, query results are exposed through an event-driven execution model. Rather than returning static result sets, Unravel-RDF propagates intermediate and final results as events, enabling tight integration with reactive user interface components and incremental data consumption in web applications.
+
+The remainder of this section details these three layers: query construction, execution integration, and event-driven programming.
+These three layers are further decomposed into five main functional components that structure the Unravel-RDF architecture, ranging from low-level query construction primitives to high-level UI integration mechanisms.
 
 
-\subsection{Programming Model}
+\subsection{Query Construction}
 
-Unravel-RDF provides a programming model designed to simplify the construction of SPARQL queries in JavaScript applications 
-while preserving full expressivity. The API is organized around five core components that define a compositional abstraction layer 
-over the Comunica query engine.
+Query construction in Unravel-RDF is based on a layered design that replaces raw SPARQL string manipulation with a structured and compositional API. This layer is responsible for transforming modular query fragments into executable SPARQL expressions.
 
-\vspace{0.5em}
+It is composed of four main mechanisms:
 
 \begin{itemize}
-\item \textbf{Configuration.} Defines the execution context of an Unravel session, including SPARQL prefixes, named graphs, and RDF data sources. It provides a structured mechanism to bind queries to specific endpoints or datasets, cleanly separating deployment concerns from query logic and enabling reusable query definitions.
+\item \textbf{Configuration.} Defines the execution context of an Unravel session, including SPARQL prefixes, named graphs, and RDF data sources.
 
-\item \textbf{Core Query DSL.} Provides composable primitives for constructing SPARQL queries programmatically. Queries are built from graph patterns, filters, and variable bindings rather than raw SPARQL strings, enabling incremental composition with improved readability and testability.
+\item \textbf{Core Query DSL.} Provides composable primitives for constructing SPARQL queries from graph patterns, filters, and variable bindings.
 
-\item \textbf{High-Level Query API.} Introduces reusable abstractions for common RDF querying patterns, including bidirectional graph traversal and decomposed retrieval strategies for datatype properties. These patterns reduce query complexity by replacing large SPARQL queries with smaller, optimizable subqueries.
+\item \textbf{High-Level Query API.} Introduces reusable abstractions for common RDF querying patterns such as graph traversal and decomposed property retrieval.
 
-\item \textbf{Variable Scoping and Focus.} Introduces a dynamic focus variable used as the central mechanism for query construction. Queries are expressed relative to a current focus that can be introduced or reassigned, enabling structured and local reasoning over graph exploration.
-
-\item \textbf{UI Integration.} Connects query execution with application-level components such as result serialization, metadata enrichment, and execution instrumentation via hooks and events. It also provides pagination as a first-class abstraction by transforming queries into page-based executions supporting incremental loading and infinite scrolling.
+\item \textbf{Variable Scoping and Focus.} Introduces a dynamic focus mechanism that structures query construction around a central variable context.
 \end{itemize}
 
-\section{Programming Patterns}
+Together, these components enable incremental query construction and automatic SPARQL generation while preserving full expressivity.
 
-Unravel-RDF introduces a small set of recurring patterns for SPARQL application development.
+\subsection{Execution Integration}
 
-\textbf{Focus-based construction.}
-Queries are built relative to a dynamic focus variable, enabling incremental graph exploration without explicit join management.
+The execution layer of Unravel-RDF is responsible for bridging the high-level query construction DSL with the underlying SPARQL execution engine. Rather than implementing query processing internally, Unravel-RDF delegates execution to the Comunica framework, which provides efficient access to distributed RDF data sources.
 
-\textbf{Composable fragments.}
-Query logic is encapsulated in reusable closures that can be combined into larger federated queries.
+A key aspect of this layer is the translation of compositional query objects into executable SPARQL queries. Once a query is fully constructed, it is compiled into a standard SPARQL expression and passed to Comunica for evaluation. This design ensures a clear separation between query specification and execution strategy.
 
-\textbf{UI-driven execution.}
-Query results are streamed and paginated to support interactive interfaces such as graph exploration dashboards and infinite scrolling.
+To enable seamless interoperability between the Scala-based abstraction layer and the JavaScript runtime of Comunica, Unravel-RDF relies on a Scala.js facade. This facade acts as a typed binding layer that wraps the Comunica API, allowing the Scala implementation to interact with JavaScript modules in a type-safe and structured manner while preserving full compatibility with the underlying execution engine.
+
+During execution, results are not simply returned as static collections. Instead, they are progressively emitted and streamed back to the application layer, enabling incremental consumption and integration with reactive interfaces.
+
+\subsection{Event-driven Programming}
+
+Unravel-RDF adopts an event-driven execution model that tightly integrates query processing with application-level logic. Instead of relying on synchronous result retrieval, query execution produces a stream of events that reflect both intermediate and final results.
+
+This model is particularly suited for web applications built around dynamic and interactive user interfaces, where incremental updates are preferred over blocking query execution. As queries are executed through Comunica, result events are propagated asynchronously to the application layer.
+
+The execution pipeline can be summarized as follows: query construction, execution through Comunica, event emission, and consumption by application components. This allows UI components to react directly to query progression, enabling patterns such as live result rendering, progressive data loading, and interactive exploration of RDF graphs.
+
+The event system also provides hooks for integrating additional application logic, such as result transformation, logging, or enrichment. In combination with the execution integration layer, it forms the basis for a reactive architecture where query execution and interface behavior are decoupled yet tightly synchronized.
+
+
+\section{Programming Model}
+
+This section illustrates how Unravel-RDF is used in practice to construct and execute SPARQL queries within JavaScript applications. We present concrete examples that demonstrate how the abstractions introduced by the framework translate into executable query workflows.
+
+\subsection*{Focus-based query construction}
+
+Queries are constructed relative to a dynamic focus variable, which simplifies
+navigation over RDF graphs.
+
+\begin{lstlisting}
+const query = from("Compound")
+  .focus("compound")
+  .where(
+    triple("compound", "rdf:type", "CHEBI:ChemicalEntity"),
+    triple("compound", "rdfs:label", label)
+  )
+  .expand(
+    outgoing("interacts_with")
+  );
+\end{lstlisting}
+
+In this example, the query is centered on a compound entity and incrementally expanded through relationship traversal without explicit join management.
+
+\subsection*{Composable query fragments}
+
+Query logic can be encapsulated into reusable fragments that can be combined.
+
+\begin{verbatim}
+const chemicalFragment = (id) =>
+  where(
+    triple(id, "rdf:type", "CHEBI:ChemicalEntity")
+  );
+
+const diseaseFragment = (id) =>
+  where(
+    triple(id, "rdf:type", "DOID:Disease")
+  );
+
+const query = compose(
+  chemicalFragment("x"),
+  diseaseFragment("y"),
+  link("x", "interacts_with", "y")
+);
+\end{verbatim}
+
+This enables modular construction of complex federated queries from smaller reusable building blocks.
+
+\subsection*{Event-driven execution}
+
+Query execution is asynchronous and returns a stream of results.
+
+\begin{verbatim}
+query.execute()
+  .on("result", (r) => console.log("Result:", r))
+  .on("progress", (p) => updateUI(p))
+  .on("end", () => console.log("Done"));
+\end{verbatim}
+
+This allows integration with reactive user interfaces such as dashboards or interactive graph explorers.
+
 
 \section{Case Study: FORVM}
 
-The FORVM case study demonstrates cross-domain knowledge exploration across biomedical and plant domains.
+We evaluate Unravel-RDF using the FORVM ecosystem, which provides a cross-domain knowledge graph infrastructure spanning biomedical and plant sciences.
 
-It combines:
-\begin{itemize}
-\item FORVM ChemDisease (MeSH--compound associations)
-\item FORVM Plants (plant ontology annotations)
-\end{itemize}
+The biomedical component, \textit{FORVM ChemDisease}, is a curated knowledge graph derived from statistical co-occurrence of MeSH-annotated chemical and disease concepts in PubMed literature. In parallel, \textit{FORVM Plants} extends this approach to plant sciences by leveraging ontology-driven annotations (including the Plant Ontology and Trait Ontology) to extract plant-related entities from scientific literature.
 
-These graphs are connected through shared chemical entities, enabling interactive exploration of metabolomics relationships across multiple SPARQL endpoints.
+These two knowledge graphs are interconnected through shared chemical entities, enabling cross-domain exploration of metabolomics relationships across multiple SPARQL endpoints.
 
-The application illustrates how Unravel-RDF simplifies the integration of federated RDF sources into interactive Web applications.
-
-\vspace{0.5em}
-
-\textbf{Takeaway:}
-Unravel-RDF bridges the gap between SPARQL query engines and interactive Web development by providing a lightweight compositional programming model.
-
-\section{Introduction}
-
-CEUR-WS's article template provides a consistent \LaTeX{} style for
-use across CEUR-WS publications, and incorporates accessibility and
-metadata-extraction functionality. This document will explain the
-major features of the document class.
-
-If you are new to publishing with CEUR-WS, this document is a valuable
-guide to the process of preparing your work for publication.
-
-The ``\verb|ceurart|'' document class can be used to prepare articles
-for any CEUR-WS publication, and for any stage of publication, from
-review to final ``camera-ready'' copy with {\itshape very} few changes
-to the source.
-
-This class depends on the following packages
-for its proper functioning:
-
-\begin{itemize}
-\item \verb|natbib.sty| for citation processing;
-\item \verb|geometry.sty| for margin settings;
-\item \verb|graphicx.sty| for graphics inclusion;
-\item \verb|hyperref.sty| optional package if hyperlinking is required in
-  the document;
-\item \verb|fontawesome5.sty| optional package for bells and whistles.
-\end{itemize}
-
-All the above packages are part of any
-standard \LaTeX{} installation.
-Therefore, the users need not be
-bothered about downloading any extra packages.
-
-
-There are a number of template
-parameters which modify some part of the \verb|ceurart| document class.
-This parameters are enclosed in square
-brackets and are a part of the \verb|\documentclass| command:
-\begin{lstlisting}
-  \documentclass[parameter]{ceurart}
-\end{lstlisting}
-
-Frequently-used parameters, or combinations of parameters, include:
-\begin{itemize}
-\item \verb|twocolumn| : Two column layout. This option is not supported bey CEUR-WS, hence only use it for papers not to be submitted to CEUR-WS.
-\item \verb|hf| : Enable header and footer\footnote{You can enable
-    the display of page numbers in the final version of the entire
-    collection. In this case, you should adhere to the end-to-end
-    pagination of individual papers.}.  This option shall also not be used for papers to be published by CEUR-WS.
-\end{itemize}
-
-\section{Front matter}
-
-\subsection{Title Information}
-
-The titles of papers should be either all use the emphasizing
-capitalized style or they should all use the regular English (or
-native language) style. It does not make a good impression if you or
-your authors mix the styles.
-
-Use the \verb|\title| command to define the title of your work. Do not
-insert line breaks in your title.
-
-\subsection{Title variants}
-
-\verb|\title| command have the below options:
-\begin{itemize}
-\item \verb|title|: Document title. This is default option. 
-\begin{lstlisting}
-\title[mode=title]{This is a title}
-\end{lstlisting}
-You can just omit it, like as follows:
-\begin{lstlisting}
-\title{This is a title}
-\end{lstlisting}
-
-\item \verb|alt|: Alternate title.
-\begin{lstlisting}
-\title[mode=alt]{This is a alternate title}
-\end{lstlisting}
-
-\item \verb|sub|: Sub title.
-\begin{lstlisting}
-\title[mode=sub]{This is a sub title}
-\end{lstlisting}
-You can just use \verb|\subtitle| command, as follows:
-\begin{lstlisting}
-\subtitle{This is a sub title}
-\end{lstlisting}
-
-\item \verb|trans|: Translated title.
-\begin{lstlisting}
-\title[mode=trans]{This is a translated title}
-\end{lstlisting}
-
-\item \verb|transsub|: Translated sub title.
-\begin{lstlisting}
-\title[mode=transsub]{This is a translated sub title}
-\end{lstlisting}
-\end{itemize}
-
-\subsection{Authors and Affiliations}
-
-Each author must be defined separately for accurate metadata
-identification. Multiple authors may share one affiliation. Authors'
-names should not be abbreviated; use full first names wherever
-possible. Include authors' e-mail addresses whenever possible.
-
-\verb|\author| command have the below options: 
-
-\begin{itemize}
-\item \verb|style| : Style of author name (chinese)
-\item \verb|prefix| : Prefix
-\item \verb|suffix| : Suffix
-\item \verb|degree| : Degree
-\item \verb|role| : Role
-\item \verb|orcid| : ORCID
-\item \verb|email| : E-mail
-\item \verb|url| : URL
-\end{itemize}
-
-Author names can have some kinds of marks and notes:
-\begin{itemize}
-\item affiliation mark: \verb|\author[<num>]|.
-\end{itemize}
-
-The author names and affiliations could be formatted in two ways:
-\begin{enumerate}
-\item Group the authors per affiliation.
-\item Use an explicit mark to indicate the affiliations.
-\end{enumerate}
-
-Author block example:
-\begin{lstlisting}
-\author[1,2]{Author Name}[%
-    prefix=Prof.,
-    degree=D.Sc.,
-    role=Researcher,
-    orcid=0000-0000-000-0000,
-    email=name@example.com,
-    url=https://name.example.com
-]
-
-\address[1]{Affiliation #1}
-\address[2]{Affiliation #2}
-\end{lstlisting}
-
-\subsection{Abstract and Keywords}
-
-Abstract shall be entered in an environment that starts
-with \verb|\begin{abstract}| and ends with
-\verb|\end{abstract}|. 
-
-\begin{lstlisting}
-\begin{abstract}
-  This is an abstract.
-\end{abstract}
-\end{lstlisting}
-
-The key words are enclosed in a \verb|keywords|
-environment. Use \verb|\sep| to separate keywords.
-
-\begin{lstlisting}
-\begin{keywords}
-  First keyword \sep 
-  Second keyword \sep 
-  Third keyword \sep 
-  Fourth keyword
-\end{keywords}
-\end{lstlisting}
-
-At the end of front matter add \verb|\maketitle| command.
-
-\subsection{Various Marks in the Front Matter}
-
-The front matter becomes complicated due to various kinds
-of notes and marks to the title and author names. Marks in
-the title will be denoted by a star ($\star$) mark;
-footnotes are denoted by super scripted Arabic numerals,
-corresponding author by an Conformal asterisk (*) mark.
-
-\subsubsection{Title marks}
-
-Title mark can be entered by the command, \verb|\tnotemark[<num>]|
-and the corresponding text can be entered with the command
-\verb|\tnotetext[<num>]{<text>}|. An example will be:
-
-\begin{lstlisting}
-\title{A better way to format your document for CEUR-WS}
-
-\tnotemark[1]
-\tnotetext[1]{You can use this document as the template for preparing your
-  publication. We recommend using the latest version of the ceurart style.}
-\end{lstlisting}
-
-\verb|\tnotemark| and \verb|\tnotetext| can be anywhere in
-the front matter, but should be before \verb|\maketitle| command.
-
-\subsubsection{Author marks}
-
-Author names can have some kinds of marks and notes:
-\begin{itemize}
-\item footnote mark : \verb|\fnmark[<num>]|
-\item footnote text : \verb|\fntext[<num>]{<text>}|
-\item corresponding author mark : \verb|\cormark[<num>]|
-\item corresponding author text : \verb|\cortext[<num>]{<text>}|
-\end{itemize}
-
-\subsubsection{Other marks}
-
-At times, authors want footnotes which leave no marks in
-the author names. The note text shall be listed as part of
-the front matter notes. Class files provides
-\verb|\nonumnote| for this purpose. The usage
-\begin{lstlisting}
-\nonumnote{<text>}
-\end{lstlisting}
-and should be entered anywhere before the \verb|\maketitle|
-command for this to take effect. 
-
-\section{Sectioning Commands}
-
-Your work should use standard \LaTeX{} sectioning commands:
-\verb|\section|, \verb|\subsection|,
-\verb|\subsubsection|, and
-\verb|\paragraph|. They should be numbered; do not remove
-the numbering from the commands.
-
-Simulating a sectioning command by setting the first word or words of
-a paragraph in boldface or italicized text is not allowed.
-
-\section{Tables}
-
-The ``\verb|ceurart|'' document class includes the ``\verb|booktabs|''
-package --- \url{https://ctan.org/pkg/booktabs} --- for preparing
-high-quality tables.
-
-Table captions are placed \textit{above} the table.
-
-Because tables cannot be split across pages, the best placement for
-them is typically the top of the page nearest their initial cite.  To
-ensure this proper ``floating'' placement of tables, use the
-environment \verb|table| to enclose the table's contents and the
-table caption. The contents of the table itself must go in the
-\verb|tabular| environment, to be aligned properly in rows and
-columns, with the desired horizontal and vertical rules.
-
-Immediately following this sentence is the point at which
-Table~\ref{tab:freq} is included in the input file; compare the
-placement of the table here with the table in the printed output of
-this document.
-
-\begin{table*}
-  \caption{Frequency of Special Characters}
-  \label{tab:freq}
-  \begin{tabular}{ccl}
-    \toprule
-    Non-English or Math&Frequency&Comments\\
-    \midrule
-    \O & 1 in 1,000& For Swedish names\\
-    $\pi$ & 1 in 5& Common in math\\
-    \$ & 4 in 5 & Used in business\\
-    $\Psi^2_1$ & 1 in 40,000& Unexplained usage\\
-  \bottomrule
-\end{tabular}
-\end{table*}
-
-To set a wider table, which takes up the whole width of the page's
-live area, use the environment \verb|table*| to enclose the table's
-contents and the table caption.  As with a single-column table, this
-wide table will ``float'' to a location deemed more
-desirable. Immediately following this sentence is the point at which
-Table~\ref{tab:commands} is included in the input file; again, it is
-instructive to compare the placement of the table here with the table
-in the printed output of this document.
-
-\begin{table}
-  \caption{Some Typical Commands}
-  \label{tab:commands}
-  \begin{tabular}{ccl}
-    \toprule
-    Command &A Number & Comments\\
-    \midrule
-    \texttt{{\char'134}author} & 100& Author \\
-    \texttt{{\char'134}table}& 300 & For tables\\
-    \texttt{{\char'134}table*}& 400& For wider tables\\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\section{Math Equations}
-
-You may want to display math equations in three distinct styles:
-inline, numbered or non-numbered display.  Each of the three are
-discussed in the next sections.
-
-\subsection{Inline (In-text) Equations}
-
-A formula that appears in the running text is called an inline or
-in-text formula.  It is produced by the \verb|math| environment,
-which can be invoked with the usual
-\verb|\begin| \ldots \verb|\end| construction or with
-the short form \verb|$| \ldots \verb|$|. You can use any of the symbols
-and structures, from $\alpha$ to $\omega$, available in
-\LaTeX~\cite{Lamport:LaTeX};
-this section will simply show a few
-examples of in-text equations in context. Notice how this equation:
-\begin{math}
-  \lim_{n\rightarrow \infty} \frac{1}{n} = 0,
-\end{math}
-set here in in-line math style, looks slightly different when
-set in display style.  (See next section).
-
-\subsection{Display Equations}
-
-A numbered display equation---one set off by vertical space from the
-text and centered horizontally---is produced by the \verb|equation|
-environment. An unnumbered display equation is produced by the
-\verb|displaymath| environment.
-
-Again, in either environment, you can use any of the symbols and
-structures available in \LaTeX{}; this section will just give a couple
-of examples of display equations in context.  First, consider the
-equation, shown as an inline equation above:
-\begin{equation}
-  \lim_{n\rightarrow \infty} \frac{1}{n} = 0.
-\end{equation}
-Notice how it is formatted somewhat differently in
-the \verb|displaymath|
-environment.  Now, we'll enter an unnumbered equation:
-\begin{displaymath}
-  S_{n} = \sum_{i=1}^{n} x_{i} ,
-\end{displaymath}
-and follow it with another numbered equation:
-\begin{equation}
-  \lim_{x \to 0} (1 + x)^{1/x} = e
-\end{equation}
-just to demonstrate \LaTeX's able handling of numbering.
-
-\section{Figures}
-
-The ``\verb|figure|'' environment should be used for figures. One or
-more images can be placed within a figure. If your figure contains
-third-party material, you must clearly identify it as such, as shown
-in the example below.
-\begin{figure}
-  \centering
-  \includegraphics[width=\linewidth-80pt]{UML_state_machine_Fig1}
-  \caption{Sample UML state machine (source: \url{https://en.wikipedia.org/wiki/UML_state_machine}, license CC BY-SA 3.0).}
-\end{figure}
-
-Your figures should contain a caption which describes the figure to
-the reader. Figure captions go below the figure. Your figures should
-also include a description suitable for screen readers, to
-assist the visually-challenged to better understand your work.
-
-Figure captions are placed below the figure.
-
-\section{Citations and Bibliographies}
-
-The use of Bib\TeX{} for the preparation and formatting of one's
-references is strongly recommended. Authors' names should be complete
---- use full first names (``Donald E. Knuth'') not initials
-(``D. E. Knuth'') --- and the salient identifying features of a
-reference should be included: title, year, volume, number, pages,
-article DOI, etc.
-
-The bibliography is included in your source document with these two
-commands, placed just before the \verb|\end{document}|
-command:
-\begin{lstlisting}
-\bibliography{bibfile}
-\end{lstlisting}
-where ``\verb|bibfile|'' is the name, without the ``\verb|.bib|''
-suffix, of the Bib\TeX{} file.
-
-
-\subsection{Some examples}
-
-A paginated journal article \cite{Abril07}, an enumerated journal
-article \cite{Cohen07}, a reference to an entire issue
-\cite{JCohen96}, a monograph (whole book) \cite{Kosiur01}, a
-monograph/whole book in a series (see 2a in spec. document)
-\cite{Harel79}, a divisible-book such as an anthology or compilation
-\cite{Editor00} followed by the same example, however we only output
-the series if the volume number is given \cite{Editor00a} (so series
-should not be present since it has no vol. no.), a chapter in a
-divisible book \cite{Spector90}, a chapter in a divisible book in a
-series \cite{Douglass98}, a multi-volume work as book \cite{Knuth97},
-an article in a proceedings (of a conference, symposium, workshop for
-example) (paginated proceedings article) \cite{Andler79}, a
-proceedings article with all possible elements \cite{Smith10}, an
-example of an enumerated proceedings article \cite{VanGundy07}, an
-informally published work \cite{Harel78}, a doctoral dissertation
-\cite{Clarkson85}, a master's thesis: \cite{anisi03}, an online
-document / world wide web resource \cite{Thornburg01, Ablamowicz07,
-  Poker06}, a video game (Case 1) \cite{Obama08} and (Case 2)
-\cite{Novak03} and \cite{Lee05} and (Case 3) a patent
-\cite{JoeScientist001}, work accepted for publication \cite{rous08},
-prolific author \cite{SaeediMEJ10} and \cite{SaeediJETC10}. Other
-cites might contain `duplicate' DOI and URLs (some SIAM articles)
-\cite{Kirschmer:2010:AEI:1958016.1958018}. Multi-volume works as books
-\cite{MR781536} and \cite{MR781537}. A couple of citations with DOIs:
-\cite{2004:ITE:1009386.1010128,Kirschmer:2010:AEI:1958016.1958018}. Online
-citations: \cite{TUGInstmem, Thornburg01, R, UMassCitations}.
+We implement this workflow as a web application built with Unravel-RDF. The system orchestrates compositional query construction, reuse of query fragments, and federated execution across endpoints. The event-driven execution model enables interactive exploration of relationships between biomedical and plant knowledge graphs through incremental result rendering and dynamic interface updates.
 
 \section{Acknowledgments}
 
