@@ -1,21 +1,21 @@
 registerSuite({
-    name: "Finder",
+    name: "Config",
 
     tests: [
         {
-            name: "count()",
+            name: "http://id.nlm.nih.gov/mesh/D012140",
 
             run: () =>
-                UnravelSession(configMetaNetX)
-                    .prefix("CHEBI", "http://purl.obolibrary.org/obo/CHEBI_")
-                    .something(
+                (UnravelSession(UnravelConfig
+                    .init()
+                    .urlFile("http://id.nlm.nih.gov/mesh/D012140.ttl"))
+                ).something(
                         "subject",
                         subject => subject.out(
-                            "?rel",
-                            URI("CHEBI:106243")
+                            "?rel","?obj"
                         ))
                     .finder
-                    .count(["subject"]),
+                    .count(["obj"]),
 
             check: result => {
                 const rows =

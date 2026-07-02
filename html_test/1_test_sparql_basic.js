@@ -192,6 +192,33 @@ registerSuite({
                     throw new Error("Aucun résultat");
             }
         },
+        {
+            name: "selectByPage() – object liés à https://rdf.metanetx.org/chem/MNXM586757",
+            run: () =>
+                UnravelSession(configMetaNetX)
+                    .prefix("CHEBI", "http://purl.obolibrary.org/obo/CHEBI_")
+                    .prefix("mtx", "https://rdf.metanetx.org/chem/")
+                    .something(
+                        "node",
+                        node => node.out(
+                            "?rel",
+                            "mtx:MNXM586757"
+                        )
+                    )
+                    .selectByPage("node", "rel")
+                    .limit(30)
+                    .commit()
+                    .raw(),
+
+            check: (countPages,Pages) => {
+
+                console.log(countPages);
+                console.log(JSON.stringify(Pages));
+
+                if (rows.length === 0)
+                    throw new Error("Aucun résultat");
+            }
+        },
 
     ]
 });

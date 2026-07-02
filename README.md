@@ -157,7 +157,14 @@ const previous = SWDiscovery().setSerializedString(history.pop())
 ## Installation
 
 ### npm
+Add the `@p2m2` scope to your `.npmrc`:
 
+```ini
+@p2m2:registry=https://forge.inrae.fr/api/v4/packages/npm/
+```
+
+Then install the package:
+    
 ```bash
 npm install @p2m2/unravel-rdf
 ```

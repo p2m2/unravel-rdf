@@ -105,7 +105,6 @@ object HttpRequestDriverTest extends TestSuite {
           assert(false)
         })
     }
-
   }
   TestRunner.runAsync(tests).map { _ => DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName) }
 }

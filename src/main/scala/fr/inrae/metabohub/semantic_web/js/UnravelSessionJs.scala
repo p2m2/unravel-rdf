@@ -1,6 +1,6 @@
 package fr.inrae.metabohub.semantic_web.js
 
-import fr.inrae.metabohub.semantic_web.{UnravelSession, UnravelQuery}
+import fr.inrae.metabohub.semantic_web.{UnravelQuery, UnravelSession}
 import fr.inrae.metabohub.semantic_web.node.Node
 import fr.inrae.metabohub.semantic_web.rdf.{IRI, SparqlDefinition, URI}
 import fr.inrae.metabohub.semantic_web.configuration._
@@ -676,12 +676,19 @@ case class UnravelSessionJs(
             ): UnravelQueryJs =
     UnravelQueryJs(sw.select(lRef.toSeq, limit, offset))
 
+  class PagedResult(
+                    val totalCount: Int,
+                    val pageSize: Int,
+                    val pageQueries: js.Array[UnravelQueryJs]
+                  ) extends js.Object
+
   /**
    * Executes a paged select query on the given references.
    *
    * The returned promise contains:
-   *  - the total number of results;
-   *  - the current page as an array of query rows.
+   *  - the total number of matching results;
+   *  - the number of available pages;
+   *  - one lazy query per page.
    *
    * @example
    * {{{
@@ -691,11 +698,16 @@ case class UnravelSessionJs(
   @JSExport
   def selectByPage(
                     lRef: js.Array[String]
-                  ): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+                  ): js.Promise[PagedResult] =
     sw.selectByPage(lRef.toSeq).map { res =>
-      val n: Int               = res._1
-      val l: Seq[UnravelQuery] = res._2
-      (n, l.map(UnravelQueryJs(_)).toJSArray)
+      val totalCount = res._1
+      val pages = res._2.map(UnravelQueryJs(_)).toJSArray
+
+      new PagedResult(
+        totalCount = totalCount,
+        pageSize = pages.length,
+        pageQueries = pages
+      )
     }.toJSPromise
 
   /**
@@ -709,7 +721,7 @@ case class UnravelSessionJs(
    * }}}
    */
   @JSExport
-  def selectByPage(lRef: String*): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+  def selectByPage(lRef: String*): js.Promise[PagedResult] =
     selectByPage(lRef.toJSArray)
 
   /**
@@ -723,12 +735,18 @@ case class UnravelSessionJs(
   @JSExport
   def selectDistinctByPage(
                             lRef: js.Array[String]
-                          ): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+                          ): js.Promise[PagedResult] =
     sw.selectDistinctByPage(lRef.toSeq).map { res =>
-      val n: Int               = res._1
-      val l: Seq[UnravelQuery] = res._2
-      (n, l.map(UnravelQueryJs(_)).toJSArray)
+      val totalCount = res._1
+      val pages = res._2.map(UnravelQueryJs(_)).toJSArray
+
+      new PagedResult(
+        totalCount = totalCount,
+        pageSize = pages.length,
+        pageQueries = pages
+      )
     }.toJSPromise
+
 
   /**
    * Executes a paged distinct select query on the given references.
@@ -743,6 +761,6 @@ case class UnravelSessionJs(
   @JSExport
   def selectDistinctByPage(
                             lRef: String*
-                          ): js.Promise[(Int, js.Array[UnravelQueryJs])] =
+                          ): js.Promise[PagedResult] =
     selectDistinctByPage(lRef.toJSArray)
 }

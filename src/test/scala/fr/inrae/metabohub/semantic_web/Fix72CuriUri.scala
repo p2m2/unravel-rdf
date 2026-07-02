@@ -1,6 +1,7 @@
 package fr.inrae.metabohub.semantic_web
 
 import fr.inrae.metabohub.data.DataTestFactory
+import fr.inrae.metabohub.semantic_web.Fix126UrlFileUnusedVariable.turtleBase
 import fr.inrae.metabohub.semantic_web.rdf.{IRI, URI}
 import fr.inrae.metabohub.semantic_web.configuration._
 import utest.{TestSuite, Tests, test}
@@ -35,6 +36,21 @@ object Fix72CuriUri extends TestSuite {
             assert(r("results")("datatypes").obj.nonEmpty)
         })
       }).flatten
+    }
+
+    test("urlFile configuration") {
+      val url_file = s"$turtleBase/animals.ttl"
+
+      insert_data.map(_ => {
+        UnravelSession(UnravelConfig.init().urlFile(url_file))
+          .something("h1")
+          .select(Seq("h1"))
+          .commit()
+          .raw.map(r => {
+            assert(r("results")("bindings").arr.length == 39)
+          })
+      }).flatten
+
     }
   }
 }

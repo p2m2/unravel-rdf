@@ -147,71 +147,83 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       }
     }
 }
+  def commit(): UnravelQuery = {
 
-  def commit() : UnravelQuery = {
     notify(UnravelRequestEvent(UnravelStateRequestEvent.START))
 
-    val lSelectedVariable : Seq[Var] = sw.rootNode.getChild(Projection(List(),"")).lastOption match {
-      case Some(proj) =>proj.variables.distinct
-      case None =>
-        notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
-        throw UnravelException("projection/selected required variables are not defined.")
-    }
-
-    val lDatatype: Seq[DatatypeNode] =
-      sw.rootNode.getChild[DatatypeNode](DatatypeNode("",SubjectOf("", URI(""),Var("")),"unk"))
-        .filter(ld => lSelectedVariable.map(_.name).contains(ld.property.reference()))
-
-    if ( lDatatype.count(datatypeNode => lSelectedVariable.map(_.name).contains(datatypeNode.refNode)) != lDatatype.length )
-      {
-        notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
-        throw UnravelException("The user have to select node of interest before setup a desired datatype ["+lDatatype.map(d=>d.idRef + "->"+d.refNode).mkString(" ,")+"]")
+    val lSelectedVariable: Seq[Var] =
+      sw.rootNode.getChild(Projection(List(), "")).lastOption match {
+        case Some(proj) => proj.variables.distinct
+        case None =>
+          notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
+          throw UnravelException("projection/selected required variables are not defined.")
       }
 
+    val lDatatype: Seq[DatatypeNode] =
+      sw.rootNode
+        .getChild[DatatypeNode](
+          DatatypeNode("", SubjectOf("", URI(""), Var("")), "unk")
+        )
+        .filter(ld => lSelectedVariable.map(_.name).contains(ld.property.reference()))
+
+    if (lDatatype.count(d => lSelectedVariable.map(_.name).contains(d.refNode)) != lDatatype.length) {
+      notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
+      throw UnravelException(
+        "The user have to select node of interest before setup a desired datatype"
+      )
+    }
+
     Try(StrategyRequestBuilder.build(sw.config)) match {
-      case Failure(e) => _prom_raw failure e
+
+      case Failure(e) =>
+        if (!_prom_raw.isCompleted) _prom_raw failure e
+        return this
+
       case Success(driver) =>
-        
-        driver.subscribe(this.asInstanceOf[Subscriber[UnravelRequestEvent,Publisher[UnravelRequestEvent]]])
+
+        driver.subscribe(this.asInstanceOf[Subscriber[UnravelRequestEvent, Publisher[UnravelRequestEvent]]])
+
         driver.execute(this)
-          /* manage datatype decoration */
-          .map((qr: QueryResult) => {
+          .map { qr =>
+
             notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_BUILD))
-            /* create an empty set of datatype */
+
             qr.json("results").update("datatypes", ujson.Obj())
-            trace(qr.json)
-            /* manage datatype */
-            trace("  lDatatype ====> " + lDatatype.toString())
-            Future.sequence(lDatatype.map(datatypeNode => {
-              trace("datatype node:" + datatypeNode)
 
-              sw.rootNode.getRdfNode(datatypeNode.refNode) match {
-                case Some(_) =>
+            Future.sequence(
+              lDatatype.map { datatypeNode =>
+                sw.rootNode.getRdfNode(datatypeNode.refNode) match {
 
-                  /* find uris value inside results to decorate */
-                  val lUris: Seq[SparqlDefinition] =
-                    try {
-                      qr.getValues(datatypeNode.refNode)
-                    } catch {
-                      case _: Throwable => List()
-                    }
-                    trace("ICI1:"+qr.toString)
-                  Future.sequence(process_datatype(sw.rootNode,qr, datatypeNode, lUris))
-                case None =>
-                  trace("ICI2:"+qr.toString)
-                  Future {}
+                  case Some(_) =>
+                    val lUris =
+                      try qr.getValues(datatypeNode.refNode)
+                      catch { case _: Throwable => List() }
+
+                    Future.sequence(process_datatype(sw.rootNode, qr, datatypeNode, lUris))
+
+                  case None =>
+                    Future.successful(())
+                }
               }
-            })) onComplete {
+            ).onComplete {
+
               case Success(_) =>
                 notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_DONE))
-                _prom_raw success qr.json
+
+                if (!_prom_raw.isCompleted)
+                  _prom_raw success qr.json
+
                 notify(UnravelRequestEvent(UnravelStateRequestEvent.REQUEST_DONE))
+
               case Failure(e) =>
-                _prom_raw failure e
+                if (!_prom_raw.isCompleted)
+                  _prom_raw failure e
             }
-          }).recover(exception => {
-          _prom_raw failure exception
-        })
+          }
+          .recover { e =>
+            if (!_prom_raw.isCompleted)
+              _prom_raw failure e
+          }
     }
     this
   }
@@ -260,7 +272,11 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
 
   def limit( value : Int ) : UnravelQuery = sw.root.addNodeAndRestoreFocus(Limit(value,sw.getUniqueRef())).transaction
 
+  def getLimit : Int = sw.root.rootNode.getChild(Limit(-1,"")).lastOption.getOrElse(Limit(-1,"")).value
+
   def offset( value : Int ) : UnravelQuery = sw.root.addNodeAndRestoreFocus(Offset(value,sw.getUniqueRef())).transaction
+
+  def getOffset : Int = sw.root.rootNode.getChild(Offset(-1,"")).lastOption.getOrElse(Offset(-1,"")).value
 
   def orderByAsc( ref: String ) : UnravelQuery =
     sw.refExist(ref).root.addNodeAndRestoreFocus(OrderByAsc(Seq(Var(ref)),sw.getUniqueRef())).transaction

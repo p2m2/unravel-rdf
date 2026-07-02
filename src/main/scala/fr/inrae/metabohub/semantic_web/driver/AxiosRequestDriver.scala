@@ -89,12 +89,12 @@ case class AxiosRequestDriver(
 
   def post(query: String): Future[QueryResult] = {
     publish(UnravelRequestEvent(UnravelStateRequestEvent.PROCESS_HTTP_REQUEST))
-
+/*
     println("====================================")
     println("SPARQL QUERY")
     println("====================================")
     println(query)
-
+*/
     val configAxios: AxiosConfig = js.Dynamic.literal(
       url = url,
       method = "POST",

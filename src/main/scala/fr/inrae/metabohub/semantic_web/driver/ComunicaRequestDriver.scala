@@ -11,6 +11,7 @@ import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.scalajs.js.|
 import scala.util.{Failure, Success, Try}
+import scala.scalajs.js.JSConverters._
 
 object ComunicaRequestDriver {
   implicit val ec: scala.concurrent.ExecutionContext =
@@ -39,14 +40,14 @@ object ComunicaRequestDriver {
       case "application/n-triples" => N3FormatOption.N3
       case _             => throw UnravelException(s"$mimetype format is not managed")
     }
-
+/*
     println("==== sourceFromContentN3Parser ====")
     println(s"mimetype = $mimetype")
     println(s"format   = $format")
     println("content:")
     println(content)
     println("===================================")
-
+*/
     var quadCount = 0
 
     val parser = new N3Parser(
@@ -141,6 +142,8 @@ object ComunicaRequestDriver {
     sources: List[SourceComunica]
   ): Future[QueryResult] = {
     Try {
+     // println("requestOnSWDBWithSources ====")
+     // println(js.JSON.stringify(sources.toJSArray))
       new QueryEngine()
         .queryBindings(
           query,
@@ -151,6 +154,7 @@ object ComunicaRequestDriver {
         )
         .toFuture
         .flatMap { bindingsStream =>
+         // println("bindingsStream")
           val p = Promise[QueryResult]()
           val vars = scala.collection.mutable.LinkedHashSet[String]()
           val rows = scala.collection.mutable.ArrayBuffer[ujson.Value]()

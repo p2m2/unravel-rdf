@@ -15,9 +15,7 @@ trait RequestDriver extends Publisher[UnravelRequestEvent] {
     val dateStart = System.nanoTime
     val t1 = System.nanoTime
     debug("RequestDriver Send request "+dateStart+","+t1)
-    
     requestOnSWDB(query).map(resultsQR => {
-
       publish(UnravelRequestEvent(UnravelStateRequestEvent.RESULTS_BUILD))
       val duration = (System.nanoTime - t1) / 1e9d
       debug(s"RequestDriver Receive results  -- Elapsed Time : ${duration}")

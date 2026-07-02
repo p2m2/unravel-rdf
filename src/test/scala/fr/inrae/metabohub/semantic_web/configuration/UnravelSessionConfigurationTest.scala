@@ -2,6 +2,7 @@ package fr.inrae.metabohub.semantic_web.configuration
 
 import fr.inrae.metabohub.data.NodeEnv
 import fr.inrae.metabohub.semantic_web.exception.SWStatementConfigurationException
+import fr.inrae.metabohub.semantic_web.rdf.URI
 import utest._
 import wvlet.log.LogLevel
 

@@ -16,8 +16,32 @@
 %% Minted listings support 
 %% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
 \usepackage{listings}
+\usepackage{xcolor}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={const, let, var, function, return, if, else, for, while, class, new, await, async},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]'
+}
+
 %% auto break lines
 \lstset{breaklines=true}
+
+\lstset{
+  language=JavaScript,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape,
+  stringstyle=\ttfamily,
+  numbers=left,
+  numberstyle=\tiny,
+  frame=single,
+  breaklines=true,
+  columns=fullflexible
+}
 
 % to active note:
 %\usepackage{todonotes}
@@ -43,7 +67,7 @@
 
 %%
 %% The "title" command
-\title{Unravel-RDF: A Developer-Oriented Framework for SPARQL Applications}
+\title{Unravel-RDF: A JavaScript Framework for Building Web Applications over RDF Knowledge Graphs}
 
 \tnotemark[1]
 \tnotetext[1]{You can use this document as the template for preparing your
@@ -221,58 +245,78 @@ The event system also provides hooks for integrating additional application logi
 
 This section illustrates how Unravel-RDF is used in practice to construct and execute SPARQL queries within JavaScript applications. We present concrete examples that demonstrate how the abstractions introduced by the framework translate into executable query workflows.
 
-\subsection*{Focus-based query construction}
+\subsection*{Focus-based query construction and query incremental building}
 
-Queries are constructed relative to a dynamic focus variable, which simplifies
-navigation over RDF graphs.
+Queries are constructed relative to a focus variable, which simplifies
+navigation over RDF graphs. In this example, the query is centered on a compound entity .
 
-\begin{lstlisting}
-const query = from("Compound")
-  .focus("compound")
-  .where(
-    triple("compound", "rdf:type", "CHEBI:ChemicalEntity"),
-    triple("compound", "rdfs:label", label)
-  )
-  .expand(
-    outgoing("interacts_with")
+This enables modular construction of complex federated queries from smaller reusable building blocks.
+
+\begin{lstlisting}[caption={Focus-based query construction example},label={lst:example-1}]
+
+  const configuration = UnravelConfiguration
+                        .init()
+                        .sparqlEndpoint("https://rdfportal.org/ebi/sparql");
+
+  /* Build a base query with "compound" as the current focus, linked to CHEBI:106243 through the variable ?rel */
+  const query = UnravelSession(configMetaNetX)
+  .prefix("CHEBI", "http://purl.obolibrary.org/obo/CHEBI_")
+  .something(
+    "compound",compound => compound.out("?rel","CHEBI:24279") /* SPARQL : ?compound ?rel CHEBI:106243 */
+  );
+  /* Restore the focus to "subject" and retrieve its RDF type */
+  const specializedQuery = query
+  .from(
+    "compound", compound => compound.out("rdf:type","?type")
   );
 \end{lstlisting}
 
-In this example, the query is centered on a compound entity and incrementally expanded through relationship traversal without explicit join management.
 
-\subsection*{Composable query fragments}
-
-Query logic can be encapsulated into reusable fragments that can be combined.
-
-\begin{verbatim}
-const chemicalFragment = (id) =>
-  where(
-    triple(id, "rdf:type", "CHEBI:ChemicalEntity")
-  );
-
-const diseaseFragment = (id) =>
-  where(
-    triple(id, "rdf:type", "DOID:Disease")
-  );
-
-const query = compose(
-  chemicalFragment("x"),
-  diseaseFragment("y"),
-  link("x", "interacts_with", "y")
-);
-\end{verbatim}
-
-This enables modular construction of complex federated queries from smaller reusable building blocks.
+- `something("subject", subject => ...)` creates a **lambda enclosure** around the current focus `subject`.
+- Inside the closure, `out("?rel", "CHEBI:106243")` searches for RDF triples where `subject` is connected to `CHEBI:106243` by some relation bound to `?rel`.
+- `select("subject", "rel")` turns this traversal into a query projection.
+- `limit(3).commit().raw()` executes the resulting query and returns the raw SPARQL JSON response.
 
 \subsection*{Event-driven execution}
 
 Query execution is asynchronous and returns a stream of results.
 
 \begin{verbatim}
-query.execute()
-  .on("result", (r) => console.log("Result:", r))
-  .on("progress", (p) => updateUI(p))
-  .on("end", () => console.log("Done"));
+### Automatic lazy pagination
+
+No manual OFFSET/LIMIT management:
+
+```js
+session
+  .commit()
+  .raw()
+  .selectByPage("study", "label")
+  .then(([totalCount, fetchPage]) => {
+    console.log(`${totalCount} results`)
+
+    // Fetch page 0 on demand
+    fetchPage(0).then(page => renderTable(page))
+  })
+```
+
+### Query progression and events
+
+Long-running SPARQL queries report progress — useful for updating a loading indicator:
+
+```js
+session
+  .select("study", "label")
+  .commit()
+  .progression((percent) => {
+    updateProgressBar(percent)
+  })
+  .requestEvent((event) => {
+    console.log("SPARQL event:", event)
+  })
+  .raw()
+  .then(response => render(response))
+```
+
 \end{verbatim}
 
 This allows integration with reactive user interfaces such as dashboards or interactive graph explorers.
@@ -344,6 +388,11 @@ numbered.
   
  \noindent{\em Or (by using the activity taxonomy in ceur-ws.org/genai-tax.html):\newline}
  During the preparation of this work, the author(s) used X-GPT-4 and Gramby in order to: Grammar and spelling check. Further, the author(s) used X-AI-IMG for figures 3 and 4 in order to: Generate images. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and take(s) full responsibility for the publication’s content. 
+
+ During the preparation of this work, the authors used Perplexity and ChatGPT in order to: paraphrase
+and reword, improve writing style, and grammar and spelling checking. After using these tools, the
+authors reviewed and edited the content as needed and take full responsibility for the publication’s
+content.
 
 %%
 %% Define the bibliography file to be used
