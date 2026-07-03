@@ -41,24 +41,25 @@ object ComunicaRequestDriver {
     val p = Promise[N3Store]()
 
     val format = mimetype match {
-      case "text/turtle"           => N3FormatOption.Turtle
-      case "text/n3"               => N3FormatOption.N3
-      case "application/n-triples" => N3FormatOption.N3
-      case _             => throw UnravelException(s"$mimetype format is not managed")
+      case "content/turtle" => N3FormatOption.Turtle
+      case "content/n3" => N3FormatOption.N3
+      case "content/n-triples" => N3FormatOption.N3
+      case _ => throw UnravelException(s"$mimetype format is not managed")
     }
-/*
-    println("==== sourceFromContentN3Parser ====")
-    println(s"mimetype = $mimetype")
-    println(s"format   = $format")
-    println("content:")
-    println(content)
-    println("===================================")
-*/
+    if (content.isEmpty) {
+      println("==== sourceFromContentN3Parser ====")
+      println(s"mimetype = $mimetype")
+      println(s"format   = $format")
+      println("content:")
+      println(content)
+      println("===================================")
+      throw UnravelException("content is empty")
+    }
     var quadCount = 0
 
     val parser = new N3Parser(
       N3Options(
-        baseIRI = "http://com.github.p2m2.discovery/",
+        baseIRI = "http://www.semantic.org/",
         format = format
       )
     )
@@ -138,7 +139,7 @@ object ComunicaRequestDriver {
 
   def sourceFromContent(content: String, mimetype: String): Future[N3Store] = {
     mimetype match {
-      case "text/rdf-xml" => sourceFromContentRdfXml(content)
+      case "content/rdf-xml" => sourceFromContentRdfXml(content)
       case _              => sourceFromContentN3Parser(content, mimetype)
     }
   }
@@ -259,6 +260,7 @@ object ComunicaRequestDriver {
 case class ComunicaRequestDriver(
   idName: String,
   path: String,
+  content: String,
   sourcePath: SourcePath,
   mimetype: String,
   login: Option[String] = None,
@@ -273,7 +275,7 @@ case class ComunicaRequestDriver(
         }
 
       case SourcePath.Content =>
-        ComunicaRequestDriver.sourceFromContent(path, mimetype)
+        ComunicaRequestDriver.sourceFromContent(content, mimetype)
     }).asInstanceOf[Future[SourceComunica]]
       .flatMap { source =>
         ComunicaRequestDriver.requestOnSWDBWithSources(query, List(source))

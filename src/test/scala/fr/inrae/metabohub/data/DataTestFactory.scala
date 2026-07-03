@@ -63,6 +63,7 @@ object DataTestFactory  {
          "sources" : [{
            "id"       : "configVirtuoso1",
            "path"      : "${DataTestFactory.urlEndpoint}",
+           "content" : "",
            "mimetype" : "application/sparql-query"
          }],
          "settings" : {
@@ -80,6 +81,7 @@ object DataTestFactory  {
          "sources" : [{
            "id"       : "configVirtuoso2",
            "path"      : "${DataTestFactory.urlEndpoint}",
+           "content" : "",
            "mimetype" : "application/sparql-query"
          }],
          "settings" : {

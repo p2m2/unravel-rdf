@@ -37,14 +37,27 @@ case class RequestDriverFactory(lCon : Seq[(RequestDriver, Unit)] = Seq())  {
         "application/xhtml+xml" |
         "image/svg+xml" |
         "application/xml" =>
-        debug("== ComunicaRequestDriver == ")
+        debug("== ComunicaRequestDriver FILE management== ")
           new ComunicaRequestDriver(
             source.id,
-            source.path,
+            source.resolvedPath,
+            "",
             source.sourcePath,
             source.mimetype,
             source.login,
             source.password)
+      case "content/rdf-xml" |  "content/turtle" |
+           "content/n3" | "content/n-triples" |
+           "content/ld+json" =>
+        debug("== ComunicaRequestDriver CONTENT management== ")
+        new ComunicaRequestDriver(
+          source.id,
+          "",
+          source.content,
+          source.sourcePath,
+          source.mimetype,
+          source.login,
+          source.password)
       case _ =>
         throw UnravelException("Bad definition of source configuration :"+source.toString)
     }

@@ -52,6 +52,7 @@ object RdfContentFederationTest extends TestSuite {
         .commit()
         .raw
         .map { result =>
+          println(result)
           assert(result("results")("datatypes")("color").obj.size == 3)
         }
     }

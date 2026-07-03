@@ -88,21 +88,25 @@ case class UnravelConfig(
       sources :+ Source(
         id=filename,
         path=filename,
+        content="",
         sourcePath=SourcePath.LocalFile,
         mimetype = mimetype
       ),
       proxy
     )
-
+/* "content/rdf-xml" |  "content/turtle" |
+           "content/n3" | "content/n-triples" |
+           "content/ld+json" */
   @JSExport
   def rdfContent(
                   content : String ,
-                  mimetype : String = "text/turtle") : UnravelConfig =
+                  mimetype : String = "content/turtle") : UnravelConfig =
     UnravelConfig(
       settings,
       sources :+ Source(
         id=content.hashCode.toString,
-        path=content,
+        path="",
+        content=content,
         sourcePath=SourcePath.Content,
         mimetype = mimetype
       ),
@@ -157,6 +161,7 @@ case class UnravelConfig(
       sources :+ Source(
         id=path,
         path=path,
+        content="",
         sourcePath=SourcePath.UrlPath,
         mimetype=mimetype,
         method=Some(method),

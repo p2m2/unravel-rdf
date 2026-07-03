@@ -74,8 +74,8 @@ object UnravelSessionConfigurationBuilderTest extends TestSuite {
       val content= ":some :some2 :some3."
       val s = UnravelConfig.init().rdfContent(content)
       assert(s.sources.length == 1)
-      assert(s.sources.last.path == content)
-      assert(s.sources.last.mimetype == "text/turtle")
+      assert(s.sources.last.content == content)
+      assert(s.sources.last.mimetype == "content/turtle")
     }
 
     test("federation") {
@@ -88,7 +88,7 @@ object UnravelSessionConfigurationBuilderTest extends TestSuite {
         .rdfContent(content)
 
       assert(s.sources.length == 4)
-      assert(s.sources.last.path == content)
+      assert(s.sources.last.content == content)
     }
 
     test("getSourcesSize") {

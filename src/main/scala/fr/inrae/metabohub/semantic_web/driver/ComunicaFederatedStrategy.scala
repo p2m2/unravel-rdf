@@ -15,9 +15,13 @@ case class ComunicaFederatedStrategy(sources: Seq[Source]) extends StrategyReque
   /* Manage N3Store for content definition */
   val lSourcesDefinition : Future[List[SourceComunica]] =
     Future.sequence(sources.toList.collect {
-      case source : Source if source.sourcePath == SourcePath.UrlPath => Future { ComunicaRequestDriver.sourceFromUrl(source.path,source.mimetype) }.asInstanceOf[Future[SourceComunica]]
-      case source : Source if source.sourcePath == SourcePath.Content => ComunicaRequestDriver.sourceFromContent(source.path,source.mimetype).asInstanceOf[Future[SourceComunica]]
-      case _ => throw UnravelException("unknown source definition.")
+      case source : Source if source.sourcePath == SourcePath.UrlPath =>
+        Future { ComunicaRequestDriver.sourceFromUrl(source.path,source.mimetype) }
+          .asInstanceOf[Future[SourceComunica]]
+        case source : Source if source.sourcePath == SourcePath.Content =>
+          ComunicaRequestDriver.sourceFromContent(source.content,source.mimetype)
+            .asInstanceOf[Future[SourceComunica]]
+        case _ => throw UnravelException("unknown source definition.")
     })
 
   def execute(swt: UnravelQuery): Future[QueryResult] = {

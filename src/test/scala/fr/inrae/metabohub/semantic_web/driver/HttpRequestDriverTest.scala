@@ -66,7 +66,7 @@ object HttpRequestDriverTest extends TestSuite {
 
     test("ComunicaRequestDriver TTL") {
       val url_file = s"$turtleBase/animals.ttl"
-      ComunicaRequestDriver(idName = "test", path = url_file, sourcePath =SourcePath.UrlPath,mimetype="text/turtle")
+      ComunicaRequestDriver(idName = "test", path = url_file,content="", sourcePath =SourcePath.UrlPath,mimetype="text/turtle")
         .request("select * where { ?a ?b ?c . } limit 5")
         .map(qr => {
 
@@ -82,7 +82,7 @@ object HttpRequestDriverTest extends TestSuite {
 
     test("ComunicaRequestDriver JSON-LD") {
       val url_file = s"$turtleBase/animals.jsonld"
-      ComunicaRequestDriver(idName = "test", path = url_file, sourcePath=SourcePath.UrlPath,mimetype="application/json+ld")
+      ComunicaRequestDriver(idName = "test", path = url_file, content="",sourcePath=SourcePath.UrlPath,mimetype="application/json+ld")
         .request("select * where { ?a ?b ?c . } limit 5")
         .map(qr => {
           println(url_file + " --> " + qr.json("results")("bindings").arr.length)
@@ -95,7 +95,7 @@ object HttpRequestDriverTest extends TestSuite {
 
     test("ComunicaRequestDriver N3") {
       val url_file = s"$turtleBase/animals.n3"
-      ComunicaRequestDriver(idName = "test", path = url_file, sourcePath=SourcePath.UrlPath,mimetype="text/n3")
+      ComunicaRequestDriver(idName = "test", path = url_file, content="",sourcePath=SourcePath.UrlPath,mimetype="text/n3")
         .request("select * where { ?a ?b ?c . } limit 5")
         .map(qr => {
           println(url_file + " --> " + qr.json("results")("bindings").arr.length)

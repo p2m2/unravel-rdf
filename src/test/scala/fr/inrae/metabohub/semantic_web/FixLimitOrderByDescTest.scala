@@ -15,6 +15,7 @@ object FixLimitOrderByDescTest extends TestSuite {
        "sources" : [{
          "id"       : "file_turtle",
          "path"     : "$turtleBase/animals_basic.ttl",
+         "content"  :"",
          "mimetype" : "text/turtle"
        }],
        "settings" : {

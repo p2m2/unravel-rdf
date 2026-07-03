@@ -29,7 +29,7 @@ object UnravelSessionSelectIterable extends TestSuite {
 
   val insertData = DataTestFactory.insertVirtuoso1(data, this.getClass.getSimpleName)
 
-  val nbValues = data.split(" ").filter( _ == "<http://aa>").length
+  val nbValues = data.split(" ").count(_ == "<http://aa>")
 
   val pageSize = 5
 
@@ -41,6 +41,7 @@ object UnravelSessionSelectIterable extends TestSuite {
          "sources" : [{
            "id"       : "local",
            "path"      : "${DataTestFactory.urlEndpoint}",
+           "content"   : "",
            "mimetype" : "application/sparql-query"
          }],
          "settings" : {

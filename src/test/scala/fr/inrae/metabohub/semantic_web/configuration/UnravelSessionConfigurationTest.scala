@@ -15,6 +15,7 @@ object UnravelSessionConfigurationTest extends TestSuite {
              "sources" : [{
                "id"  : "dbpedia",
                "path" : "https://dbpedia.org/sparql",
+               "content" : "",
                "mimetype" : "application/sparql-query",
                "method" : "POST"
              }],
@@ -33,6 +34,7 @@ object UnravelSessionConfigurationTest extends TestSuite {
              "sources" : [{
                "id"  : "dbpedia",
                "path" : "https://dbpedia.org/sparql",
+               "content" : "",
                "mimetype" : "application/sparql-query",
                "method" : "POST"
              }],
@@ -43,7 +45,7 @@ object UnravelSessionConfigurationTest extends TestSuite {
                "pageSize" : 10
              },
              "proxy" : {
-                "url"    : "${turtleBase}",
+                "url"    : "$turtleBase",
                 "method" : "post"
              }
             }
@@ -103,7 +105,7 @@ object UnravelSessionConfigurationTest extends TestSuite {
       val configDbpediaBasic: UnravelConfig =
         UnravelConfig(
           settings = GeneralSetting(),
-          sources=Seq(Source(id=dbname, path=url, mimetype=mimetype)),
+          sources=Seq(Source(id=dbname, path=url, content="",mimetype=mimetype)),
           proxy = None)
       val source = configDbpediaBasic.source("dbpedia")
 
@@ -129,7 +131,7 @@ object UnravelSessionConfigurationTest extends TestSuite {
     test("unknown mimetype") {
       assert(Try(UnravelConfig(
         settings = GeneralSetting(),
-        sources=Seq(Source(id="dbpedia", path="http://test", mimetype="-")),
+        sources=Seq(Source(id="dbpedia", path="http://test", content="",mimetype="-")),
         proxy = None)).isFailure)
     }
 
@@ -137,7 +139,7 @@ object UnravelSessionConfigurationTest extends TestSuite {
       assert(Try(UnravelConfig(
         settings = GeneralSetting(),
         sources=
-        Seq(Source(id="dbpedia", path="http://test", mimetype="application/sparql-query",method=Some("-"))),
+        Seq(Source(id="dbpedia", path="http://test", content="",mimetype="application/sparql-query",method=Some("-"))),
         proxy = None)).isFailure)
     }
 

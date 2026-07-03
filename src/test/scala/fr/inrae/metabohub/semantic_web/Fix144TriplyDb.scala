@@ -12,6 +12,7 @@ object Fix144TriplyDb extends TestSuite {
           "sources" : [{
                "id"  : "triplydb",
                "path" : "https://api.triplydb.com/datasets/gr/gr/services/gr/sparql",
+               "content" : "",
                "mimetype" : "application/sparql-query"
             }],
             "settings" : {

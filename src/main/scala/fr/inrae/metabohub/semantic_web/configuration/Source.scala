@@ -2,6 +2,9 @@ package fr.inrae.metabohub.semantic_web.configuration
 
 import fr.inrae.metabohub.semantic_web.configuration.SourcePath.{SourcePath, UrlPath}
 import fr.inrae.metabohub.semantic_web.exception.SWStatementConfigurationException
+import org.scalajs.dom
+
+import scala.scalajs.js
 
 object Source {
   implicit val rw: OptionPickler.ReadWriter[Source] = OptionPickler.macroRW
@@ -10,6 +13,7 @@ object Source {
 case class Source(
                    id:String, /* identify the source endpoint */
                    path: String,
+                   content: String,
                    sourcePath: SourcePath = UrlPath, /* local file access */
                    mimetype: String,
                    method: Option[String] = None, /* POST, POST_ENCODED, GET */
@@ -18,6 +22,22 @@ case class Source(
                    password : Option[String] = None,
                    token : Option[String] = None
                  ) {
+
+  /** Resolve path to absolute URL in browser context */
+  def resolvedPath: String = {
+    if (!path.startsWith("http")) {
+
+      val base =
+        if (js.typeOf(dom.window) != "undefined")
+          dom.window.location.href
+        else
+          "http://localhost/"
+
+      new dom.URL(path, base).href
+    } else {
+      path
+    }
+  }
   override def toString: String = {
     { "##### ID :" + id +"\n"} +
       { " - **path**:" + path +"\n"} +
@@ -34,7 +54,13 @@ case class Source(
     "text/n3",
     "text/rdf-xml",
     "application/rdf+xml",
-    "application/n-triples"
+    "application/n-triples",
+
+    "content/rdf-xml",
+    "content/turtle",
+    "content/n3",
+    "content/n-triples",
+    "content/ld+json"
   )
 
   mimetype match {
@@ -62,4 +88,6 @@ case class Source(
     }
     case None =>
   }
+
+
 }
