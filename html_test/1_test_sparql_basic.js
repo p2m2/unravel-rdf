@@ -206,17 +206,13 @@ registerSuite({
                         )
                     )
                     .selectByPage("node", "rel")
-                    .limit(30)
-                    .commit()
-                    .raw(),
+                    ,
 
-            check: (countPages,Pages) => {
+            check: (totalCount,pageSize,pageQueries) => {
 
-                console.log(countPages);
-                console.log(JSON.stringify(Pages));
-
-                if (rows.length === 0)
-                    throw new Error("Aucun résultat");
+                if (totalCount === null ) throw new Error("totalCount not defined");
+                if (pageSize === null ) throw new Error("pageSize not defined");
+                if (pageQueries === null ) throw new Error("pageQueries not defined");
             }
         },
 

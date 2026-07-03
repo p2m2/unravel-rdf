@@ -4,7 +4,7 @@ registerSuite({
     tests: [
         {
             name: "http://id.nlm.nih.gov/mesh/D012140",
-
+            /* Warnings : Does not work at localhost with webserver. *CORS* : the file is not reachable */
             run: () =>
                 (UnravelSession(UnravelConfig
                     .init()
