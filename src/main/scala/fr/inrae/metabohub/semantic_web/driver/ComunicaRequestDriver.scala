@@ -20,12 +20,12 @@ object ComunicaRequestDriver {
   type SourceComunica = String | SourceDefinitionNewQueryEngine | N3Store
 
   def sourceFromUrl(url: String, mimetype: String): SourceDefinitionNewQueryEngine = {
-
+  /*
     println("==== sourceFromUrl ====")
     println(s"mimetype = $mimetype")
     println(s"url   = $url")
     println("===================================")
-
+  */
     SourceDefinitionNewQueryEngine(
       `type` = mimetype match {
         case "application/sparql-query" => SourceType.sparql
@@ -36,7 +36,7 @@ object ComunicaRequestDriver {
     )
   }
 
-  def sourceFromContentN3Parser(content: String, mimetype: String): Future[N3Store] = {
+  private def sourceFromContentN3Parser(content: String, mimetype: String): Future[N3Store] = {
     val store = new N3Store()
     val p = Promise[N3Store]()
 
@@ -68,7 +68,7 @@ object ComunicaRequestDriver {
       (
         error: js.UndefOr[js.Error],
         quad: js.UndefOr[Quad],
-        prefixes: js.UndefOr[js.Dictionary[String]]
+        _: js.UndefOr[js.Dictionary[String]]
       ) => {
         if (!js.isUndefined(error) && error != null) {
           val e = error.get
@@ -109,7 +109,7 @@ object ComunicaRequestDriver {
     p.future
   }
 
-  def sourceFromContentRdfXml(content: String): Future[N3Store] = {
+  private def sourceFromContentRdfXml(content: String): Future[N3Store] = {
     val store = new N3Store()
     val p = Promise[N3Store]()
 
