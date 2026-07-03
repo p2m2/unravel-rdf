@@ -7,4 +7,4 @@ target/
 .idea/*
 /mongo-data
 /node_modules
-shared/src/main/scala/inrae/semantic_web/SWDiscoveryVersionAtBuildTime.scala
+src/main/scala/inrae/semantic_web/SWDiscoveryVersionAtBuildTime.scala
