@@ -15,9 +15,9 @@ object UnravelSessionTraverseTest  extends TestSuite {
       <some_subject> <http://bb_1> <http://aa> .
       <http://aa> <http://bb_2> <some_object1> .
       <http://aa> <http://bb_2> <some_object2> .
-      <some_subject> <datatype_prop> "value1" .
-      <some_object1> <datatype_prop2> "value2" .
-      <http://bb_1>  <datatype_prop3> "value3" .
+      <some_subject> <http://datatype_prop> "value1" .
+      <some_object1> <http://datatype_prop2> "value2" .
+      <http://bb_1>  <http://datatype_prop3> "value3" .
       """.stripMargin, this.getClass.getSimpleName)
 
   val config: UnravelConfig = DataTestFactory.getConfigVirtuoso1()
@@ -103,7 +103,7 @@ object UnravelSessionTraverseTest  extends TestSuite {
           .something("h1",
             _.set(URI("http://aa"))
               .traverse("?property","?var"))
-          .from("h1",_.out(URI("datatype_prop"),"?datatype"))
+          .from("h1",_.out(URI("http://datatype_prop"),"?datatype"))
           .select(List("datatype"))
           .distinct
           .commit()
@@ -121,7 +121,7 @@ object UnravelSessionTraverseTest  extends TestSuite {
           .something("h1",
             _.set(URI("http://aa"))
               .traverse("?property","?var"))
-          .from("var",_.out(URI("datatype_prop"),"?datatype"))
+          .from("var",_.out(URI("http://datatype_prop"),"?datatype"))
           .select(List("datatype"))
           .distinct
           .commit()
@@ -139,7 +139,7 @@ object UnravelSessionTraverseTest  extends TestSuite {
           .something("h1",
             _.set(URI("http://aa"))
               .traverse("?property", "?var"))
-          .from("property", _.console.out(URI("datatype_prop3"), "?datatype"))
+          .from("property", _.out(URI("http://datatype_prop3"), "?datatype"))
           .select(List("datatype"))
           .commit()
           .raw

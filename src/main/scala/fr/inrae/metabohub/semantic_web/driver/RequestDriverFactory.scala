@@ -2,6 +2,7 @@ package fr.inrae.metabohub.semantic_web.driver
 
 import fr.inrae.metabohub.semantic_web.configuration._
 import fr.inrae.metabohub.semantic_web.exception.UnravelException
+import wvlet.log.Logger.rootLogger.debug
 
 object RequestDriverFactory {
   def build() : RequestDriverFactory = {
@@ -13,8 +14,9 @@ case class RequestDriverFactory(lCon : Seq[(RequestDriver, Unit)] = Seq())  {
 
   def addRepositoryConnection( source : Source ) : RequestDriverFactory = {
     val rq : RequestDriver = source.mimetype match {
-      case "application/sparql-query"  =>
-        AxiosRequestDriver(
+      case "application/sparql-query" | /* =>
+      debug("== AxiosRequestDriver == ")
+       AxiosRequestDriver(
           source.id,
           source.method.getOrElse("POST"),
           source.path,
@@ -22,7 +24,7 @@ case class RequestDriverFactory(lCon : Seq[(RequestDriver, Unit)] = Seq())  {
           source.password,
           source.token,
           source.auth)
-      case
+      case*/
         "application/trig" |
         "application/n-quads" |
         "text/turtle" |
@@ -35,6 +37,7 @@ case class RequestDriverFactory(lCon : Seq[(RequestDriver, Unit)] = Seq())  {
         "application/xhtml+xml" |
         "image/svg+xml" |
         "application/xml" =>
+        debug("== ComunicaRequestDriver == ")
           new ComunicaRequestDriver(
             source.id,
             source.path,

@@ -36,17 +36,17 @@ case class UnravelSessionHelper(sw : UnravelSession) {
   def classes(regex : String="", motherClass: URI = URI(""), page : Int =0) : Future[Seq[URI]] = {
     debug(" -- findClasses -- ")
     val query = (motherClass match {
-      case uri : URI if uri == URI("")  => sw.out(URI("a"),"?_esp___type")
-      case _ : URI =>  sw.out(URI("a"),"?_esp___type",
+      case uri : URI if uri == URI("")  => sw.out(URI("a"),"?espTypeInternal")
+      case _ : URI =>  sw.out(URI("a"),"?espTypeInternal",
           _.out(URI("a"),motherClass))
-    }).from("_esp___type")
+    }).from("espTypeInternal")
       .filter.not.regex(regex_avoid_prefix)
 
     (if ( regex.trim != "")
-          query.from("_esp___type").filter.regex(regex)
+          query.from("espTypeInternal").filter.regex(regex)
       else
         query)
-      .selectByPage(List("_esp___type"))
+      .selectByPage(List("espTypeInternal"))
       .flatMap(  v => {
         val futurePages : Seq[UnravelQuery] = v._2
 
@@ -56,7 +56,7 @@ case class UnravelSessionHelper(sw : UnravelSession) {
             .raw
             .map( json => {
               json("results")("bindings").arr.map(
-                row => SparqlBuilder.createUri(row("_esp___type"))
+                row => SparqlBuilder.createUri(row("espTypeInternal"))
               ).toSeq.distinct
             })
         } else {
@@ -71,26 +71,26 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     /* inherited from something ??? */
     val state = if (motherClassProperties != URI("")) {
       sw.root
-        .something("_esp___type",
-          _.out(Var("_esp___property"),Var("_esp___type"),
+        .something("espTypeInternal",
+          _.out(Var("espPropertyInternal"),Var("espTypeInternal"),
             _.out(URI("a"),motherClassProperties)))
     } else {
       sw.root
-        .something("_esp___type",_.out(Var("_esp___property"),Var("_esp___type")))
+        .something("espTypeInternal",_.out(Var("espPropertyInternal"),Var("espTypeInternal")))
     }
 
     /* object or datatype properties owl def. */
     val query = ( kind  match {
-      case "objectProperty" => state.from("_esp___type",_.filter.isUri)
-      case "datatypeProperty" => state.from("_esp___type",_.filter.isLiteral)
+      case "objectProperty" => state.from("espTypeInternal",_.filter.isUri)
+      case "datatypeProperty" => state.from("espTypeInternal",_.filter.isLiteral)
       case _ => state
-    }).from("_esp___property",_.filter.not.regex(regex_avoid_prefix))
+    }).from("espPropertyInternal",_.filter.not.regex(regex_avoid_prefix))
 
     (if ( regex.trim.nonEmpty)
-      query.from("_esp___property",_.filter.regex(regex))
+      query.from("espPropertyInternal",_.filter.regex(regex))
     else
       query)
-      .selectByPage(List("_esp___property"))
+      .selectByPage(List("espPropertyInternal"))
       .flatMap(  v => {
         val futurePages : Seq[UnravelQuery] = v._2
         if ( futurePages.length > page ) {
@@ -101,7 +101,7 @@ case class UnravelSessionHelper(sw : UnravelSession) {
             .map( json => {
               json("results")("bindings").arr.map(
                 row => {
-                  SparqlBuilder.createUri(row("_esp___property")) }
+                  SparqlBuilder.createUri(row("espPropertyInternal")) }
               ).toSeq.distinct
             })
         } else {
@@ -128,21 +128,21 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     //println(s"focus node:${sw.focusNode}")
     val query = (if (motherClassProperties != URI("")) {
       sw.root
-        .something("_esp___type",
-          _.in(Var("_esp___property"),Var(sw.focusNode))
-           .out(URI("a"), motherClassProperties)
+        .something("espTypeInternal",
+          _.in(Var("espPropertyInternal"),Var(sw.focusNode))
+           .out(URI("rdf:type"), motherClassProperties)
           )
 
     } else {
-      sw.in(Var("_esp___property"))
-    })//.something("_esp___property",_.filter.not.regex(regex_avoid_prefix))
+      sw.in(Var("espPropertyInternal"))
+    })//.something("espPropertyInternal",_.filter.not.regex(regex_avoid_prefix))
 
     (if ( regex.trim != "")
-      query.something("_esp___property",_.filter.regex(regex))
+      query.something("espPropertyInternal",_.filter.regex(regex))
     else
       query)
 
-      .selectByPage(List("_esp___property"))
+      .selectByPage(List("espPropertyInternal"))
       .flatMap(  v => {
         val futurePages : Seq[UnravelQuery] = v._2
         if ( futurePages.length > page ) {
@@ -153,7 +153,7 @@ case class UnravelSessionHelper(sw : UnravelSession) {
             .map( json => {
               json("results")("bindings").arr.map(
                 row => {
-                  SparqlBuilder.createUri(row("_esp___property")) }
+                  SparqlBuilder.createUri(row("espPropertyInternal")) }
               ).toSeq.distinct
             })
         } else {

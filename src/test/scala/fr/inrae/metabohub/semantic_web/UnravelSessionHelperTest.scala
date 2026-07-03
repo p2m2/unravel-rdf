@@ -235,7 +235,8 @@ object UnravelSessionHelperTest  extends TestSuite  {
     test("subjectProperties 4") {
       val query = UnravelSession(config).something("h1", _.set(URI("http://cc")))
       insertData.map(_ => {
-        query.from("h1",_.finder.subjectProperties("bb", URI(":anything")).map(response => assert(response.isEmpty)))
+        query.from("h1",_.finder.subjectProperties("bb",
+          URI("http://anything")).map(response => assert(response.isEmpty)))
       }).flatten
     }
     test("subjectProperties 5") {
