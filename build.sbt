@@ -6,6 +6,9 @@ import scala.sys.process.Process
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+lazy val buildTime = java.time.LocalDateTime.now()
+  .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+
 val generateUnravelVersionFile = taskKey[Unit]("Generate Unravel version file")
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
 val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
@@ -265,14 +268,7 @@ lazy val root = (project in file("."))
     organization := "fr.inrae.metabohub.p2m2",
     organizationName := "p2m2",
     name := "unravel-rdf",
-    version := {
-      val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-
-      sys.env.getOrElse(
-        "UNRAVEL_RDF_VERSION",
-        java.time.LocalDateTime.now().format(formatter)
-      )
-    },
+    version := sys.env.getOrElse("UNRAVEL_RDF_VERSION", buildTime),
     scalaVersion := "2.13.18",
     organizationHomepage := Some(url("https://www6.inrae.fr/p2m2")),
     licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php")),
@@ -318,20 +314,27 @@ lazy val root = (project in file("."))
     Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withOptimizer(false).withPrettyPrint(true).withSourceMap(true) },
     Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false).withModuleKind(ModuleKind.CommonJSModule) },
 
-    generateUnravelVersionFile := {
+    Compile / sourceGenerators += Def.task {
       val file =
-        baseDirectory.value / "src" / "main" / "scala" / "fr" / "inrae" / "metabohub" / "semantic_web" / "UnravelSessionVersionAtBuildTime.scala"
+        baseDirectory.value /
+          "src" / "main" / "scala" /
+          "fr" / "inrae" / "metabohub" /
+          "semantic_web" /
+          "UnravelSessionVersionAtBuildTime.scala"
 
-      IO.write(
-        file,
+      val bt = buildTime
+
+      val content =
         s"""|package fr.inrae.metabohub.semantic_web
             |
             |object UnravelSessionVersionAtBuildTime {
-            |  val version: String = "${version.value}"
+            |  val version: String = "$buildTime"
             |}
             |""".stripMargin
-      )
-    },
+
+      IO.write(file, content)
+      Seq(file)
+    }.taskValue,
 
     npmPrepareRelease := prepareNpmDir(
       base = baseDirectory.value,
