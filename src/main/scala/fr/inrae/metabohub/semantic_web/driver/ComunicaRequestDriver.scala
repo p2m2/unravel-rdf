@@ -20,6 +20,12 @@ object ComunicaRequestDriver {
   type SourceComunica = String | SourceDefinitionNewQueryEngine | N3Store
 
   def sourceFromUrl(url: String, mimetype: String): SourceDefinitionNewQueryEngine = {
+
+    println("==== sourceFromUrl ====")
+    println(s"mimetype = $mimetype")
+    println(s"url   = $url")
+    println("===================================")
+
     SourceDefinitionNewQueryEngine(
       `type` = mimetype match {
         case "application/sparql-query" => SourceType.sparql

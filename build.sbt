@@ -6,11 +6,6 @@ import scala.sys.process.Process
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-private val formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-
-val staticVersionBuild = LocalDateTime.now().format(formatter)
-val versionBuild = scala.util.Properties.envOrElse("UNRAVEL_RDF_VERSION", staticVersionBuild)
-
 val generateUnravelVersionFile = taskKey[Unit]("Generate Unravel version file")
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")
 val npmPrepareDebugRelease = taskKey[File]("Prepare a debug npm publication directory in target/npm-debug")
@@ -270,7 +265,14 @@ lazy val root = (project in file("."))
     organization := "fr.inrae.metabohub.p2m2",
     organizationName := "p2m2",
     name := "unravel-rdf",
-    version := versionBuild,
+    version := {
+      val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+
+      sys.env.getOrElse(
+        "UNRAVEL_RDF_VERSION",
+        java.time.LocalDateTime.now().format(formatter)
+      )
+    },
     scalaVersion := "2.13.18",
     organizationHomepage := Some(url("https://www6.inrae.fr/p2m2")),
     licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php")),
