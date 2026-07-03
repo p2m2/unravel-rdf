@@ -3,9 +3,13 @@ import sbt.*
 import sbt.Keys.*
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.*
 import scala.sys.process.Process
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-val staticVersionBuild = "local.build"
-val versionBuild = scala.util.Properties.envOrElse("DISCOVERY_VERSION", staticVersionBuild)
+private val formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+
+val staticVersionBuild = LocalDateTime.now().format(formatter)
+val versionBuild = scala.util.Properties.envOrElse("UNRAVEL_RDF_VERSION", staticVersionBuild)
 
 val generateUnravelVersionFile = taskKey[Unit]("Generate Unravel version file")
 val npmPrepareRelease = taskKey[File]("Prepare an optimized npm publication directory in target/npm")

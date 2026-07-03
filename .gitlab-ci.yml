@@ -153,10 +153,11 @@ build_release:
     COURSIER_CACHE: ".cache/coursier"
     IVY_HOME: ".ivy2"
     npm_config_cache: "$CI_PROJECT_DIR/.npm"
-    DISCOVERY_VERSION: "$CI_COMMIT_TAG"
   before_script:
     - *setup_java_sbt
   script:
+    - export UNRAVEL_RDF_VERSION="$CI_COMMIT_TAG"
+    - echo "Building $UNRAVEL_RDF_VERSION"
     - 'sbt ";fullOptJS;cdnPrepare;npmPrepareRelease"'
     - |
       echo "npm bundle size : $(du -sh target/npm/unravel-rdf.js | cut -f1)"
@@ -180,7 +181,7 @@ build_debug:
     COURSIER_CACHE: ".cache/coursier"
     IVY_HOME: ".ivy2"
     npm_config_cache: "$CI_PROJECT_DIR/.npm"
-    DISCOVERY_VERSION: "$CI_COMMIT_TAG"
+    UNRAVEL_RDF_VERSION: "$CI_COMMIT_TAG"
   before_script:
     - *setup_java_sbt
   script:
@@ -221,7 +222,7 @@ pages:
   stage: pages
   needs: ["build_release"]
   variables:
-    DISCOVERY_VERSION: "$CI_COMMIT_TAG"
+    UNRAVEL_RDF_VERSION: "$CI_COMMIT_TAG"
   before_script:
     - apt-get update -y
     - apt-get install -y ruby-full build-essential
