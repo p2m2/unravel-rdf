@@ -73,14 +73,12 @@
 \tnotetext[1]{You can use this document as the template for preparing your
   publication. We recommend using the latest version of the ceurart style.}
 
-%%
-%% The "author" command and its associated commands are used to define
-%% the authors and their affiliations.
 \author[1,2,3]{Olivier Filangi}[%
-orcid=0000-0002-2094-3271,
-email=olivier.filangi@inrae.fr,
-url=https://forge.inrae.fr/olivier.filangi,
+  orcid=0000-0002-2094-3271,
+  email=olivier.filangi@inrae.fr,
+  url=https://forge.inrae.fr/olivier.filangi,
 ]
+
 \cormark[1]
 \fnmark[1]
 \address[1]{Institute for Genetics, Environment and Plant Protection (IGEPP), National Research Institute for Agriculture, Food and Environment (INRAE), Université Rennes, Institut Agro, Le Rheu, France}
@@ -88,18 +86,20 @@ url=https://forge.inrae.fr/olivier.filangi,
 \address[3]{MetaboHUB, National Infrastructure of Metabolomics and Fluxomics, Toulouse, France}
 
 \author[4]{Ilaria Tiddi}[%
-orcid=0000-0001-7116-9338,
-email=i.tiddi@vu.nl,
-url=https://kmitd.github.io/ilaria/,
+  orcid=0000-0001-7116-9338,
+  email=i.tiddi@vu.nl,
+  url=https://kmitd.github.io/ilaria/,
 ]
+
 \fnmark[1]
 \address[4]{Vrije Universiteit Amsterdam, De Boelelaan 1105, 1081 HV Amsterdam, The Netherlands}
 
 \author[5]{Manfred Jeusfeld}[%
-orcid=0000-0002-9421-8566,
-email=Manfred.Jeusfeld@acm.org,
-url=http://conceptbase.sourceforge.net/mjf/,
+  orcid=0000-0002-9421-8566,
+  email=Manfred.Jeusfeld@acm.org,
+  url=http://conceptbase.sourceforge.net/mjf/,
 ]
+
 \fnmark[1]
 \address[5]{University of Skövde, Högskolevägen 1, 541 28 Skövde, Sweden}
 
@@ -107,79 +107,71 @@ url=http://conceptbase.sourceforge.net/mjf/,
 \cortext[1]{Corresponding author.}
 \fntext[1]{These authors contributed equally.}
 
-%%
-%% The abstract is a short summary of the work to be presented in the
-%% article.
+
 \begin{abstract}
-  A clear and well-documented \LaTeX{} document is presented as an
-  article formatted for publication by CEUR-WS in a conference
-  proceedings. Based on the ``ceurart'' document class, this article
-  presents and explains many of the common variations, as well as many
-  of the formatting elements an author may use in the preparation of
-  the documentation of their work.
+Semantic Web technologies are widely used to integrate heterogeneous
+life science resources as RDF knowledge graphs exposed via SPARQL
+endpoints. While these graphs support rich querying, exploiting them
+in interactive web applications remains difficult for frontend
+developers. Existing tools focus on data access and query execution, 
+but provide limited support for application-oriented abstractions 
+such as composable query builders or domain-specific languages 
+tightly aligned with UI logic. We present Unravel-RDF, a JavaScript 
+framework that introduces a focus-based domain-specific language (DSL) 
+for constructing SPARQL queries together with a composable API tailored to event-driven user
+interfaces. Unravel-RDF offers functional abstractions for incremental
+query construction, asynchronous execution, pagination, and caching,
+while delegating query processing to existing SPARQL engines. We
+evaluate Unravel-RDF in the FORVM ecosystem, which interconnects
+biomedical and plant knowledge graphs through shared chemical
+entities, and demonstrate a web application for cross-domain
+exploration of metabolomics relationships across multiple SPARQL
+endpoints. This case study suggests that Unravel-RDF can bring
+knowledge graph querying closer to modern frontend development
+practices and improve the modularity and responsiveness of
+metabolomics exploration tools.
 \end{abstract}
 
-%%
-%% Keywords. The author(s) should pick words that accurately describe
-%% the work being presented. Separate the keywords with commas.
+
 \begin{keywords}
-  LaTeX class \sep
-  paper template \sep
-  paper formatting \sep
-  CEUR-WS
+  Knowledge graphs \sep
+  JavaScript/TypeScript framework \sep
+  Frontend development \sep
+  Domain-specific language \sep
+  Query builder
 \end{keywords}
 
-%%
-%% This command processes the author and affiliation and title
-%% information and builds the first part of the formatted document.
 \maketitle
-
-%1. Introduction
-%2. Architecture
-%3. Programming Model / API
-%4. Design Patterns
-%5. Case Study
-%6. Discussion
-%7. Related Work
-%8. Conclusion
 
 \section{Introduction}
 
-Semantic Web technologies are now widely used to represent and query knowledge in the life sciences\citep{wu_semantic_2014}. 
-Many resources are published as RDF knowledge graphs and made available via SPARQL endpoints, enabling interoperability 
-between heterogeneous datasets describing molecular entities, biological processes, pathways, and phenotypic characteristics 
-across diverse organisms.\citep{wilkinson_fair_2016}. In bioinformatics, these approaches enable the integration and reuse 
-of omics resources, but their effective use within analysis platforms and web applications still poses significant technical challenges.
+Semantic Web technologies are widely used to represent and query knowledge in the life sciences.\citep{wu_semantic_2014} 
+Many resources are published as RDF knowledge graphs and exposed via SPARQL endpoints, enabling interoperability between heterogeneous 
+datasets describing molecular entities, biological processes, pathways, and phenotypic characteristics across diverse organisms.\citep{wilkinson_fair_2016}.
+In bioinformatics, these approaches support the integration and reuse of theses resources, but their effective use within analysis platforms 
+and web applications still poses significant technical challenges.
 
-Integrating knowledge graphs into web applications with complex user interfaces remains a significant challenge in modern 
-software development. As developers increasingly integrate RDF graph data models into web applications, 
-they face a primary obstacle: bridging RDF graph data models and application logic. 
-Existing RDF middleware frameworks provide limited support for building applications backed by RDF knowledge graphs, 
-which introduces additional implementation complexity.
+Developers building web frontends on top of RDF knowledge graphs face a fundamental challenge: bridging low-level RDF graph models with application 
+logic. Frontend developers typically either embed raw SPARQL queries directly in their code or rely on low-level RDF/JS-based libraries that expose 
+graph primitives and query execution but offer limited support for structuring application data access.
 
-At the same time, query engines such as Comunica have greatly simplified the execution of queries on decentralised RDF data 
-sources from the Web. However, creating interactive applications based on these engines remains a real challenge. 
-Developers still have to embed raw SPARQL strings in application code, resulting in a weak integration between query 
-construction and software abstractions.
+The RDF/JS ecosystem, including engines such as Comunica, has been highly successful at standardizing RDF representations and query interfaces 
+across heterogeneous data sources. However, these tools are intentionally designed as foundational building blocks, and do not provide the kind 
+of higher-level, application-oriented abstractions—such as composable query builders, domain-specific languages (DSLs), or data mappers—that 
+frontend developers routinely rely on in relational database ecosystems.
 
-By contrast, software development for relational databases has long benefited from sophisticated programming abstractions, 
-such as query builders, domain-specific languages (DSLs), and object-relational mappers (ORMs), which improve readability, 
-modularity, and maintainability while preserving access to the underlying query language. Comparable abstractions remain 
-limited within the Semantic Web ecosystem, particularly for JavaScript applications targeting RDF data sources.
+As a result, there remains a significant gap between RDF query formulation and modern frontend development practices, 
+leading to brittle integrations and weak alignment between knowledge graph queries and application-level structures.
 
-To address this gap, we introduce \texttt{Unravel-RDF}, a JavaScript framework that combines a domain-specific language (DSL) for 
-SPARQL query construction with a composable API enabling modular query building, and supports their execution within event-driven 
-user interface applications.
+To address this gap, we introduce \texttt{Unravel-RDF}, a JavaScript framework that combines a DSL for SPARQL query construction with a 
+composable API tailored to event-driven user interface applications. 
+Our design provides functional abstractions for incremental, focus-based query building, asynchronous execution, pagination, and caching 
+over RDF data sources. 
+We evaluate \texttt{Unravel-RDF} on the FORVM ecosystem, which interconnects biomedical and plant knowledge graphs through shared chemical 
+entities, and demonstrate a cross-domain exploration workflow implemented as a web application that leverages these abstractions to 
+support interactive navigation of metabolomics relationships across multiple SPARQL endpoints.
 
-We evaluate and illustrate \texttt{Unravel-RDF} using the FORVM ecosystem, which comprises a reference biomedical knowledge graph 
-and an experimental extension targeting plant sciences. We demonstrate a cross-domain exploration workflow in which biomedical 
-and plant-related knowledge graphs are interconnected through shared chemical entities, enabling interactive navigation of 
-metabolomics relationships across domains. This workflow is implemented as a Web application built with \texttt{Unravel-RDF}, 
-which bridges query construction and interface logic by orchestrating SPARQL query composition, reuse, and execution across 
-multiple endpoints within an event-driven architecture, while providing an interactive visualization layer for exploring 
-heterogeneous RDF data sources.
-
-\section{Architecture}
+\section{Architecture and Programming Model}
 
 \begin{figure}[t]
     \centering
@@ -188,233 +180,175 @@ heterogeneous RDF data sources.
     \label{fig:architecture}
 \end{figure}
 
-\subsection{Overview}
+\subsection{Layered Architecture}
 
-Figure~\ref{fig:architecture} illustrates the architecture of Unravel-RDF, which is organized as a layered system connecting RDF data sources, a compositional query abstraction layer, and event-driven application components.
+Figure~\ref{fig:architecture} illustrates the architecture of Unravel-RDF, designed as a layered system connecting RDF data sources, 
+a compositional query abstraction layer, and application components. 
+This organization separates concerns between configuration, query construction, and execution, while structuring the system 
+into functional components ranging from low-level query primitives to high-level user interface interactions. 
+These concerns are mapped to three core immutable components: \texttt{UnravelConfiguration}, which defines the execution environment; 
+\texttt{UnravelSession}, which supports incremental and programmatic query construction; and \texttt{UnravelQuery}, which represents 
+executable queries and provides execution control and result handling.
 
-At its core, Unravel-RDF provides a domain-specific language (DSL) for constructing SPARQL queries programmatically. This DSL replaces raw query strings with structured, composable query fragments that support modular construction and variable scoping. Queries are incrementally assembled and compiled into executable SPARQL expressions.
+\subsection{Programming Model}
 
-Query execution is delegated to the Comunica framework, which handles access to distributed RDF data sources. Unravel-RDF does not reimplement query processing; instead, it focuses on bridging high-level query composition with execution through a typed Scala.js facade that wraps the Comunica JavaScript API. This facade ensures type-safe interaction between the Scala-based abstraction layer and the underlying JavaScript runtime.
+At its core, Unravel-RDF provides a domain-specific language (DSL) for constructing SPARQL queries. 
+Instead of relying on raw query strings, the DSL enables the composition of structured query fragments. 
+Query construction is incremental and follows a lambda-closure style, where functions capture context and enable modular composition. 
+All manipulated objects are immutable, enforcing a functional programming paradigm that improves composability of query transformations.
 
-Finally, query results are exposed through an event-driven execution model. Rather than returning static result sets, Unravel-RDF propagates intermediate and final results as events, enabling tight integration with reactive user interface components and incremental data consumption in web applications.
+Queries are constructed relative to a focus variable, which serves as an implicit context for navigating RDF graphs. 
+Focus-binding primitives (\texttt{something}, \texttt{from}) introduce or rebind this variable, defining the scope of query construction. 
+In contrast, graph-expansion primitives (\texttt{out}, \texttt{in}, \texttt{traverse}) add triple patterns relative to the current focus 
+while updating it to the newly reached node. These primitives accept both RDF IRIs and SPARQL variables as arguments, so the same combinators 
+can express schema-level templates and data-level queries in a uniform way.Table~\ref{tab:query-primitives} summarizes the core primitives 
+and their semantics, and the following example shows how they can be composed to build a query centered on a compound entity acting as 
+the focus variable.
 
-The remainder of this section details these three layers: query construction, execution integration, and event-driven programming.
-These three layers are further decomposed into five main functional components that structure the Unravel-RDF architecture, ranging from low-level query construction primitives to high-level UI integration mechanisms.
+\begin{table}[ht]
+\centering
+\caption{Core query building primitives in Unravel-RDF}
+\label{tab:query-primitives}
+\begin{tabular}{|l|p{3.5cm}|p{6.5cm}|}
+\hline
+\textbf{Primitive} & \textbf{Role} & \textbf{Description} \\
+\hline
+\texttt{something(name, f)} 
+  & Focus introduction 
+  & Introduces a fresh SPARQL variable as the current focus. The closure \texttt{f} builds patterns relative to this focus. \\
+\hline
+\texttt{from(name, f)} 
+  & Focus rebinding 
+  & Reuses an existing variable and sets it as the current focus. The closure \texttt{f} continues query construction from this focus. \\
+\hline
+\texttt{out(property, object, f)} 
+  & Forward expansion 
+  & Adds a triple pattern \texttt{<focus> property object} and sets the current focus to \texttt{object} before applying \texttt{f}. \\
+\hline
+\texttt{in(property, subject, f)} 
+  & Backward expansion 
+  & Adds a triple pattern \texttt{subject property <focus>} and sets the current focus to \texttt{subject} before applying \texttt{f}. \\
+\hline
+\texttt{traverse(property, node, f)} 
+  & Bidirectional expansion 
+  & Adds \texttt{\{ <focus> property node \} UNION \{ node property <focus> \}} and sets the current focus to \texttt{node} before applying \texttt{f}. \\
+\hline
+\end{tabular}
+\end{table}
 
+\begin{figure}[ht]
+\centering
+\caption{Incremental query construction with Unravel-RDF and resulting SPARQL}
+\label{fig:unravel-sparql-example}
 
-\subsection{Query Construction}
+\begin{minipage}[t]{0.55\textwidth}
+\begin{lstlisting}[language=JavaScript,basicstyle=\ttfamily\small]
+const session =
+  UnravelSession(config)
+    .something("compound",
+      compound => compound.out("?rel", "CHEBI:24279"));
 
-Query construction in Unravel-RDF is based on a layered design that replaces raw SPARQL string manipulation with a structured and compositional API. This layer is responsible for transforming modular query fragments into executable SPARQL expressions.
-
-It is composed of four main mechanisms:
-
-\begin{itemize}
-\item \textbf{Configuration.} Defines the execution context of an Unravel session, including SPARQL prefixes, named graphs, and RDF data sources.
-
-\item \textbf{Core Query DSL.} Provides composable primitives for constructing SPARQL queries from graph patterns, filters, and variable bindings.
-
-\item \textbf{High-Level Query API.} Introduces reusable abstractions for common RDF querying patterns such as graph traversal and decomposed property retrieval.
-
-\item \textbf{Variable Scoping and Focus.} Introduces a dynamic focus mechanism that structures query construction around a central variable context.
-\end{itemize}
-
-Together, these components enable incremental query construction and automatic SPARQL generation while preserving full expressivity.
-
-\subsection{Execution Integration}
-
-The execution layer of Unravel-RDF is responsible for bridging the high-level query construction DSL with the underlying SPARQL execution engine. Rather than implementing query processing internally, Unravel-RDF delegates execution to the Comunica framework, which provides efficient access to distributed RDF data sources.
-
-A key aspect of this layer is the translation of compositional query objects into executable SPARQL queries. Once a query is fully constructed, it is compiled into a standard SPARQL expression and passed to Comunica for evaluation. This design ensures a clear separation between query specification and execution strategy.
-
-To enable seamless interoperability between the Scala-based abstraction layer and the JavaScript runtime of Comunica, Unravel-RDF relies on a Scala.js facade. This facade acts as a typed binding layer that wraps the Comunica API, allowing the Scala implementation to interact with JavaScript modules in a type-safe and structured manner while preserving full compatibility with the underlying execution engine.
-
-During execution, results are not simply returned as static collections. Instead, they are progressively emitted and streamed back to the application layer, enabling incremental consumption and integration with reactive interfaces.
-
-\subsection{Event-driven Programming}
-
-Unravel-RDF adopts an event-driven execution model that tightly integrates query processing with application-level logic. Instead of relying on synchronous result retrieval, query execution produces a stream of events that reflect both intermediate and final results.
-
-This model is particularly suited for web applications built around dynamic and interactive user interfaces, where incremental updates are preferred over blocking query execution. As queries are executed through Comunica, result events are propagated asynchronously to the application layer.
-
-The execution pipeline can be summarized as follows: query construction, execution through Comunica, event emission, and consumption by application components. This allows UI components to react directly to query progression, enabling patterns such as live result rendering, progressive data loading, and interactive exploration of RDF graphs.
-
-The event system also provides hooks for integrating additional application logic, such as result transformation, logging, or enrichment. In combination with the execution integration layer, it forms the basis for a reactive architecture where query execution and interface behavior are decoupled yet tightly synchronized.
-
-
-\section{Programming Model}
-
-This section illustrates how Unravel-RDF is used in practice to construct and execute SPARQL queries within JavaScript applications. We present concrete examples that demonstrate how the abstractions introduced by the framework translate into executable query workflows.
-
-\subsection*{Focus-based query construction and query incremental building}
-
-Queries are constructed relative to a focus variable, which simplifies
-navigation over RDF graphs. In this example, the query is centered on a compound entity .
-
-This enables modular construction of complex federated queries from smaller reusable building blocks.
-
-\begin{lstlisting}[caption={Focus-based query construction example},label={lst:example-1}]
-
-  const configuration = UnravelConfiguration
-                        .init()
-                        .sparqlEndpoint("https://rdfportal.org/ebi/sparql");
-
-  /* Build a base query with "compound" as the current focus, linked to CHEBI:106243 through the variable ?rel */
-  const query = UnravelSession(configMetaNetX)
-  .prefix("CHEBI", "http://purl.obolibrary.org/obo/CHEBI_")
-  .something(
-    "compound",compound => compound.out("?rel","CHEBI:24279") /* SPARQL : ?compound ?rel CHEBI:106243 */
-  );
-  /* Restore the focus to "subject" and retrieve its RDF type */
-  const specializedQuery = query
-  .from(
-    "compound", compound => compound.out("rdf:type","?type")
-  );
+const session2 =
+  session
+    .from("compound",
+      compound => compound.out("rdf:type", "?type"));
 \end{lstlisting}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.40\textwidth}
+\begin{lstlisting}[language=SPARQL,basicstyle=\ttfamily\small]
+SELECT ?compound ?rel ?type
+WHERE {
+  ?compound ?rel CHEBI:24279 .
+  ?compound rdf:type ?type .
+}
+\end{lstlisting}
+\end{minipage}
 
+\end{figure}
 
-- `something("subject", subject => ...)` creates a **lambda enclosure** around the current focus `subject`.
-- Inside the closure, `out("?rel", "CHEBI:106243")` searches for RDF triples where `subject` is connected to `CHEBI:106243` by some relation bound to `?rel`.
-- `select("subject", "rel")` turns this traversal into a query projection.
-- `limit(3).commit().raw()` executes the resulting query and returns the raw SPARQL JSON response.
+\subsection{Query Execution}
 
-\subsection*{Event-driven execution}
+Unravel-RDF does not reimplement SPARQL query processing. Instead, it relies on a Scala.js facade over the Comunica engine to execute queries.
 
-Query execution is asynchronous and returns a stream of results.
+This integration enables access to multiple RDF data sources and supports federation mechanisms, allowing queries to transparently 
+combine distributed datasets. The system therefore focuses on bridging high-level query composition with existing execution infrastructures.
 
-\begin{verbatim}
-### Automatic lazy pagination
+\subsection{User Interface Integration}
 
-No manual OFFSET/LIMIT management:
+The execution model is based on JavaScript promises combined with a subscription mechanism, enabling asynchronous and staged processing of queries. 
+To avoid long-running SPARQL requests, results are delivered in batches through a pagination mechanism and exposed as lazy pages 
+(windows of results) that are only fetched when requested. This event-driven approach enables incremental data consumption and 
+allows applications to update dynamically as data becomes available, supporting tight integration with reactive user interfaces. 
+Additionally, a caching layer prevents redundant query execution by reusing previously retrieved results, thereby improving 
+performance and responsiveness. Overall, this execution model brings SPARQL-based querying closer to modern reactive web application patterns 
+while preserving a clear separation between query abstraction and engine-level concerns.
 
-```js
-session
-  .commit()
-  .raw()
-  .selectByPage("study", "label")
-  .then(([totalCount, fetchPage]) => {
-    console.log(`${totalCount} results`)
+\subsection{Implementation and Distribution}
 
-    // Fetch page 0 on demand
-    fetchPage(0).then(page => renderTable(page))
-  })
-```
-
-### Query progression and events
-
-Long-running SPARQL queries report progress — useful for updating a loading indicator:
-
-```js
-session
-  .select("study", "label")
-  .commit()
-  .progression((percent) => {
-    updateProgressBar(percent)
-  })
-  .requestEvent((event) => {
-    console.log("SPARQL event:", event)
-  })
-  .raw()
-  .then(response => render(response))
-```
-
-\end{verbatim}
-
-This allows integration with reactive user interfaces such as dashboards or interactive graph explorers.
-
+Unravel-RDF is entirely implemented in functional Scala and transpiled to JavaScript using Scala.js. 
+It is distributed through standard web channels, including CDN delivery and the npm ecosystem, facilitating integration into modern web applications.
+The source code and documentation are publicly available in the project repository\footnote{\url{https://forge.inrae.fr/p2m2/unravel-rdf}}, 
+enabling reuse and extension by third-party developers.
 
 \section{Case Study: FORVM}
 
-We evaluate Unravel-RDF using the FORVM ecosystem, which provides a cross-domain knowledge graph infrastructure spanning biomedical and plant sciences.
+We evaluate Unravel-RDF using the FORVM ecosystem, which provides a cross-domain knowledge graph infrastructure spanning biomedical and plant sciences. 
+The biomedical component, \textit{FORVM ChemDisease}, is a curated knowledge graph derived from statistical co-occurrence of MeSH-annotated chemical 
+and disease concepts in PubMed literature, while \textit{FORVM Plants} extends this approach to plant sciences by leveraging Planteome ontologies to 
+represent plant-related entities and traits.\footnote{The FORVM use case UI is available at \url{http://kg.p2m2.inrae.fr/}.}
 
-The biomedical component, \textit{FORVM ChemDisease}, is a curated knowledge graph derived from statistical co-occurrence of MeSH-annotated chemical and disease concepts in PubMed literature. In parallel, \textit{FORVM Plants} extends this approach to plant sciences by leveraging ontology-driven annotations (including the Plant Ontology and Trait Ontology) to extract plant-related entities from scientific literature.
+These two knowledge graphs are interconnected through shared chemical entities, enabling cross-domain exploration of metabolomics relationships 
+across multiple SPARQL endpoints, including FORVM ChemDisease and FORVM Plants, as well as RDF Portal endpoints for ChEBI, PubChem and 
+NCBI resources.\footnote{For example, ChEBI is exposed at \url{https://rdfportal.org/ebi/sparql} and 
+PubChem RDF at \url{https://rdfportal.org/pubchem/sparql}.} 
+We implement this workflow as a web application built with Unravel-RDF, where the interface displays clusters of nodes linking 
+chemical compounds to both MeSH disease terms and Planteome concepts, revealing transitive connections between biomedical and plant knowledge. 
+Unravel-RDF orchestrates compositional query construction, reuse of query fragments, and federated execution, while its event-driven execution 
+model with pagination and lazy result pages enables interactive exploration through incremental result rendering and dynamic interface updates.
 
-These two knowledge graphs are interconnected through shared chemical entities, enabling cross-domain exploration of metabolomics relationships across multiple SPARQL endpoints.
-
-We implement this workflow as a web application built with Unravel-RDF. The system orchestrates compositional query construction, reuse of query fragments, and federated execution across endpoints. The event-driven execution model enables interactive exploration of relationships between biomedical and plant knowledge graphs through incremental result rendering and dynamic interface updates.
-
-\section{Acknowledgments}
-
-Identification of funding sources and other support, and thanks to
-individuals and groups that assisted in the research and the
-preparation of the work should be included in an acknowledgment
-section, which is placed just before the reference section in your
-document.
-
-This section has a special environment:
-\begin{lstlisting}
 \begin{acknowledgments}
-  These are different acknowledgments.
-\end{acknowledgments}
-\end{lstlisting}
-so that the information contained therein can be more easily collected
-during the article metadata extraction phase, and to ensure
-consistency in the spelling of the section heading.
-
-Authors should not prepare this section as a numbered or unnumbered
-\verb|\section|; please use the ``\verb|acknowledgments|'' environment.
-
-\section{Appendices}
-
-If your work needs an appendix, add it before the
-``\verb|\end{document}|'' command at the conclusion of your source
-document.
-
-Start the appendix with the ``\verb|\appendix|'' command:
-\begin{lstlisting}
-\appendix
-\end{lstlisting}
-and note that in the appendix, sections are lettered, not
-numbered. 
-
-%%
-%% The acknowledgments section is defined using the "acknowledgments" environment
-%% (and NOT an unnumbered section). This ensures the proper
-%% identification of the section in the article metadata, and the
-%% consistent spelling of the heading.
-\begin{acknowledgments}
-  Thanks to the developers of ACM consolidated LaTeX styles
-  \url{https://github.com/borisveytsman/acmart} and to the developers
-  of Elsevier updated \LaTeX{} templates
-  \url{https://www.ctan.org/tex-archive/macros/latex/contrib/els-cas-templates}.  
+We thank the MetaboHUB national infrastructure (funded by the French
+National Research Agency under the France 2030 programme) for its
+support in developing the metabolomics data management and analysis
+ecosystem underlying the FORVM knowledge graph and the Unravel-RDF
+application layer. We also acknowledge the INRAE metaprogram
+Digit-Bio for funding positions and projects that contributed to the
+design and implementation of the FORVM ecosystem and, ultimately,
+to the development of Unravel-RDF.
 \end{acknowledgments}
 
-%% The declaration on generative AI comes in effect
-%% in Janary 2025. See also
-%% https://ceur-ws.org/GenAI/Policy.html
+
 \section*{Declaration on Generative AI}
-  {\em Either:}\newline
-  The author(s) have not employed any Generative AI tools.
-  \newline
-  
- \noindent{\em Or (by using the activity taxonomy in ceur-ws.org/genai-tax.html):\newline}
- During the preparation of this work, the author(s) used X-GPT-4 and Gramby in order to: Grammar and spelling check. Further, the author(s) used X-AI-IMG for figures 3 and 4 in order to: Generate images. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and take(s) full responsibility for the publication’s content. 
 
- During the preparation of this work, the authors used Perplexity and ChatGPT in order to: paraphrase
-and reword, improve writing style, and grammar and spelling checking. After using these tools, the
-authors reviewed and edited the content as needed and take full responsibility for the publication’s
-content.
+During the preparation of this work, the authors used Perplexity and
+ChatGPT in order to: paraphrase and reword text, improve writing
+style and clarity, and perform grammar and spelling checks. The tools
+were also used to discuss and refine ideas, and to revise the
+presentation of paragraphs, tables, and figures. After using these
+tools, the authors reviewed and edited the content as needed and take
+full responsibility for the publication’s content.
+
 
 %%
 %% Define the bibliography file to be used
-\bibliography{sample-ceur}
+\bibliography{unravel-biblio}
 
-%%
-%% If your work has an appendix, this is the place to put it.
 \appendix
 
 \section{Online Resources}
 
-
-The sources for the ceur-art style are available via
+The following resources provide additional material related to the
+FORVM ecosystem and the Unravel-RDF programming model:
 \begin{itemize}
-\item \href{https://github.com/yamadharma/ceurart}{GitHub},
-% \item \href{https://www.overleaf.com/project/5e76702c4acae70001d3bc87}{Overleaf},
-\item
-  \href{https://www.overleaf.com/latex/templates/template-for-submissions-to-ceur-workshop-proceedings-ceur-ws-dot-org/pkfscdkgkhcq}{Overleaf
-    template}.
+  \item Unravel-RDF source code and documentation:
+    \href{https://forge.inrae.fr/p2m2/unravel-rdf}{https://forge.inrae.fr/p2m2/unravel-rdf}
+  \item FORVM DiseasesChem :
+    \href{https://forum-webapp.semantic-metabolomics.fr}{https://forum-webapp.semantic-metabolomics.fr}
+  \item Supplementary examples and usage tutorials:
+    \href{https://example.org/unravel-examples}{https://example.org/unravel-examples}
 \end{itemize}
 
 \end{document}
-
 %%
 %% End of file
