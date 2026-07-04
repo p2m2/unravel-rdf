@@ -15,11 +15,13 @@
 %%
 %% Minted listings support 
 %% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
-\usepackage{listings}
 \usepackage{xcolor}
+\usepackage{listings}
 
+% --- JavaScript + Unravel-RDF DSL ------------------------------------
 \lstdefinelanguage{JavaScript}{
-  keywords={const, let, var, function, return, if, else, for, while, class, new, await, async},
+  keywords={const, let, var, function, return, if, else, for, while,
+            class, new, await, async},
   sensitive=true,
   comment=[l]{//},
   morecomment=[s]{/*}{*/},
@@ -27,20 +29,53 @@
   morestring=[b]'
 }
 
-%% auto break lines
-\lstset{breaklines=true}
-
-\lstset{
+\lstdefinestyle{unraveljs}{
   language=JavaScript,
   basicstyle=\ttfamily\small,
-  keywordstyle=\bfseries,
-  commentstyle=\itshape,
-  stringstyle=\ttfamily,
-  numbers=left,
-  numberstyle=\tiny,
+  % Mots-clés JS (const, etc.) en bleu
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red!60!black},
+  numbers=none,
   frame=single,
   breaklines=true,
-  columns=fullflexible
+  columns=fullflexible,
+  % Mots-clés supplémentaires pour mettre en évidence l'API Unravel
+  morekeywords={UnravelSession,something,from,out},
+  % API Unravel en teal gras
+  keywordstyle=[2]\color{teal}\bfseries,
+  classoffset=1,
+  otherkeywords={UnravelSession,something,from,out},
+  classoffset=0,
+  % Autoriser l'injection de LaTeX dans le code JS
+  escapeinside={(*}{*)}
+}
+
+% --- SPARQL -----------------------------------------------------------
+\lstdefinelanguage{SPARQL}{
+  morekeywords={
+    SELECT, CONSTRUCT, ASK, DESCRIBE,
+    WHERE, PREFIX, BASE,
+    FILTER, OPTIONAL, GRAPH, UNION,
+    LIMIT, OFFSET, DISTINCT, REDUCED,
+    ORDER, BY, GROUP, HAVING
+  },
+  sensitive=true,
+  comment=[l]{\#},
+  morestring=[b]"
+}
+
+\lstdefinestyle{sparqlstyle}{
+  language=SPARQL,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red!60!black},
+  numbers=none,
+  frame=single,
+  breaklines=true,
+  columns=fullflexible,
+  escapeinside={(*}{*)}
 }
 
 % to active note:
@@ -113,12 +148,14 @@ Semantic Web technologies are widely used to integrate heterogeneous
 life science resources as RDF knowledge graphs exposed via SPARQL
 endpoints. While these graphs support rich querying, exploiting them
 in interactive web applications remains difficult for frontend
-developers. Existing tools focus on data access and query execution, 
-but provide limited support for application-oriented abstractions 
-such as composable query builders or domain-specific languages 
-tightly aligned with UI logic. We present Unravel-RDF, a JavaScript 
-framework that introduces a focus-based domain-specific language (DSL) 
-for constructing SPARQL queries together with a composable API tailored to event-driven user
+developers. Existing tools focus on data access and query execution,
+but provide limited support for application-oriented abstractions
+such as composable query builders or domain-specific languages
+tightly aligned with UI logic.
+
+We present Unravel-RDF, a JavaScript framework that introduces a
+focus-based domain-specific language (DSL) for constructing SPARQL
+queries together with a composable API tailored to event-driven user
 interfaces. Unravel-RDF offers functional abstractions for incremental
 query construction, asynchronous execution, pagination, and caching,
 while delegating query processing to existing SPARQL engines. We
@@ -135,10 +172,10 @@ metabolomics exploration tools.
 
 \begin{keywords}
   Knowledge graphs \sep
-  JavaScript/TypeScript framework \sep
+  JavaScript framework \sep
   Frontend development \sep
-  Domain-specific language \sep
-  Query builder
+  Domain-specific language (DSL) \sep
+  Metabolomics \sep
 \end{keywords}
 
 \maketitle
@@ -182,8 +219,7 @@ support interactive navigation of metabolomics relationships across multiple SPA
 
 \subsection{Layered Architecture}
 
-Figure~\ref{fig:architecture} illustrates the architecture of Unravel-RDF, designed as a layered system connecting RDF data sources, 
-a compositional query abstraction layer, and application components. 
+The query abstraction layer provides composable query primitives, higher-level APIs, and integration with UI workflows, while delegating SPARQL execution to the underlying RDF data and query layer.
 This organization separates concerns between configuration, query construction, and execution, while structuring the system 
 into functional components ranging from low-level query primitives to high-level user interface interactions. 
 These concerns are mapped to three core immutable components: \texttt{UnravelConfiguration}, which defines the execution environment; 
@@ -241,26 +277,31 @@ the focus variable.
 \caption{Incremental query construction with Unravel-RDF and resulting SPARQL}
 \label{fig:unravel-sparql-example}
 
-\begin{minipage}[t]{0.55\textwidth}
-\begin{lstlisting}[language=JavaScript,basicstyle=\ttfamily\small]
+\begin{minipage}[t]{0.45\textwidth}
+\centering
+\begin{lstlisting}[style=unraveljs]
 const session =
   UnravelSession(config)
-    .something("compound",
-      compound => compound.out("?rel", "CHEBI:24279"));
+    .something("(*\textcolor{purple}{compound}*)",
+      (*\textcolor{purple}{compound}*) =>
+        (*\textcolor{purple}{compound}*).out("(*\textcolor{purple}{?rel}*)","(*\textcolor{green!50!black}{CHEBI:24279}*)"));
+
 
 const session2 =
   session
-    .from("compound",
-      compound => compound.out("rdf:type", "?type"));
+    .from("(*\textcolor{purple}{compound}*)",
+      (*\textcolor{purple}{compound}*) =>
+        (*\textcolor{purple}{compound}*).out("(*\textcolor{green!50!black}{rdf:type}*)","(*\textcolor{purple}{?type}*)"));
 \end{lstlisting}
 \end{minipage}%
-\hfill
-\begin{minipage}[t]{0.40\textwidth}
-\begin{lstlisting}[language=SPARQL,basicstyle=\ttfamily\small]
-SELECT ?compound ?rel ?type
+\hspace{0.03\textwidth}
+\begin{minipage}[t]{0.45\textwidth}
+\centering
+\begin{lstlisting}[style=sparqlstyle]
+SELECT (*\textcolor{purple}{?compound}*) (*\textcolor{purple}{?rel}*) (*\textcolor{purple}{?type}*)
 WHERE {
-  ?compound ?rel CHEBI:24279 .
-  ?compound rdf:type ?type .
+  (*\textcolor{purple}{?compound}*) (*\textcolor{purple}{?rel}*) (*\textcolor{green!50!black}{CHEBI:24279}*) .
+  (*\textcolor{purple}{?compound}*) (*\textcolor{green!50!black}{rdf:type}*) (*\textcolor{purple}{?type}*) .
 }
 \end{lstlisting}
 \end{minipage}
