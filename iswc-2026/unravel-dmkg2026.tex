@@ -219,27 +219,63 @@ support interactive navigation of metabolomics relationships across multiple SPA
 
 \subsection{Layered Architecture}
 
-The query abstraction layer provides composable query primitives, higher-level APIs, and integration with UI workflows, while delegating SPARQL execution to the underlying RDF data and query layer.
-This organization separates concerns between configuration, query construction, and execution, while structuring the system 
-into functional components ranging from low-level query primitives to high-level user interface interactions. 
-These concerns are mapped to three core immutable components: \texttt{UnravelConfiguration}, which defines the execution environment; 
-\texttt{UnravelSession}, which supports incremental and programmatic query construction; and \texttt{UnravelQuery}, which represents 
-executable queries and provides execution control and result handling.
+Figure~\ref{fig:architecture} illustrates the architecture of
+Unravel-RDF as a three-layer system: an \emph{Application Development
+Layer}, an \emph{Unravel Query Abstraction Layer}, and an \emph{RDF Data
+\& Query Layer}. The Application Development Layer hosts
+JavaScript/TypeScript code, HTML-based user interfaces, and Node.js
+services, together with Unravel sessions that are embedded into web
+applications. This layer includes hooks and UI components (e.g., built
+with D3.js, React, or Vue) that consume Unravel queries, as well as
+three immutable objects, \texttt{UnravelConfiguration},
+\texttt{UnravelSession}, and \texttt{UnravelQuery}, which encapsulate
+configuration, query construction, and execution respectively.
+
+The Unravel Query Abstraction Layer is implemented in Scala/Scala.js and
+provides the core query model. It is organized into several functional
+subsystems: a configuration module, a core query DSL, a high-level query
+API, UI integration utilities, and a variable scoping mechanism.
+Together, these components offer a composable, focus-based abstraction
+over SPARQL queries that can be safely reused across application code.
+A dedicated Comunica.js facade connects this abstraction layer to the
+JavaScript RDF/JS ecosystem and exposes a typed interface to the
+underlying SPARQL engines.
+
+Finally, the RDF Data \& Query Layer corresponds to the existing
+JavaScript/TypeScript ecosystem for RDF and SPARQL. In our deployment,
+this layer is instantiated by a Comunica SPARQL engine that can query
+over multiple RDF sources, including HTTP-accessible SPARQL endpoints
+and local or remote RDF files. Unravel-RDF therefore focuses on bridging
+application-level query construction and UI logic with these
+heterogeneous RDF data sources, without reimplementing query processing.
 
 \subsection{Programming Model}
 
-At its core, Unravel-RDF provides a domain-specific language (DSL) for constructing SPARQL queries. 
-Instead of relying on raw query strings, the DSL enables the composition of structured query fragments. 
-Query construction is incremental and follows a lambda-closure style, where functions capture context and enable modular composition. 
-All manipulated objects are immutable, enforcing a functional programming paradigm that improves composability of query transformations.
+At its core, Unravel-RDF provides a domain-specific language (DSL) for
+constructing SPARQL queries. Instead of relying on raw query strings,
+the DSL enables the composition of structured query fragments.
+Query construction is incremental and follows a lambda-closure style,
+where functions capture context and enable modular composition.
+All manipulated objects are immutable, enforcing a functional
+programming paradigm that improves the composability of query
+transformations.
 
-Queries are constructed relative to a focus variable, which serves as an implicit context for navigating RDF graphs. 
-Focus-binding primitives (\texttt{something}, \texttt{from}) introduce or rebind this variable, defining the scope of query construction. 
-In contrast, graph-expansion primitives (\texttt{out}, \texttt{in}, \texttt{traverse}) add triple patterns relative to the current focus 
-while updating it to the newly reached node. These primitives accept both RDF IRIs and SPARQL variables as arguments, so the same combinators 
-can express schema-level templates and data-level queries in a uniform way.Table~\ref{tab:query-primitives} summarizes the core primitives 
-and their semantics, and the following example shows how they can be composed to build a query centered on a compound entity acting as 
-the focus variable.
+Queries are constructed relative to a focus variable, which serves as
+an implicit context for navigating RDF graphs. Focus-binding primitives
+(\texttt{something}, \texttt{from}) introduce or rebind this variable,
+defining the scope of query construction. In contrast, graph-expansion
+primitives (\texttt{out}, \texttt{in}, \texttt{traverse}) add triple
+patterns relative to the current focus while updating it to the newly
+reached node. These primitives accept both RDF IRIs and SPARQL variables
+as arguments, so the same combinators can express schema-level templates
+and data-level queries in a uniform way. Table~\ref{tab:query-primitives}
+summarizes the core primitives and their semantics, and the following
+example shows how they can be composed to build a query centered on a
+compound entity acting as the focus variable. In this example\ref{fig:unravel-sparql-example}, 
+\texttt{session2} extends an initial query over the focus variable \texttt{compound}, 
+illustrating how Unravel-RDF supports incremental refinement of SPARQL queries.
+In practice, these primitives are exposed through \texttt{UnravelSession} objects, which provide a fluent 
+API for constructing and reusing focus-based queries.
 
 \begin{table}[ht]
 \centering
@@ -277,7 +313,7 @@ the focus variable.
 \caption{Incremental query construction with Unravel-RDF and resulting SPARQL}
 \label{fig:unravel-sparql-example}
 
-\begin{minipage}[t]{0.45\textwidth}
+\begin{minipage}[t]{0.55\textwidth}
 \centering
 \begin{lstlisting}[style=unraveljs]
 const session =
@@ -285,7 +321,6 @@ const session =
     .something("(*\textcolor{purple}{compound}*)",
       (*\textcolor{purple}{compound}*) =>
         (*\textcolor{purple}{compound}*).out("(*\textcolor{purple}{?rel}*)","(*\textcolor{green!50!black}{CHEBI:24279}*)"));
-
 
 const session2 =
   session
@@ -295,7 +330,7 @@ const session2 =
 \end{lstlisting}
 \end{minipage}%
 \hspace{0.03\textwidth}
-\begin{minipage}[t]{0.45\textwidth}
+\begin{minipage}[t]{0.40\textwidth}
 \centering
 \begin{lstlisting}[style=sparqlstyle]
 SELECT (*\textcolor{purple}{?compound}*) (*\textcolor{purple}{?rel}*) (*\textcolor{purple}{?type}*)
@@ -310,43 +345,90 @@ WHERE {
 
 \subsection{Query Execution}
 
-Unravel-RDF does not reimplement SPARQL query processing. Instead, it relies on a Scala.js facade over the Comunica engine to execute queries.
+Unravel-RDF does not reimplement SPARQL query processing. Instead, it
+delegates query evaluation to existing engines through the
+Comunica.js facade presented in Figure~\ref{fig:architecture}. This
+facade is implemented in Scala.js and exposes a typed interface that
+maps \texttt{UnravelQuery} objects to RDF/JS-compatible data sources and
+SPARQL endpoints. As a result, Unravel-RDF can execute queries over
+heterogeneous RDF data sources while reusing the standard RDF and
+SPARQL tooling available in the JavaScript/TypeScript ecosystem.
 
-This integration enables access to multiple RDF data sources and supports federation mechanisms, allowing queries to transparently 
-combine distributed datasets. The system therefore focuses on bridging high-level query composition with existing execution infrastructures.
+This integration enables access to multiple RDF data sources and
+supports federation mechanisms, allowing queries to transparently
+combine distributed datasets. The system therefore focuses on bridging
+high-level query composition and application logic with existing
+execution infrastructures, while leaving optimization, query planning,
+and low-level data access to the underlying SPARQL engines.
 
 \subsection{User Interface Integration}
 
-The execution model is based on JavaScript promises combined with a subscription mechanism, enabling asynchronous and staged processing of queries. 
-To avoid long-running SPARQL requests, results are delivered in batches through a pagination mechanism and exposed as lazy pages 
-(windows of results) that are only fetched when requested. This event-driven approach enables incremental data consumption and 
-allows applications to update dynamically as data becomes available, supporting tight integration with reactive user interfaces. 
-Additionally, a caching layer prevents redundant query execution by reusing previously retrieved results, thereby improving 
-performance and responsiveness. Overall, this execution model brings SPARQL-based querying closer to modern reactive web application patterns 
-while preserving a clear separation between query abstraction and engine-level concerns.
+On the application side, Unravel-RDF is designed to integrate with
+modern, event-driven user interfaces. The execution model is based on
+JavaScript promises combined with a subscription mechanism, enabling
+asynchronous and staged processing of queries. Results are delivered in
+batches through a pagination mechanism and exposed as lazy pages
+(windows of results) that are only fetched when requested, which avoids
+long-running SPARQL requests and reduces perceived latency.
+
+These abstractions are intended to be consumed directly from
+hook-based and component-based UI frameworks such as React, Vue, or
+D3-powered visualizations. Application code can subscribe to
+\texttt{UnravelQuery} objects, trigger incremental loading of result
+pages, and update views as data becomes available, following typical
+reactive programming patterns. Additionally, a caching layer prevents
+redundant query execution by reusing previously retrieved results,
+thereby improving performance and responsiveness. Overall, this
+integration brings SPARQL-based querying closer to modern frontend
+development practices while preserving a clear separation between UI
+concerns, query abstraction, and engine-level execution.
 
 \subsection{Implementation and Distribution}
 
-Unravel-RDF is entirely implemented in functional Scala and transpiled to JavaScript using Scala.js. 
-It is distributed through standard web channels, including CDN delivery and the npm ecosystem, facilitating integration into modern web applications.
-The source code and documentation are publicly available in the project repository\footnote{\url{https://forge.inrae.fr/p2m2/unravel-rdf}}, 
+Unravel-RDF is implemented in functional Scala and compiled to
+JavaScript using Scala.js, which allows the same core query abstraction
+layer to be reused across browser-based and Node.js applications. It is
+distributed through standard web channels, including CDN delivery and
+the npm ecosystem, facilitating integration into modern JavaScript and
+TypeScript build pipelines. The source code and documentation are
+publicly available in the project repository\footnote{\url{https://forge.inrae.fr/p2m2/unravel-rdf}},
 enabling reuse and extension by third-party developers.
 
 \section{Case Study: FORVM}
 
-We evaluate Unravel-RDF using the FORVM ecosystem, which provides a cross-domain knowledge graph infrastructure spanning biomedical and plant sciences. 
-The biomedical component, \textit{FORVM ChemDisease}, is a curated knowledge graph derived from statistical co-occurrence of MeSH-annotated chemical 
-and disease concepts in PubMed literature, while \textit{FORVM Plants} extends this approach to plant sciences by leveraging Planteome ontologies to 
-represent plant-related entities and traits.\footnote{The FORVM use case UI is available at \url{http://kg.p2m2.inrae.fr/}.}
+We evaluate Unravel-RDF in the context of the FORVM ecosystem, which
+provides a cross-domain knowledge graph infrastructure spanning
+biomedical and plant sciences. The biomedical component, \textit{FORVM
+ChemDisease}, is a curated knowledge graph derived from statistical
+co-occurrence of MeSH-annotated chemical and disease concepts in PubMed
+literature, while \textit{FORVM Plants} extends this approach to plant
+sciences by leveraging Planteome ontologies to represent plant-related
+entities and traits.\footnote{The FORVM use case UI is available at
+\url{http://kg.p2m2.inrae.fr/}.}
 
-These two knowledge graphs are interconnected through shared chemical entities, enabling cross-domain exploration of metabolomics relationships 
-across multiple SPARQL endpoints, including FORVM ChemDisease and FORVM Plants, as well as RDF Portal endpoints for ChEBI, PubChem and 
-NCBI resources.\footnote{For example, ChEBI is exposed at \url{https://rdfportal.org/ebi/sparql} and 
-PubChem RDF at \url{https://rdfportal.org/pubchem/sparql}.} 
-We implement this workflow as a web application built with Unravel-RDF, where the interface displays clusters of nodes linking 
-chemical compounds to both MeSH disease terms and Planteome concepts, revealing transitive connections between biomedical and plant knowledge. 
-Unravel-RDF orchestrates compositional query construction, reuse of query fragments, and federated execution, while its event-driven execution 
-model with pagination and lazy result pages enables interactive exploration through incremental result rendering and dynamic interface updates.
+These two knowledge graphs are interconnected through shared chemical
+entities, enabling cross-domain exploration of metabolomics
+relationships across multiple SPARQL endpoints, including FORVM
+ChemDisease and FORVM Plants, as well as RDF Portal endpoints for
+resources such as ChEBI, PubChem, and NCBI.\footnote{For example, ChEBI
+is exposed at \url{https://rdfportal.org/ebi/sparql} and PubChem RDF at
+\url{https://rdfportal.org/pubchem/sparql}.} We implement this workflow
+as a web application built with Unravel-RDF, in which the interface
+displays clusters of nodes linking chemical compounds to both MeSH
+disease terms and Planteome concepts, revealing transitive connections
+between biomedical and plant knowledge.
+
+In this application, Unravel-RDF orchestrates compositional query
+construction and reuse of focus-based query fragments while issuing
+separate SPARQL queries to the different endpoints as needed. The
+resulting query logic is encapsulated in reusable Unravel-RDF sessions and
+queries, so that the UI can trigger navigation steps (e.g., expanding a
+compound to related diseases or traits, then following links to external
+knowledge graphs) without embedding raw SPARQL strings in the frontend
+code.
+
+A screenshot of the FORVM web interface built with Unravel-RDF is
+provided in Appendix~\ref{fig:forvm-screenshot}.
 
 \begin{acknowledgments}
 We thank the MetaboHUB national infrastructure (funded by the French
@@ -376,6 +458,15 @@ full responsibility for the publication’s content.
 \bibliography{unravel-biblio}
 
 \appendix
+
+\section{Supplementary Material}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{forvm-unravel-screenshot.png}%
+\caption{Screenshot of the FORVM use case web interface built with Unravel-RDF, showing clusters of compounds, MeSH disease terms, and Planteome concepts.}
+\label{fig:forvm-screenshot}
+\end{figure}
 
 \section{Online Resources}
 
