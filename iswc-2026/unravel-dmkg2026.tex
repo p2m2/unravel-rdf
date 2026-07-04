@@ -97,50 +97,44 @@
 
 %%
 %% This command is for the conference information
-\conference{Woodstock'22: Symposium on the irreproducible science,
-  June 07--11, 2022, Woodstock, NY}
+\conference{ISWC 2026}
 
 %%
 %% The "title" command
 \title{Unravel-RDF: A JavaScript Framework for Building Web Applications over RDF Knowledge Graphs}
 
 \tnotemark[1]
-\tnotetext[1]{You can use this document as the template for preparing your
-  publication. We recommend using the latest version of the ceurart style.}
 
-\author[1,2,3]{Olivier Filangi}[%
+\author[1]{Olivier Filangi}[%
   orcid=0000-0002-2094-3271,
   email=olivier.filangi@inrae.fr,
-  url=https://forge.inrae.fr/olivier.filangi,
 ]
 
 \cormark[1]
-\fnmark[1]
 \address[1]{Institute for Genetics, Environment and Plant Protection (IGEPP), National Research Institute for Agriculture, Food and Environment (INRAE), Université Rennes, Institut Agro, Le Rheu, France}
-\address[2]{Metabolic Profiling and Metabolomics platform (P2M2), Institute for Genetics, Environment and Plant Protection (IGEPP), Biopolymers Interactions Assemblies (BIA), Le Rheu, France}
-\address[3]{MetaboHUB, National Infrastructure of Metabolomics and Fluxomics, Toulouse, France}
 
-\author[4]{Ilaria Tiddi}[%
-  orcid=0000-0001-7116-9338,
-  email=i.tiddi@vu.nl,
-  url=https://kmitd.github.io/ilaria/,
+\author[2]{Nils Paulhe}[%
+  orcid=0000-0003-4550-1258
 ]
 
-\fnmark[1]
 \address[4]{Vrije Universiteit Amsterdam, De Boelelaan 1105, 1081 HV Amsterdam, The Netherlands}
 
-\author[5]{Manfred Jeusfeld}[%
-  orcid=0000-0002-9421-8566,
-  email=Manfred.Jeusfeld@acm.org,
-  url=http://conceptbase.sourceforge.net/mjf/,
+\author[3]{Guillaume Laisney}[%
+  orcid=0009-0005-5653-3257
 ]
 
-\fnmark[1]
 \address[5]{University of Skövde, Högskolevägen 1, 541 28 Skövde, Sweden}
+
+\author[4]{Clément Frainay}[%
+  orcid=0000-0003-4313-2786
+]
+
+\author[5]{Franck Giacomoni}[%
+  orcid=0000-0001-6063-4214
+]
 
 %% Footnotes
 \cortext[1]{Corresponding author.}
-\fntext[1]{These authors contributed equally.}
 
 
 \begin{abstract}
@@ -200,11 +194,11 @@ frontend developers routinely rely on in relational database ecosystems.
 As a result, there remains a significant gap between RDF query formulation and modern frontend development practices, 
 leading to brittle integrations and weak alignment between knowledge graph queries and application-level structures.
 
-To address this gap, we introduce \texttt{Unravel-RDF}, a JavaScript framework that combines a DSL for SPARQL query construction with a 
+To address this gap, we introduce Unravel-RDF, a JavaScript framework that combines a DSL for SPARQL query construction with a 
 composable API tailored to event-driven user interface applications. 
 Our design provides functional abstractions for incremental, focus-based query building, asynchronous execution, pagination, and caching 
 over RDF data sources. 
-We evaluate \texttt{Unravel-RDF} on the FORVM ecosystem, which interconnects biomedical and plant knowledge graphs through shared chemical 
+We evaluate Unravel-RDF on the FORVM ecosystem, which interconnects biomedical and plant knowledge graphs through shared chemical 
 entities, and demonstrate a cross-domain exploration workflow implemented as a web application that leverages these abstractions to 
 support interactive navigation of metabolomics relationships across multiple SPARQL endpoints.
 
@@ -212,7 +206,7 @@ support interactive navigation of metabolomics relationships across multiple SPA
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.50\linewidth]{Unravel-rdf-architecture.png}
+    \includegraphics[width=1.0\linewidth]{Unravel-rdf-architecture.png}
     \caption{Unravel-RDF architecture: a layered design connecting RDF data sources, the Unravel query abstraction layer, and UI integration components.}
     \label{fig:architecture}
 \end{figure}
@@ -277,45 +271,49 @@ illustrating how Unravel-RDF supports incremental refinement of SPARQL queries.
 In practice, these primitives are exposed through \texttt{UnravelSession} objects, which provide a fluent 
 API for constructing and reusing focus-based queries.
 
-\begin{table}[ht]
+\begin{table}[t]
 \centering
+\setlength{\tabcolsep}{3pt}
+{\footnotesize
 \caption{Core query building primitives in Unravel-RDF}
 \label{tab:query-primitives}
-\begin{tabular}{|l|p{3.5cm}|p{6.5cm}|}
+\begin{tabular}{|l|p{3cm}|p{6cm}|}
 \hline
 \textbf{Primitive} & \textbf{Role} & \textbf{Description} \\
 \hline
-\texttt{something(name, f)} 
+\texttt{something(name,f)} 
   & Focus introduction 
-  & Introduces a fresh SPARQL variable as the current focus. The closure \texttt{f} builds patterns relative to this focus. \\
+  & Introduces a fresh SPARQL variable as focus; \texttt{f} builds patterns relative to it. \\
 \hline
-\texttt{from(name, f)} 
+\texttt{from(name,f)} 
   & Focus rebinding 
-  & Reuses an existing variable and sets it as the current focus. The closure \texttt{f} continues query construction from this focus. \\
+  & Reuses an existing variable as focus; \texttt{f} continues query construction from it. \\
 \hline
-\texttt{out(property, object, f)} 
+\texttt{out(prop,obj,f)} 
   & Forward expansion 
-  & Adds a triple pattern \texttt{<focus> property object} and sets the current focus to \texttt{object} before applying \texttt{f}. \\
+  & Adds \texttt{<focus> prop obj} and sets focus to \texttt{obj} before \texttt{f}. \\
 \hline
-\texttt{in(property, subject, f)} 
+\texttt{in(prop,subj,f)} 
   & Backward expansion 
-  & Adds a triple pattern \texttt{subject property <focus>} and sets the current focus to \texttt{subject} before applying \texttt{f}. \\
+  & Adds \texttt{subj prop <focus>} and sets focus to \texttt{subj} before \texttt{f}. \\
 \hline
-\texttt{traverse(property, node, f)} 
-  & Bidirectional expansion 
-  & Adds \texttt{\{ <focus> property node \} UNION \{ node property <focus> \}} and sets the current focus to \texttt{node} before applying \texttt{f}. \\
+\texttt{traverse(prop,node,f)} 
+  & Bidirectional 
+  & Adds \texttt{\{<focus> prop node\} UNION \{node prop <focus>\}} and sets focus to \texttt{node}. \\
 \hline
 \end{tabular}
+}
 \end{table}
 
-\begin{figure}[ht]
+\begin{figure}[t]
 \centering
 \caption{Incremental query construction with Unravel-RDF and resulting SPARQL}
 \label{fig:unravel-sparql-example}
 
-\begin{minipage}[t]{0.55\textwidth}
+{\footnotesize
+\begin{minipage}[t]{0.50\textwidth}
 \centering
-\begin{lstlisting}[style=unraveljs]
+\begin{lstlisting}[style=unraveljs,basicstyle=\footnotesize\ttfamily]
 const session =
   UnravelSession(config)
     .something("(*\textcolor{purple}{compound}*)",
@@ -323,16 +321,15 @@ const session =
         (*\textcolor{purple}{compound}*).out("(*\textcolor{purple}{?rel}*)","(*\textcolor{green!50!black}{CHEBI:24279}*)"));
 
 const session2 =
-  session
-    .from("(*\textcolor{purple}{compound}*)",
-      (*\textcolor{purple}{compound}*) =>
-        (*\textcolor{purple}{compound}*).out("(*\textcolor{green!50!black}{rdf:type}*)","(*\textcolor{purple}{?type}*)"));
+  session.from("(*\textcolor{purple}{compound}*)",
+    (*\textcolor{purple}{compound}*) =>
+      (*\textcolor{purple}{compound}*).out("(*\textcolor{green!50!black}{rdf:type}*)","(*\textcolor{purple}{?type}*)"));
 \end{lstlisting}
 \end{minipage}%
-\hspace{0.03\textwidth}
-\begin{minipage}[t]{0.40\textwidth}
+\hspace{0.02\textwidth}%
+\begin{minipage}[t]{0.44  \textwidth}
 \centering
-\begin{lstlisting}[style=sparqlstyle]
+\begin{lstlisting}[style=sparqlstyle,basicstyle=\footnotesize\ttfamily]
 SELECT (*\textcolor{purple}{?compound}*) (*\textcolor{purple}{?rel}*) (*\textcolor{purple}{?type}*)
 WHERE {
   (*\textcolor{purple}{?compound}*) (*\textcolor{purple}{?rel}*) (*\textcolor{green!50!black}{CHEBI:24279}*) .
@@ -340,7 +337,7 @@ WHERE {
 }
 \end{lstlisting}
 \end{minipage}
-
+}
 \end{figure}
 
 \subsection{Query Execution}
@@ -427,9 +424,6 @@ compound to related diseases or traits, then following links to external
 knowledge graphs) without embedding raw SPARQL strings in the frontend
 code.
 
-A screenshot of the FORVM web interface built with Unravel-RDF is
-provided in Appendix~\ref{fig:forvm-screenshot}.
-
 \begin{acknowledgments}
 We thank the MetaboHUB national infrastructure (funded by the French
 National Research Agency under the France 2030 programme) for its
@@ -446,9 +440,7 @@ to the development of Unravel-RDF.
 
 During the preparation of this work, the authors used Perplexity and
 ChatGPT in order to: paraphrase and reword text, improve writing
-style and clarity, and perform grammar and spelling checks. The tools
-were also used to discuss and refine ideas, and to revise the
-presentation of paragraphs, tables, and figures. After using these
+style and clarity, and perform grammar and spelling checks. After using these
 tools, the authors reviewed and edited the content as needed and take
 full responsibility for the publication’s content.
 
@@ -459,14 +451,14 @@ full responsibility for the publication’s content.
 
 \appendix
 
-\section{Supplementary Material}
+%\section{Supplementary Material}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{forvm-unravel-screenshot.png}%
-\caption{Screenshot of the FORVM use case web interface built with Unravel-RDF, showing clusters of compounds, MeSH disease terms, and Planteome concepts.}
-\label{fig:forvm-screenshot}
-\end{figure}
+%\begin{figure}[ht]
+%\centering
+%\includegraphics[width=\linewidth]{forvm-unravel-screenshot.png}%
+%\caption{Screenshot of the FORVM use case web interface built with Unravel-RDF, showing clusters of compounds, MeSH disease terms, and Planteome concepts.}
+%\label{fig:forvm-screenshot}
+%\end{figure}
 
 \section{Online Resources}
 
