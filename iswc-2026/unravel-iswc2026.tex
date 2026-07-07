@@ -176,17 +176,19 @@ metabolomics exploration tools.
 
 \section{Introduction}
 
-Semantic Web technologies are widely used to represent and query knowledge in the life sciences.\citep{wu_semantic_2014} 
-Many resources are published as RDF knowledge graphs and exposed via SPARQL endpoints, enabling interoperability between heterogeneous 
-datasets describing molecular entities, biological processes, pathways, and phenotypic characteristics across diverse organisms.\citep{wilkinson_fair_2016}.
+Semantic Web technologies are widely used to represent and query knowledge in the life sciences\citep{wu_semantic_2014}. 
+Many resources are published as RDF knowledge graphs and made available to the community via downloadable datasets 
+or SPARQL endpoints, thereby enabling interoperability between heterogeneous datasets describing molecular entities, 
+biological processes, pathways, and phenotypic characteristics across diverse organisms\citep{wilkinson_fair_2016,LODCloudLifeSciences}.
 In bioinformatics, these approaches support the integration and reuse of theses resources, but their effective use within analysis platforms 
 and web applications still poses significant technical challenges.
 
-Developers building web frontends on top of RDF knowledge graphs face a fundamental challenge: bridging low-level RDF graph models with application 
-logic. Frontend developers typically either embed raw SPARQL queries directly in their code or rely on low-level RDF/JS-based libraries that expose 
+Developers building web frontends on top of RDF knowledge graphs face a fundamental challenge: 
+bridging low-level RDF graph models with application logic. Frontend developers typically 
+either embed raw SPARQL queries directly in their code or rely on low-level RDF/JS-based libraries that expose 
 graph primitives and query execution but offer limited support for structuring application data access.
 
-The RDF/JS ecosystem, including engines such as Comunica, has been highly successful at standardizing RDF representations and query interfaces 
+The RDF JavaScript Libraries Community Group - Tools\footnote{\url{https://www.w3.org/groups/cg/rdfjs/tools/}}, including engines such as Comunica\citep{taelman_comunica_2018}, has been highly successful at standardizing RDF representations and query interfaces 
 across heterogeneous data sources. However, these tools are intentionally designed as foundational building blocks, and do not provide the kind 
 of higher-level, application-oriented abstractions—such as composable query builders, domain-specific languages (DSLs), or data mappers—that 
 frontend developers routinely rely on in relational database ecosystems.
@@ -198,9 +200,10 @@ To address this gap, we introduce Unravel-RDF, a JavaScript framework that combi
 composable API tailored to event-driven user interface applications. 
 Our design provides functional abstractions for incremental, focus-based query building, asynchronous execution, pagination, and caching 
 over RDF data sources. 
-We evaluate Unravel-RDF on the FORVM ecosystem, which interconnects biomedical and plant knowledge graphs through shared chemical 
-entities, and demonstrate a cross-domain exploration workflow implemented as a web application that leverages these abstractions to 
-support interactive navigation of metabolomics relationships across multiple SPARQL endpoints.
+We evaluate Unravel-RDF on the FORVM DiseaseChem knowledge graph, which integrates associations between chemical compounds and biomedical 
+concepts, as well as on the experimental FORVM Plants graph, built from analogous associations applied to plant-domain ontologies derived 
+from the Planteome project. To this end, we implement an inter-domain exploration workflow, deployed as a web application, which leverages 
+these abstractions to enable interactive navigation between concepts across multiple SPARQL endpoints.
 
 \section{Architecture and Programming Model}
 
@@ -231,8 +234,8 @@ subsystems: a configuration module, a core query DSL, a high-level query
 API, UI integration utilities, and a variable scoping mechanism.
 Together, these components offer a composable, focus-based abstraction
 over SPARQL queries that can be safely reused across application code.
-A dedicated Comunica.js facade connects this abstraction layer to the
-JavaScript RDF/JS ecosystem and exposes a typed interface to the
+A dedicated Comunica facade\footnote{https://www.scala-js.org/libraries/facades.html} 
+connects this abstraction layer to the JavaScript RDFJS ecosystem and exposes a typed interface to the
 underlying SPARQL engines.
 
 Finally, the RDF Data \& Query Layer corresponds to the existing
@@ -291,11 +294,11 @@ API for constructing and reusing focus-based queries.
 \hline
 \texttt{out(prop,obj,f)} 
   & Forward expansion 
-  & Adds \texttt{<focus> prop obj} and sets focus to \texttt{obj} before \texttt{f}. \\
+  & Adds \texttt{<focus> prop obj} and sets focus to \texttt{obj}. \\
 \hline
 \texttt{in(prop,subj,f)} 
   & Backward expansion 
-  & Adds \texttt{subj prop <focus>} and sets focus to \texttt{subj} before \texttt{f}. \\
+  & Adds \texttt{subj prop <focus>} and sets focus to \texttt{subj}. \\
 \hline
 \texttt{traverse(prop,node,f)} 
   & Bidirectional 
@@ -340,23 +343,16 @@ WHERE {
 }
 \end{figure}
 
-\subsection{Query Execution}
+\subsection{Execution Backend}
 
-Unravel-RDF does not reimplement SPARQL query processing. Instead, it
-delegates query evaluation to existing engines through the
-Comunica.js facade presented in Figure~\ref{fig:architecture}. This
-facade is implemented in Scala.js and exposes a typed interface that
-maps \texttt{UnravelQuery} objects to RDF/JS-compatible data sources and
-SPARQL endpoints. As a result, Unravel-RDF can execute queries over
-heterogeneous RDF data sources while reusing the standard RDF and
-SPARQL tooling available in the JavaScript/TypeScript ecosystem.
+Unravel-RDF delegates SPARQL query execution to existing engines via 
+a Scala.js Comunica facade. This facade maps UnravelQuery objects 
+onto RDFJS-compatible data sources and SPARQL endpoints, exposing 
+a typed interface to the JavaScript query engine.
 
-This integration enables access to multiple RDF data sources and
-supports federation mechanisms, allowing queries to transparently
-combine distributed datasets. The system therefore focuses on bridging
-high-level query composition and application logic with existing
-execution infrastructures, while leaving optimization, query planning,
-and low-level data access to the underlying SPARQL engines.
+Through Comunica’s federation capabilities, Unravel-RDF can query heterogeneous, 
+distributed RDF datasets, while leaving query planning, optimization, and low-level 
+data access entirely to the underlying engines.
 
 \subsection{User Interface Integration}
 
@@ -399,42 +395,47 @@ biomedical and plant sciences. The biomedical component, \textit{FORVM
 ChemDisease}, is a curated knowledge graph derived from statistical
 co-occurrence of MeSH-annotated chemical and disease concepts in PubMed
 literature, while \textit{FORVM Plants} extends this approach to plant
-sciences by leveraging Planteome ontologies to represent plant-related
-entities and traits.\footnote{The FORVM use case UI is available at
-\url{http://kg.p2m2.inrae.fr/}.}
+sciences by leveraging Planteome ontologies to represent plant
+developmental stages, diseases, and associated traits as ontological
+concepts.
 
 These two knowledge graphs are interconnected through shared chemical
-entities, enabling cross-domain exploration of metabolomics
-relationships across multiple SPARQL endpoints, including FORVM
-ChemDisease and FORVM Plants, as well as RDF Portal endpoints for
-resources such as ChEBI, PubChem, and NCBI.\footnote{For example, ChEBI
-is exposed at \url{https://rdfportal.org/ebi/sparql} and PubChem RDF at
-\url{https://rdfportal.org/pubchem/sparql}.} We implement this workflow
-as a web application built with Unravel-RDF, in which the interface
-displays clusters of nodes linking chemical compounds to both MeSH
-disease terms and Planteome concepts, revealing transitive connections
-between biomedical and plant knowledge.
+compounds, enabling cross-domain exploration of metabolomics
+relationships across multiple SPARQL endpoints, including FORVM ChemDisease
+and FORVM Plants, as well as RDF Portal SPARQL endpoints\citep{kawashima_nbdc_2018}
+for resources such as ChEBI\citep{de_matos_chebi_2010} and PubChemRDF\citep{fu_pubchemrdf_2015}, 
+and MeSH-annotated concepts from PubMed\citep{coletti_medical_2001}.
+
+We implement an inter-domain exploration workflow as a web application
+built with Unravel-RDF, in which the interface displays clusters of
+nodes linking chemical compounds to both MeSH disease terms and
+Planteome concepts, revealing transitive connections between biomedical
+and plant knowledge.
 
 In this application, Unravel-RDF orchestrates compositional query
 construction and reuse of focus-based query fragments while issuing
 separate SPARQL queries to the different endpoints as needed. The
-resulting query logic is encapsulated in reusable Unravel-RDF sessions and
-queries, so that the UI can trigger navigation steps (e.g., expanding a
-compound to related diseases or traits, then following links to external
-knowledge graphs) without embedding raw SPARQL strings in the frontend
-code.
+resulting query logic is encapsulated in reusable Unravel-RDF sessions
+and queries, so that the UI can trigger navigation steps (e.g.,
+expanding a compound to related diseases or traits, then following links
+to external knowledge graphs) without embedding raw SPARQL strings in
+the frontend code. The case study UI is available at
+\url{http://kg.p2m2.inrae.fr/}.
 
 \begin{acknowledgments}
-We thank the MetaboHUB national infrastructure (funded by the French
-National Research Agency under the France 2030 programme) for its
-support in developing the metabolomics data management and analysis
-ecosystem underlying the FORVM knowledge graph and the Unravel-RDF
-application layer. We also acknowledge the INRAE metaprogram
-Digit-Bio for funding positions and projects that contributed to the
-design and implementation of the FORVM ecosystem and, ultimately,
-to the development of Unravel-RDF.
-\end{acknowledgments}
+We gratefully acknowledge support from the French national infrastructure 
+MetaboHUB, funded by the French National Research Agency (ANR) under the 
+France~2030 programme, for the development of the Metabolomics Semantic 
+Data Lake e-infrastructure\cite{MetabolomicsSemanticDataLake}. This platform 
+enables the construction of the FORVM knowledge graphs and the application 
+layers for their exploitation, from which Unravel-RDF directly benefits.
 
+We also thank INRAE’s Digit-Bio metaprogramme for funding the SEED (Semantic 
+Engineering for Enhanced Data in Plant Metabolomics) project, which 
+extends the FORVM methodology to plant metabolomics and food processing 
+domains, and supports the further development of the Unravel-RDF DSL 
+for leveraging this new body of knowledge.
+\end{acknowledgments}
 
 \section*{Declaration on Generative AI}
 
@@ -447,7 +448,7 @@ full responsibility for the publication’s content.
 
 %%
 %% Define the bibliography file to be used
-\bibliography{unravel-biblio}
+\bibliography{unravel-biblio,static-extra}
 
 \appendix
 
