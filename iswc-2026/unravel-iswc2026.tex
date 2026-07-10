@@ -147,7 +147,7 @@ but provide limited support for application-oriented abstractions
 such as composable query builders or domain-specific languages
 tightly aligned with UI logic.
 
-We present Unravel-RDF, a JavaScript framework that introduces a
+We present Unravel-RDF, a JavaScript framework for developers that introduces a
 focus-based domain-specific language (DSL) for constructing SPARQL
 queries together with a composable API tailored to event-driven user
 interfaces. Unravel-RDF offers functional abstractions for incremental
@@ -176,34 +176,49 @@ metabolomics exploration tools.
 
 \section{Introduction}
 
-Semantic Web technologies are widely used to represent and query knowledge in the life sciences\citep{wu_semantic_2014}. 
-Many resources are published as RDF knowledge graphs and made available to the community via downloadable datasets 
-or SPARQL endpoints, thereby enabling interoperability between heterogeneous datasets describing molecular entities, 
-biological processes, pathways, and phenotypic characteristics across diverse organisms\citep{wilkinson_fair_2016,LODCloudLifeSciences}.
-In bioinformatics, these approaches support the integration and reuse of theses resources, but their effective use within analysis platforms 
-and web applications still poses significant technical challenges.
+Semantic Web technologies are widely used to represent and query knowledge in
+the life sciences\citep{wu_semantic_2014}. Many resources are published as RDF
+knowledge graphs and made available to the community via downloadable datasets
+or SPARQL endpoints, thereby enabling interoperability between heterogeneous
+datasets describing molecular entities, biological processes, pathways, and
+phenotypic characteristics across diverse
+organisms\citep{wilkinson_fair_2016,LODCloudLifeSciences}. In bioinformatics,
+these approaches support the integration and reuse of these resources, but
+their effective use within analysis platforms and web applications still poses
+significant technical challenges.
 
-Developers building web frontends on top of RDF knowledge graphs face a fundamental challenge: 
-bridging low-level RDF graph models with application logic. Frontend developers typically 
-either embed raw SPARQL queries directly in their code or rely on low-level RDF/JS-based libraries that expose 
-graph primitives and query execution but offer limited support for structuring application data access.
+Beyond SPARQL endpoints and RDF dumps, tools such as Askomics\citep{garnier_askomics_2019},
+Sparklis\citep{ferre_sparklis_2016}, SemTK\citep{cuddihy_semtk_2017}, and Sampo-UI\citep{ikkala_sampo-ui_2021}
+provide visual or guided SPARQL interfaces for end users. Yet developers still
+lack reusable frameworks for structuring application-level access to RDF graphs
+beyond hand-written SPARQL and low-level RDF APIs.
 
-The RDF JavaScript Libraries Community Group - Tools\footnote{\url{https://www.w3.org/groups/cg/rdfjs/tools/}}, including engines such as Comunica\citep{taelman_comunica_2018}, has been highly successful at standardizing RDF representations and query interfaces 
-across heterogeneous data sources. However, these tools are intentionally designed as foundational building blocks, and do not provide the kind 
-of higher-level, application-oriented abstractions—such as composable query builders, domain-specific languages (DSLs), or data mappers—that 
-frontend developers routinely rely on in relational database ecosystems.
+In practice, frontend developers building web applications on top of RDF
+knowledge graphs either embed raw SPARQL queries directly in their code or rely
+on low-level RDF/JS-based libraries that expose graph primitives and query
+execution but offer limited support for organizing application data access. The
+RDF JavaScript Libraries Community Group -- Tools\footnote{\url{https://www.w3.org/groups/cg/rdfjs/tools/}},
+including engines such as Comunica\citep{taelman_comunica_2018}, has been
+highly successful at standardizing RDF representations and query interfaces
+across heterogeneous data sources, yet these tools are intentionally designed
+as foundational building blocks rather than developer-facing data access
+abstractions such as composable query builders, domain-specific languages
+(DSLs), or data mappers, which are common in relational database ecosystems.
 
-As a result, there remains a significant gap between RDF query formulation and modern frontend development practices, 
-leading to brittle integrations and weak alignment between knowledge graph queries and application-level structures.
-
-To address this gap, we introduce Unravel-RDF, a JavaScript framework that combines a DSL for SPARQL query construction with a 
-composable API tailored to event-driven user interface applications. 
-Our design provides functional abstractions for incremental, focus-based query building, asynchronous execution, pagination, and caching 
-over RDF data sources. 
-We evaluate Unravel-RDF on the FORVM DiseaseChem knowledge graph, which integrates associations between chemical compounds and biomedical 
-concepts, as well as on the experimental FORVM Plants graph, built from analogous associations applied to plant-domain ontologies derived 
-from the Planteome project. To this end, we implement an inter-domain exploration workflow, deployed as a web application, which leverages 
-these abstractions to enable interactive navigation between concepts across multiple SPARQL endpoints.
+As a result, there remains a significant gap between RDF query formulation and
+modern frontend development practices, leading to brittle integrations and weak
+alignment between knowledge graph queries and application-level structures. To
+address this gap, we introduce Unravel-RDF, a JavaScript library for developers
+that provides an application-level data-access layer on top of RDF knowledge
+graphs. Rather than a user-facing visual interface or a standalone query
+generator, Unravel-RDF combines a DSL for SPARQL query construction with a
+composable API tailored to event-driven user interface applications. Our design
+provides functional abstractions for incremental, focus-based query building,
+asynchronous execution, pagination, and caching over RDF data sources. We
+evaluate Unravel-RDF on the FORVM DiseaseChem and the experimental FORVM Plants
+knowledge graphs through an inter-domain exploration workflow deployed as a web
+application, focusing on its usability for developers and its support for
+structuring application-level access to RDF data.
 
 \section{Architecture and Programming Model}
 
