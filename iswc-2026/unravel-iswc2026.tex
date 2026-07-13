@@ -187,8 +187,8 @@ these approaches support the integration and reuse of these resources, but
 their effective use within analysis platforms and web applications still poses
 significant technical challenges.
 
-Beyond SPARQL endpoints and RDF dumps, tools such as Askomics\citep{garnier_askomics_2019},
-Sparklis\citep{ferre_sparklis_2016}, SemTK\citep{cuddihy_semtk_2017}, and Sampo-UI\citep{ikkala_sampo-ui_2021}
+Beyond SPARQL endpoints and RDF dumps, tools such as Sparnatural\citep{francart_sparnatural_2023}, 
+Sampo-UI\citep{ikkala_sampo-ui_2021}, SemTK\citep{cuddihy_semtk_2017}, and Sparklis\citep{ferre_sparklis_2016} 
 provide visual or guided SPARQL interfaces for end users. Yet developers still
 lack reusable frameworks for structuring application-level access to RDF graphs
 beyond hand-written SPARQL and low-level RDF APIs.
@@ -231,27 +231,28 @@ structuring application-level access to RDF data.
 
 \subsection{Layered Architecture}
 
-Figure~\ref{fig:architecture} illustrates the architecture of
-Unravel-RDF as a three-layer system: an \emph{Application Development
-Layer}, an \emph{Unravel Query Abstraction Layer}, and an \emph{RDF Data
-\& Query Layer}. The Application Development Layer hosts
-JavaScript/TypeScript code, HTML-based user interfaces, and Node.js
-services, together with Unravel sessions that are embedded into web
-applications. This layer includes hooks and UI components (e.g., built
-with D3.js, React, or Vue) that consume Unravel queries, as well as
-three immutable objects, \texttt{UnravelConfiguration},
-\texttt{UnravelSession}, and \texttt{UnravelQuery}, which encapsulate
-configuration, query construction, and execution respectively.
+Figure~\ref{fig:architecture} shows a three-layer architecture: an
+\emph{Application Layer} for user-facing logic, an \emph{Unravel Query
+Layer} providing the API for query construction, and an \emph{Execution
+Layer} for SPARQL processing. The Application Layer is responsible for
+user interaction and application state; it hosts user interfaces and
+application code, and embeds Unravel sessions into web applications.
+Within this layer, hooks and UI components consume Unravel queries,
+while three immutable objects — \texttt{UnravelConfiguration},
+\texttt{UnravelSession}, and \texttt{UnravelQuery} — encapsulate
+configuration management, query construction, and query execution
+respectively.
 
-The Unravel Query Abstraction Layer is implemented in Scala/Scala.js and
-provides the core query model. It is organized into several functional
-subsystems: a configuration module, a core query DSL, a high-level query
-API, UI integration utilities, and a variable scoping mechanism.
-Together, these components offer a composable, focus-based abstraction
-over SPARQL queries that can be safely reused across application code.
-A dedicated Comunica facade\footnote{https://www.scala-js.org/libraries/facades.html} 
-connects this abstraction layer to the JavaScript RDFJS ecosystem and exposes a typed interface to the
-underlying SPARQL engines.
+The Unravel Query Layer is implemented in Scala\footnote{https://scala-lang.org/}
+and compiled to JavaScript with Scala.js\footnote{https://www.scala-js.org/},
+and it provides the core query model. It is organized into several
+functional subsystems: a configuration module, a core query DSL, a
+high-level query API, UI integration utilities, and a variable scoping
+mechanism. Together, these components offer a composable, focus-based
+abstraction over SPARQL queries that can be safely reused across
+application code. A dedicated Comunica facade\footnote{https://www.scala-js.org/libraries/facades.html}
+connects this abstraction layer to the JavaScript RDFJS ecosystem and
+exposes a typed interface to the underlying SPARQL engines.
 
 Finally, the RDF Data \& Query Layer corresponds to the existing
 JavaScript/TypeScript ecosystem for RDF and SPARQL. In our deployment,
