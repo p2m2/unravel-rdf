@@ -223,6 +223,7 @@ pages:
   needs: ["build_release"]
   variables:
     UNRAVEL_RDF_VERSION: "$CI_COMMIT_TAG"
+    PAGES_URL: "https://unravel-rdf-5df20c.pages-forge.inrae.fr"
   before_script:
     - apt-get update -y
     - apt-get install -y ruby-full build-essential
@@ -233,6 +234,8 @@ pages:
       cd docs
       bundle exec jekyll build --destination ../public
       cd ..
+      echo "CONTENT OF PUBLIC:"
+      ls -la public | head -30
     - mkdir -p "public/cdn/${CI_COMMIT_TAG}"
     - cp target/cdn/unravel-rdf.min.js "public/cdn/${CI_COMMIT_TAG}/unravel-rdf.min.js"
     - mkdir -p public/cdn/latest
@@ -242,10 +245,10 @@ pages:
       echo "{\"latest\":\"${CI_COMMIT_TAG}\",\"versions\":[${VERSIONS}]}" > public/cdn/versions.json
     - |
       echo "================================================"
-      echo "Documentation : https://${CI_PAGES_DOMAIN}/"
-      echo "CDN latest    : https://${CI_PAGES_DOMAIN}/cdn/latest/unravel-rdf.min.js"
-      echo "CDN version   : https://${CI_PAGES_DOMAIN}/cdn/${CI_COMMIT_TAG}/unravel-rdf.min.js"
-      echo "Index versions: https://${CI_PAGES_DOMAIN}/cdn/versions.json"
+      echo "Documentation : https://${PAGES_URL}/"
+      echo "CDN latest    : https://${PAGES_URL}/cdn/latest/unravel-rdf.min.js"
+      echo "CDN version   : https://${PAGES_URL}/cdn/${CI_COMMIT_TAG}/unravel-rdf.min.js"
+      echo "Index versions: https://${PAGES_URL}/cdn/versions.json"
       echo "================================================"
   artifacts:
     paths:

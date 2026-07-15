@@ -4,7 +4,7 @@
 
 Unravel RDF is a JavaScript/TypeScript library for building RDF applications over SPARQL endpoints. It provides a fluent API for exploring RDF graphs and building SPARQL queries without writing SPARQL directly. The library is implemented in Scala.js and available as an npm package or directly through a CDN.
 
-The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/unravel-rdf), with a mirror available on [GitHub](https://github.com/p2m2/unravel-rdf). Unravel RDF is developed within the [P2M2](https://www6.inrae.fr/p2m2) community.
+The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/unravel-rdf), with a mirror available on [GitHub](https://github.com/p2m2/unravel-rdf). 
 
 ---
 
@@ -101,18 +101,8 @@ Load the library directly in any HTML page — no npm, no bundler:
 <script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/latest/unravel-rdf.min.js"></script>
 
 <!-- Pinned version (recommended for production) -->
-<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/v1.2.3/unravel-rdf.min.js"></script>
+<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/0.5.4/unravel-rdf.min.js"></script>
 ```
-
-All exports are available under the global `window.UnravelRdf`:
-
-```html
-<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/latest/unravel-rdf.min.js"></script>
-<script>
-  const { SWDiscovery, SWDiscoveryConfiguration, URI } = window.UnravelRdf
-</script>
-```
-
 Available versions: [cdn/versions.json](https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/versions.json)
 
 ---
