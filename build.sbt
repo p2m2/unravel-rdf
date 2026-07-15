@@ -271,7 +271,9 @@ lazy val root = (project in file("."))
     version := sys.env.getOrElse("UNRAVEL_RDF_VERSION", buildTime),
     scalaVersion := "2.13.18",
     organizationHomepage := Some(url("https://www6.inrae.fr/p2m2")),
-    licenses := Seq("MIT License" -> url("http://www.opensource.org/licenses/mit-license.php")),
+    licenses := Seq(
+      "GPL-3.0-or-later" -> url("https://www.gnu.org/licenses/gpl-3.0.html")
+    ),
     homepage := Some(url("https://forge.inrae.fr/p2m2/unravel-rdf")),
     description := "Unravel RDF graphs — interactive SPARQL session management with lazy pagination, serialization, and graph traversal.",
 

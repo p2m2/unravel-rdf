@@ -1,48 +1,79 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://forge.inrae.fr/p2m2/unravel-rdf/-/blob/master/LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://forge.inrae.fr/p2m2/unravel-rdf/-/blob/master/LICENSE)
 [![Forge INRAE](https://img.shields.io/badge/forge-INRAE-blue)](https://forge.inrae.fr/p2m2/unravel-rdf)
 
-# unravel-rdf
 
-**unravel-rdf** is a JavaScript/TypeScript library for building interactive RDF exploration sessions against SPARQL endpoints and RDF data sources.
-It is implemented in Scala.js and published as an npm package.
+# Unravel RDF
 
-Developed within the [P2M2](https://www6.inrae.fr/p2m2) community as part of FAIR knowledge extraction workflows for metabolomics and semantic data integration.
+> **Lambda Enclosure** is the programming model of Unravel RDF: a
+> closure-based, graph-first approach for building SPARQL queries through
+> RDF graph navigation.
+
+**Unravel RDF** is a JavaScript/TypeScript library for building interactive
+RDF exploration sessions against SPARQL endpoints and RDF data sources.
+
+It provides a fluent API to describe graph traversals, compose SPARQL queries,
+execute them, and inspect or serialize exploration sessions. Unravel RDF is
+implemented in Scala.js and published as an npm package.
+
+Developed within the [P2M2](https://www6.inrae.fr/p2m2) community, Unravel RDF
+supports FAIR knowledge extraction workflows for metabolomics and semantic data
+integration.
 
 ---
 
 ## CDN — use directly in a browser
 
-No npm, no bundler required:
+No npm installation or bundler is required.
 
 ```html
-<!-- Latest stable -->
+<!-- Latest stable version -->
 <script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/latest/unravel-rdf.min.js"></script>
+
 <script>
-  const { SWDiscovery, SWDiscoveryConfiguration, URI } = window.UnravelRdf
+       const { UnravelConfig, UnravelSession } = window.UnravelRdf
 
-  const config = SWDiscoveryConfiguration
-    .init()
-    .sparqlEndpoint("https://metabolights.semantic-metabolomics.fr/sparql")
+      const config = UnravelConfig
+        .init()
+        .sparqlEndpoint("https://rdfportal.org/primary/sparql")
 
-  SWDiscovery(config)
-    .prefix("obo", "http://purl.obolibrary.org/obo/")
-    .prefix("metabolights", "https://www.ebi.ac.uk/metabolights/property#")
-    .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-    .something()
-      .set(URI("obo:CHEBI_4167"))
-      .isObjectOf(URI("metabolights:Xref"), "study")
-      .datatype(URI("rdfs:label"), "label")
-    .select("study", "label")
-    .commit()
-    .raw()
-    .then((response) => {
-      for (let i = 0; i < response.results.bindings.length; i++) {
-        const study = response.results.bindings[i]["study"].value
-        const label = response.results.datatypes["label"][study][0].value
-        console.log(study + " --> " + label)
-      }
-    })
-    .catch(console.error)
+      UnravelSession(config)
+        .prefix("dc", "http://purl.org/dc/elements/1.1/")
+        .prefix("knapsack", "http://purl.jp/knapsack/resource#")
+        .prefix("sio", "http://semanticscience.org/resource/")
+        .prefix("cheminf", "http://semanticscience.org/resource/")
+
+        .something(
+          "record",
+          record => record
+            .out("dc:identifier", "knapsackId")
+            .out(
+              "sio:SIO_000008",
+              "molecularEntity",
+              molecularEntity => molecularEntity
+                .isA("cheminf:CHEMINF_000043")
+                .datatype(
+                  "sio:SIO_000300",
+                  "molecularEntityName"
+                )
+            )
+        )
+        .select(
+          "record",
+          "knapsackId",
+          "molecularEntityName"
+        )
+        .limit(20)
+        .commit()
+        .raw()
+
+        .then(response => {
+          console.log("KNApSAcK molecular entities")
+          console.log(response)
+        })
+
+        .catch(error => {
+          console.error("Unable to query the RDF Portal endpoint", error)
+        })
 </script>
 ```
 
@@ -57,81 +88,143 @@ npm install @p2m2/unravel-rdf
 ```
 
 ```js
-import { SWDiscovery, SWDiscoveryConfiguration, URI } from '@p2m2/unravel-rdf'
+import {
+  UnravelSession,
+  UnravelSessionConfiguration
+} from "@p2m2/unravel-rdf"
 ```
+
+---
+
+## Lambda Enclosure
+
+Lambda Enclosure expresses RDF navigation by enclosing traversal instructions in
+a JavaScript function. The function receives the current graph focus and
+returns the next traversal expression.
+
+```js
+UnravelSession(configMetaNetX)
+  .prefix("CHEBI", "http://purl.obolibrary.org/obo/CHEBI_")
+  .prefix("mtx", "https://rdf.metanetx.org/chem/")
+  .something(
+    "node",
+    node => node.traverse(
+      "?rel",
+      "mtx:MNXM586757"
+    )
+  )
+  .select("node", "rel")
+  .limit(30)
+  .commit()
+  .raw()
+```
+
+This query starts from the MetaNetX chemical `mtx:MNXM586757`, traverses
+matching RDF relations, and selects each reached `node` together with the
+corresponding relation `rel`.
 
 ---
 
 ## Documentation
 
-- [User documentation](user_docs.md)
-- [Configuration](user_docs_configuration.md)
-- [Building blocks](user_docs_building_block.md)
-- [Transactions](user_docs_transaction.md)
-- [Debug](user_docs_debug.md)
-- [FORUM example](user_docs_forum_example.md)
+The documentation is organised around concepts and APIs rather than the former
+Discovery terminology.
+
+- [Getting started](docs/getting-started.md)
+- [Lambda Enclosure](docs/lambda-enclosure.md)
+- [Session API](docs/session-api.md)
+- [Query API](docs/query-api.md)
+- [Configuration](docs/configuration.md)
+- [Execution and transactions](docs/execution.md)
+- [Pagination and projections](docs/pagination.md)
+- [Serialisation](docs/serialization.md)
+- [Debugging](docs/debugging.md)
+- [FORUM integration example](docs/forum-example.md)
 
 ---
 
 ## Key concepts
 
-### Fluent query DSL
+### Graph-first query construction
 
-Replace verbose SPARQL with a navigable session object:
+Unravel RDF lets applications express a query as successive RDF graph
+navigation steps rather than assembling raw SPARQL strings manually.
 
 ```js
-SWDiscovery(config)
-  .something("study")
-    .isA(URI("metabolights:Study"))
-    .datatype(URI("rdfs:label"), "label")
+UnravelSession(config)
+  .prefix("metabolights", "https://www.ebi.ac.uk/metabolights/property#")
+  .prefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+  .something(
+    "study",
+    study => study
+      .isA("metabolights:Study")
+      .datatype("rdfs:label", "label")
+  )
   .select("study", "label")
   .commit()
   .raw()
   .then(response => console.log(response))
 ```
 
-### Serializable sessions
+### Sessions and queries
+
+An `UnravelSession` holds the exploration context: prefixes, data-source
+configuration, graph navigation steps, and query-building state.
+
+The session produces an `UnravelQuery` when a projection is selected and the
+query is committed. Queries can then be executed, inspected, or serialised.
+
+### Serializable exploration state
+
+Sessions can be serialised to preserve an exploration state and restore it
+later.
 
 ```js
-// Save session state
 const saved = session.getSerializedString()
 
-// Restore later — full session, ready to query
-const restored = SWDiscovery().setSerializedString(saved)
+const restored = UnravelSession()
+  .setSerializedString(saved)
 ```
 
 ### Lazy pagination
+
+Paged selections support incremental loading of large result sets.
 
 ```js
 session
   .selectByPage("study", "label")
   .then(([totalCount, fetchPage]) => {
-    fetchPage(0).then(page => renderTable(page))
+    console.log(`Found ${totalCount} results`)
+
+    return fetchPage(0)
   })
+  .then(page => renderTable(page))
 ```
 
 ---
 
 ## Technical basis
 
-Built with [Scala.js](https://www.scala-js.org/) on top of the JavaScript RDF ecosystem:
+Unravel RDF is built with [Scala.js](https://www.scala-js.org/) and integrates
+with the JavaScript RDF ecosystem:
 
 - [`@comunica/query-sparql`](https://comunica.dev/) — SPARQL query execution
-- [`n3`](https://github.com/rdfjs/N3.js) — RDF parsing and in-memory store
-- [`rdfxml-streaming-parser`](https://github.com/rubensworks/rdfxml-streaming-parser.js) — RDF/XML support
-- [`axios`](https://axios-http.com/) — HTTP transport
 
 ---
 
-## Source & issues
+## Source and issues
 
 - Source: [forge.inrae.fr/p2m2/unravel-rdf](https://forge.inrae.fr/p2m2/unravel-rdf)
 - Issues: [forge.inrae.fr/p2m2/unravel-rdf/-/issues](https://forge.inrae.fr/p2m2/unravel-rdf/-/issues)
 
+---
+
 ## Authors
 
-- O. Filangi — P2M2, IGEPP, Rennes (INRAE)
+- O. Filangi — P2M2, IGEPP, Rennes, INRAE
+
+---
 
 ## License
 
-MIT
+This project is distributed under the [GNU General Public License v3.0](LICENSE).

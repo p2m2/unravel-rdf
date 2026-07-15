@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2020-2026 INRAE
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /**
  * olivier.filangi@inrae.fr - P2M2 Platform
  * Project: https://forge.inrae.fr/p2m2/discovery

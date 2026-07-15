@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2020-2026 INRAE
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 package facade.npm
 
 import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._

@@ -296,6 +296,11 @@ Unravel RDF is built with [Scala.js](https://www.scala-js.org/) and integrates t
 
 ---
 
-## License
+## Licence
 
-MIT — [Forge INRAE / p2m2/unravel-rdf](https://forge.inrae.fr/p2m2/unravel-rdf)
+Copyright (C) 2026 INRAE
+
+Unravel-RDF is distributed under the terms of the GNU General Public
+License, version 3 or any later version (GPL-3.0-or-later).
+
+See the [LICENSE](LICENSE) file for the full license text.
