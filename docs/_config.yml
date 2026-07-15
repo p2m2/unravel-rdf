@@ -1,3 +1,20 @@
-title: unravel-rdf
-description: unravel-rdf provides a powerful toolset for developers who are looking to build UIs using RDF data in a robust software development process
-theme: minima
+title: Unravel RDF
+description: >
+  A JavaScript/TypeScript library for exploring RDF graphs 
+  and building SPARQL queries without writing SPARQL.
+theme: just-the-docs
+url: "https://unravel-rdf-5df20c.pages-forge.inrae.fr"
+
+color_scheme: light
+search_enabled: true
+nav_enabled: true
+heading_anchors: true
+
+aux_links:
+  "GitLab":
+    - "https://forge.inrae.fr/p2m2/unravel-rdf"
+  "GitHub mirror":
+    - "https://github.com/p2m2/unravel-rdf"
+footer_content: >
+  Unravel RDF - INRAE P2M2 -
+  The Metabolic Profiling and Metabolomics Platform
