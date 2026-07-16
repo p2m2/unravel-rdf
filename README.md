@@ -1,18 +1,8 @@
 # Unravel RDF
 
-> **Lambda Enclosure** is the current programming model of Unravel RDF: a closure-based, graph-first approach for building SPARQL queries.
-
-Unravel RDF is a JavaScript/TypeScript library for building RDF applications over SPARQL endpoints. It provides a fluent API for exploring RDF graphs and building SPARQL queries without writing SPARQL directly. The library is implemented in Scala.js and available as an npm package or directly through a CDN.
+Unravel RDF is a JavaScript/TypeScript library, implemented in Scala.js, for building RDF applications that query SPARQL endpoints. Its Lambda Enclosure programming model offers a fluent API for exploring RDF graphs and building SPARQL queries without writing SPARQL directly.
 
 The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/unravel-rdf), with a mirror available on [GitHub](https://github.com/p2m2/unravel-rdf). 
-
----
-
-## Why Unravel RDF?
-
-Unravel RDF lets developers build SPARQL queries by navigating RDF graphs instead of assembling SPARQL strings.
-
-An Unravel RDF session represents the current state of an RDF exploration. It can be traversed, filtered, paginated, serialized, and restored, making it easy to build interactive knowledge graph applications.
 
 ---
 
