@@ -1,6 +1,6 @@
 # Unravel RDF
 
-Unravel RDF is a JavaScript/TypeScript library, implemented in Scala.js, for building RDF applications that query SPARQL endpoints. Its Lambda Enclosure programming model offers a fluent API for exploring RDF graphs and building SPARQL queries without writing SPARQL directly.
+Unravel RDF is a JavaScript/TypeScript library, implemented in Scala.js, for building web applications on top of RDF knowledge graphs. It provides a fluent API based on the **Lambda Enclosure** programming model, allowing developers to explore RDF graphs and generate SPARQL queries without writing SPARQL manually.
 
 The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/unravel-rdf), with a mirror available on [GitHub](https://github.com/p2m2/unravel-rdf). 
 
@@ -19,53 +19,60 @@ const { UnravelConfig, UnravelSession } = window.UnravelRdf
 
 const config = UnravelConfig
   .init()
-  .sparqlEndpoint("https://rdfportal.org/primary/sparql")
+  .sparqlEndpoint(
+    "https://rdfportal.org/primary/sparql"
+  )
 
 UnravelSession(config)
-  .prefix("dc", "http://purl.org/dc/elements/1.1/")
-  .prefix("knapsack", "http://purl.jp/knapsack/resource#")
-  .prefix("sio", "http://semanticscience.org/resource/")
-  .prefix("cheminf", "http://semanticscience.org/resource/")
-
-  .something(
-    "record",
-    record =>
-      record
-        .out("dc:identifier", "?knapsackId")
-        .out(
-          "sio:SIO_000008",
-          "?molecularEntity",
-          molecularEntity =>
-            molecularEntity
-              .isA("cheminf:CHEMINF_000043")
-              .out("sio:SIO_000300", "?molecularEntityName")
-        )
-  )
-
-  .select(
-    "record",
-    "knapsackId",
-    "molecularEntityName"
-  )
-  .limit(20)
+  .something("record", 
+     record => record.out("dc:identifier","?id"))
+  .select("record", "id")
+  .limit(10)
   .commit()
   .raw()
-  .then(console.log)
+  .then(
+    results => console.log(results)
+  )
 ```
+## Try It Online
 
-The query above corresponds to the following RDF traversal:
+Explore and modify this example directly in [CodePen](https://codepen.io/ofilangi/full/019f69a9-7ccb-74fb-9d29-a0365fe4a3a6).
 
-```
-record
- ├── dc:identifier ─────────────► ?knapsackId
- └── sio:SIO_000008 ────────────► ?molecularEntity
-       ├── rdf:type ────────────► cheminf:CHEMINF_000043
-       └── sio:SIO_000300 ──────► ?molecularEntityName
-```
+## Why Unravel RDF?
 
-No SPARQL string is written manually. The traversal described in the
-Lambda Enclosure is translated into an optimized SPARQL query when
-`.commit()` is executed.
+Unravel RDF provides a graph-oriented programming model for building
+SPARQL queries incrementally. Instead of writing query strings,
+developers describe graph traversals through a fluent API based on
+successive navigation steps.
+
+The library provides:
+
+- **Incremental query construction**, based on a focus-oriented graph
+  exploration model. Query patterns are progressively refined by moving
+  the focus between variables in the RDF graph, introducing new variables,
+  and revisiting previously explored contexts. Following principles similar
+  to Query-based Faceted Search (QFS) approaches such as [Sparklis](https://github.com/sebferre/sparklis), Unravel
+  RDF turns graph exploration strategies into programmable query workflows.
+- **Flexible query configuration**, including prefixes, default and named
+  graphs, and multiple RDF data sources. Queries can seamlessly combine
+  local RDF files and remote SPARQL endpoints, enabling federated
+  querying.
+- **Built-in debugging**, exposing both the incremental query
+  construction tree and the generated SPARQL query.
+- **Lazy execution and pagination**, where query pages are generated on
+  demand and executed only when requested, avoiding unnecessary endpoint
+  calls.
+- **Execution progress notifications**, allowing applications to react
+  to each stage of query processing—from query construction to result
+  retrieval—and easily integrate progress indicators into the user
+  interface.
+- **Query serialization**, enabling query persistence, later
+  reconstruction, and the creation of permanent links to application
+  states.
+
+Together, these features allow developers to manipulate query objects
+rather than SPARQL strings, while Unravel RDF manages query generation,
+execution, and interaction with the user interface.
 
 ## Installation
 

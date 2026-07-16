@@ -209,7 +209,7 @@ Use `bind()` to create a new variable from a SPARQL expression.
 ```javascript
 something("entity", entity =>
   entity.out("ex:name", "?name", name =>
-    name.bind("?shortName").subStr(0, 10)
+    name.bind("shortName").subStr(0, 10)
   )
 )
 ```
@@ -232,9 +232,12 @@ Supported transformations include:
 | `.bind(variable).subStr(start, length)` | `SUBSTR()` |
 | `.bind(variable).replace(pattern, replacement, flags)` | `REPLACE()` |
 | `.bind(variable).abs()` | `ABS()` |
+| `.bind(variable).round()` | `ROUND()` |
 | `.bind(variable).ceil()` | `CEIL()` |
 | `.bind(variable).floor()` | `FLOOR()` |
 | `.bind(variable).rand()` | `RAND()` |
+| `.bind(variable).datatype()` | `DATATYPE()` |
+| `.bind(variable).str()` | `STR()` |
 
 ## Building the final query
 

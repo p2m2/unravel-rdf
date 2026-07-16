@@ -15,5 +15,3 @@ used to explore real RDF knowledge graphs.
 Available examples:
 
 - **KNApSAcK**: querying molecular entities from an RDF knowledge graph.
-- **FORVM**: exploring ontology-based semantic associations.
-- **Wikidata**: querying a large-scale public knowledge graph.
