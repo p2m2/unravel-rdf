@@ -1,40 +1,94 @@
 ---
 layout: default
-title: Home
+title: Documentation
 nav_order: 1
 ---
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://forge.inrae.fr/p2m2/unravel-rdf/-/blob/main/LICENSE)
-[![Forge INRAE](https://img.shields.io/badge/forge-INRAE-blue)](https://forge.inrae.fr/p2m2/unravel-rdf)
+# Unravel RDF Documentation
 
+Unravel RDF is a JavaScript/TypeScript framework for building applications
+over RDF knowledge graphs. It provides a focus-oriented programming model
+for constructing, executing, and integrating SPARQL queries into interactive
+web applications.
 
-# Unravel RDF
+## Documentation
 
-Unravel RDF is a JavaScript/TypeScript library for building
-interactive applications over RDF knowledge graphs.
+### Getting started
 
-It provides a fluent API for exploring RDF graphs and generating
-SPARQL queries without writing SPARQL directly.
+Learn the fundamentals of Unravel RDF:
 
-The library is implemented in Scala.js and distributed as an npm package
-and a browser-ready CDN bundle.
+- configuring RDF data sources;
+- querying RDF files and SPARQL endpoints;
+- exploring RDF graphs through the focus-oriented model.
 
-## Quick example
+[Getting Started](getting-started)
 
-```javascript
-const { UnravelConfig, UnravelSession } = window.UnravelRdf
+---
 
-const config = UnravelConfig
-              .init()
-              .sparqlEndpoint("https://rdfportal.org/primary/sparql")
+### Configuration
 
-UnravelSession(config)
-  .something(
-    "record",record =>
-      record.out(
-        "dc:identifier",
-        "?id"
-      )
-  ).select("record", "id")
-   .commit()
-```
+Configure Unravel RDF applications:
+
+- RDF files and SPARQL endpoints;
+- prefixes;
+- graphs and named graphs;
+- federated data sources.
+
+[Configuration](configuration)
+
+---
+
+### Query model
+
+Understand the Unravel RDF query construction model:
+
+- focus-based exploration;
+- incremental query construction;
+- RDF navigation primitives;
+- query graph generation.
+
+[Query Model](query-model)
+
+---
+
+### Query execution
+
+Learn how queries are executed:
+
+- result handling;
+- lazy pagination.
+
+[Query Execution](execution)
+
+---
+
+### Debugging
+
+Inspect and understand query construction:
+
+- query construction tree;
+- generated SPARQL queries;
+- execution state.
+
+[Debugging](debugging)
+
+---
+
+### UI integration
+
+Integrate Unravel RDF into interactive applications:
+
+- execution progress events;
+- callbacks;
+- interactive graph exploration.
+
+[UI Integration](ui-integration)
+
+---
+
+### Examples
+
+Explore complete applications built with Unravel RDF:
+
+- [KNApSAcK molecular entities](example_KNApSAcK);
+- [FORVM](example_FORVM.md);
