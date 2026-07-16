@@ -1,7 +1,8 @@
 ---
 layout: default
-title: Example - KNApSAcK
-nav_order: 8
+title: KNApSAcK
+parent: Examples
+nav_order: 1
 ---
 
 # KNApSAcK example
