@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Unravel RDF — KNApSAcK example</title>
+      <link rel="stylesheet" href="console.css" />
+   </head>
+   <body>
+      <pre id="log"></pre>
+      <script src="console.js"></script>
+      <!-- Unravel RDF library -->
+      <script src="../target/cdn-debug/unravel-rdf.min.js"></script>
+      <script>
+         const { UnravelConfig, UnravelSession } = window.UnravelRdf
+         
+         // Step 1: Configure the SPARQL endpoints used in the query.
+         // The first endpoint provides the main metabolomics data.
+         // The second endpoint is used to enrich the query with related resources.
+         const config = UnravelConfig
+           .init()
+           .sparqlEndpoint("https://rdfportal.org/primary/sparql")
+           .sparqlEndpoint("https://forum.semantic-metabolomics.fr/sparql")
+         
+         // Step 2: Start a new Unravel session and declare the prefixes
+         // that will be used in the graph navigation.
+         UnravelSession(config)
+           .prefix("dc", "http://purl.org/dc/elements/1.1/")
+           .prefix("knapsack", "http://purl.jp/knapsack/resource#")
+           .prefix("sio", "http://semanticscience.org/resource/")
+           .prefix("cheminf", "http://semanticscience.org/resource/CHEMINF_")
+           .prefix("chebi", "http://purl.obolibrary.org/obo/chebi/")
+           .prefix("skos", "http://www.w3.org/2004/02/skos/core#")
+           .prefix("meshv", "http://id.nlm.nih.gov/mesh/vocab#")
+         
+           // Step 3: Define the starting point of the query.
+           // "record" is the root resource explored in the first endpoint.
+           .something("record", record =>
+             record
+         
+               // Retrieve the KNApSAcK identifier.
+               .out("dc:identifier", "?knapsackId")
+         
+               // Follow the link to the molecular entity and extract its label.
+               .out("sio:SIO_000008", "?molecularEntity", molecularEntity =>
+                 molecularEntity
+                   .isA("cheminf:000043")
+                   .out("sio:SIO_000300", "?molecularEntityNameKnap")
+               )
+         
+               // Follow the link to the standard InChIKey representation.
+               .out("cheminf:000200", "?standardInchikey", standardInchikey =>
+                 standardInchikey
+                   .isA("cheminf:000059")
+                   .out("sio:SIO_000300", "?valueInchikeyKnap", valueInchikeyKnap =>
+                     // Convert the InChIKey value to a typed xsd:string literal
+                     // so that it can be reused consistently across endpoints.
+                     valueInchikeyKnap.bind("inchikeyDtFromKS").strdt("xsd:string")
+                   )
+               )
+           )
+         
+           // Step 4: Reuse the bound InChIKey in another part of the query.
+           // This links the KNApSAcK record to a ChEBI compound with the same InChIKey.
+           .from("inchikeyDtFromKS", inchikeyDtFromKS =>
+             inchikeyDtFromKS.in("chebi:inchikey", "?compoundChebi", compoundChebi =>
+               compoundChebi
+         
+                 // Explore semantic relations from the matched ChEBI compound.
+                 .out("skos:related", "?meshTerm", meshTerm =>
+                   // Restrict the related resource to MeSH terms.
+                   meshTerm.out("rdf:type", "meshv:Term")
+                 )
+             )
+           )
+         
+           // Optional: display the debug screen directly in the browser.
+           // .showDebugScreen()
+         
+           // Step 5: Select the variables returned in the result set.
+           .select(
+             "record",
+             "molecularEntityNameKnap",
+             "valueInchikeyKnap",
+             "?compoundChebi",
+             "?some"
+           )
+         
+           // Step 6: Limit the number of results.
+           .limit(1)
+         
+           // Step 7: Execute the query and request the raw SPARQL JSON response.
+           .commit()
+           .raw()
+         
+           // Step 8: Track query progression.
+           // This callback can be connected to a progress bar in the user interface.
+           .progression(value => {
+             progressBar.value = value
+           })
+         
+           // Step 9: Track request-level events during execution.
+           // This is useful for debugging, tracing, or displaying live request status.
+           .requestEvent(event => {
+             console.log(event)
+           })
+         
+           // Step 10: Process the final response.
+           .then(response => {
+             console.log("KNApSAcK molecular entities")
+             console.log(response)
+           })
+         
+           // Step 11: Handle possible execution errors.
+           .catch(error => {
+             console.error(
+               "Unable to query the RDF Portal endpoint",
+               error
+             )
+           })
+      </script>
+   </body>
+</html>
