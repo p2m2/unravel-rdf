@@ -114,6 +114,7 @@ object UnravelSessionTest extends TestSuite {
           .raw
           .map(
             response => {
+              println(response("results")("datatypes")("d"))
               assert(response("results")("datatypes")("d")("http://aa3")(0)("value").toString().nonEmpty)
             }
           )

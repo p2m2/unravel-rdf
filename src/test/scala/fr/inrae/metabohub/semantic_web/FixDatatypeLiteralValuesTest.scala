@@ -10,6 +10,16 @@ import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 object FixDatatypeLiteralValuesTest extends TestSuite {
 
+  private val xsdInteger =
+    "http://www.w3.org/2001/XMLSchema#integer"
+
+  private val entityIri = "http://aa"
+
+  private val expectedValues = Set(
+    ("literal", "1", xsdInteger),
+    ("literal", "3", xsdInteger)
+  )
+
   val insertData: Future[Any] =
     DataTestFactory.insertVirtuoso1(
       """
@@ -26,137 +36,99 @@ object FixDatatypeLiteralValuesTest extends TestSuite {
   override def utestAfterAll(): Unit = {
     DataTestFactory.deleteVirtuoso1(this.getClass.getSimpleName)
   }
-  /*
-   * - results.bindings remains a standard SPARQL Results JSON result.
-   * - results.datatypes is an Unravel extension.
-   * - datatypes(variable)(resourceIri) always returns an array of RDF terms,
-   *   including for functional properties.
-   * - A missing value should be represented either by an empty array or by an
-   *   absent key. An empty array is recommended when it can be produced
-   *   consistently, as it simplifies client-side processing.
-   * - The second-level key must be the canonical RDF representation of the
-   *   resource, rather than an arbitrary string.
-   * - This mechanism should be restricted to URI subjects. If `entity` can be
-   *   a blank node, its representation (for example, `_:b1`) must be defined
-   *   and its scope must not be ambiguous.
-   */
+
+  private def assertDatatypeValues(
+                                    out: ujson.Value,
+                                    propertyRef: String,
+                                    resourceIri: String
+                                  ): Unit = {
+    val results = out.obj("results")
+    val bindings = results.obj("bindings").arr
+
+    assert(
+      bindings.length == 1,
+      s"Expected exactly one main binding, found ${bindings.length}"
+    )
+
+    val entity = bindings(0).obj("entity")
+
+    assert(
+      entity("type").str == "uri",
+      s"Expected entity to be a URI, found: ${entity("type")}"
+    )
+
+    assert(
+      entity("value").str == resourceIri,
+      s"Expected entity IRI '$resourceIri', found: ${entity("value")}"
+    )
+
+    val datatypeValues = results
+      .obj("datatypes")
+      .obj(propertyRef)
+      .obj(resourceIri)
+      .arr
+
+    val values = datatypeValues
+      .map { term =>
+        val literal = term.obj
+
+        (
+          literal("type").str,
+          literal("value").str,
+          literal("datatype").str
+        )
+      }
+      .toSet
+
+    assert(
+      values == expectedValues,
+      s"""|Unexpected RDF values for '$propertyRef'
+          |Expected: $expectedValues
+          |Actual:   $values
+          |""".stripMargin
+    )
+  }
+
   def tests: Tests = Tests {
+
     test("datatype with entity resource and complete URI datatype property") {
       insertData.flatMap { _ =>
         UnravelSession(config)
           .something(
             "entity",
-            _.set(URI("http://aa"))
+            _.set(URI(entityIri))
               .datatype("http://namespace/littvalue", "bb")
           )
           .select(Seq("entity", "bb"))
           .commit()
           .raw
           .map { out =>
-            val results = out.obj("results")
-            val bindings = results.obj("bindings").arr
-
-            assert(bindings.length == 1)
-
-            val entity = bindings(0).obj("entity")
-            assert(entity.obj("type").str == "uri")
-            assert(entity.obj("value").str == "http://aa")
-
-            val datatypeValues = results
-              .obj("datatypes")
-              .obj("bb")
-              .obj("http://aa")
-              .arr
-              .flatMap(_.arr)
-
-            val values = datatypeValues
-              .map { value =>
-                val literal = value.obj
-
-                (
-                  literal("type").str,
-                  literal("value").str,
-                  literal("datatype").str
-                )
-              }
-              .toSet
-
-            val expectedValues = Set(
-              (
-                "literal",
-                "1",
-                "http://www.w3.org/2001/XMLSchema#integer"
-              ),
-              (
-                "literal",
-                "3",
-                "http://www.w3.org/2001/XMLSchema#integer"
-              )
-            )
-            assert(
-              values == expectedValues,
-              s"Unexpected RDF values for bb: $values"
+            assertDatatypeValues(
+              out = out,
+              propertyRef = "bb",
+              resourceIri = entityIri
             )
           }
       }
     }
 
-    test("datatype with entity resource and URI datatype with prefix property") {
+    test("datatype with entity resource and prefixed URI datatype property") {
       insertData.flatMap { _ =>
         UnravelSession(config)
-          .prefix("ex","http://namespace/")
+          .prefix("ex", "http://namespace/")
           .something(
             "entity",
-            _.set(URI("http://aa"))
+            _.set(URI(entityIri))
               .datatype("ex:littvalue", "bb")
           )
           .select(Seq("entity", "bb"))
           .commit()
           .raw
           .map { out =>
-            val results = out.obj("results")
-            val bindings = results.obj("bindings").arr
-
-            assert(bindings.length == 1)
-
-            val entity = bindings(0).obj("entity")
-            assert(entity.obj("type").str == "uri")
-            assert(entity.obj("value").str == "http://aa")
-
-            val datatypeValues = results
-              .obj("datatypes")
-              .obj("bb")
-              .obj("http://aa")
-              .arr
-              .flatMap(_.arr)
-
-            val values = datatypeValues
-              .map { value =>
-                val literal = value.obj
-
-                (
-                  literal("type").str,
-                  literal("value").str,
-                  literal("datatype").str
-                )
-              }
-              .toSet
-
-            val expectedValues = Set(
-              (
-                "literal",
-                "1",
-                "http://www.w3.org/2001/XMLSchema#integer"
-              ),
-              (
-                "literal",
-                "3",
-                "http://www.w3.org/2001/XMLSchema#integer"
-              )
-            )
-            assert(
-              values == expectedValues,
-              s"Unexpected RDF values for bb: $values"
+            assertDatatypeValues(
+              out = out,
+              propertyRef = "bb",
+              resourceIri = entityIri
             )
           }
       }

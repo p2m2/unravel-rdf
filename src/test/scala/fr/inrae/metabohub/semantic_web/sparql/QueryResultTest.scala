@@ -68,7 +68,7 @@ object QueryResultTest extends TestSuite {
 
     test("QueryResultTest setDatatype ") {
       val qr = QueryResult(json)
-      qr.setDatatype("label",Map("http://example.org/book/book6" -> ujson.Value("\"Book\"")))
+      qr.setDatatype("label",Map("http://example.org/book/book6" -> ujson.Arr(ujson.Value("\"Book\""))))
 
       Try(qr.json("results")("datatypes")) match {
         case Success(_) => assert(true)
