@@ -112,6 +112,8 @@ case class UnravelSession(
     def datatype(): UnravelSession = manage(Datatype(getUniqueRef()))
 
     def str(): UnravelSession = manage(Str(Var(`var`), getUniqueRef()))
+
+    def strdt(datatype : SparqlDefinition): UnravelSession = manage(StrDt(Var(`var`), getUniqueRef(),datatype))
   }
 
   def bind(`var`: String, f: UnravelSession => UnravelSession = identity): BindIncrement = BindIncrement(`var`, f)

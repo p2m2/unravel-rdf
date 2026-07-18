@@ -5,7 +5,7 @@ package fr.inrae.metabohub.semantic_web
 
 import fr.inrae.metabohub.data.DataTestFactory
 import fr.inrae.metabohub.semantic_web.configuration.UnravelConfig
-import fr.inrae.metabohub.semantic_web.rdf.{IRI, Literal, SparqlBuilder, URI}
+import fr.inrae.metabohub.semantic_web.rdf.{IRI, Literal, URI, SparqlBuilder}
 import utest.{TestSuite, Tests, test}
 
 import scala.concurrent.Future
@@ -199,6 +199,21 @@ object BindTest extends TestSuite {
             r("results")("bindings")(0)("convert_str")("value").value.toString.contains("http://")
           )
         })
+      }).flatten
+    }
+    test("StrDt") {
+      insertData.map(_ => {
+        UnravelSession(config)
+          .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+          .something(_.out(URI("http://bb"), "?r",_.bind("dt").strdt("xsd:string")))
+          .select(Seq("dt"))
+          .distinct
+          .commit()
+          .raw.map(r => {
+            assert(
+                r("results")("bindings")(0)("dt")("datatype").str == "http://www.w3.org/2001/XMLSchema#string"
+            )
+          })
       }).flatten
     }
   }

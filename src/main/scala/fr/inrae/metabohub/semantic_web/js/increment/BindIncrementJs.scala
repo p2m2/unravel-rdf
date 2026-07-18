@@ -39,4 +39,7 @@ case class BindIncrementJs(swf: UnravelSessionJs, `var` : String) {
   @JSExport
   def str() :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).str())
 
+  @JSExport
+  def strdt(datatype : Any) :  UnravelSessionJs = UnravelSessionJs(swf.config,swf.sw.bind(`var`).strdt(datatype))
+
 }
