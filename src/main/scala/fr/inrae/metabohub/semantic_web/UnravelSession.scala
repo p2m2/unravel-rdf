@@ -547,7 +547,7 @@ case class UnravelSession(
     this
   }
 
-  def renderConsole: UnravelSession = {
+  def showDebugScreen: UnravelSession = {
     debug(" -- debug -- ")
     val snapshot = pm.DebugSnapshot.fromSession(this)
     pm.DebugOverlay.show(snapshot)

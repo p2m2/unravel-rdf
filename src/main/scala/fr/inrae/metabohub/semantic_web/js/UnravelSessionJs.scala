@@ -572,19 +572,19 @@ case class UnravelSessionJs(
     UnravelSessionJs(config, sw.console)
 
   /**
-   * Renders the current session in the browser as an HTML debug screen.
+   * Displays the current session in the browser as an HTML debug screen.
    *
-   * This view is intended for interactive debugging in a web page and
-   * provides a richer developer experience than the plain console output.
+   * This view is intended for interactive debugging in a web page and provides
+   * a richer developer experience than plain text output.
    *
    * @example
    * {{{
-   * session.renderConsole()
+   * session.showDebugScreen()
    * }}}
    */
   @JSExport
-  def renderConsole(): UnravelSessionJs =
-    UnravelSessionJs(config, sw.renderConsole)
+  def showDebugScreen(): UnravelSessionJs =
+    UnravelSessionJs(config, sw.showDebugScreen)
   /**
    * Returns the SPARQL query corresponding to the current session.
    *
