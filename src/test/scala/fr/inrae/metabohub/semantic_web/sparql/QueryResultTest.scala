@@ -62,13 +62,13 @@ object QueryResultTest extends TestSuite {
       }
 
       assert(QueryResult(json).getValues("book") == Seq(URI("http://example.org/book/book6")))
-      assert(QueryResult(json).getValues("title") == Seq(Literal("\"Harry Potter and the Half-Blood Prince\"")))
+      assert(QueryResult(json).getValues("title") == Seq(Literal("Harry Potter and the Half-Blood Prince")))
 
     }
 
     test("QueryResultTest setDatatype ") {
       val qr = QueryResult(json)
-      qr.setDatatype("label",Map("http://example.org/book/book6" -> ujson.Value("\"Book\"")))
+      qr.setDatatype("label",Map("http://example.org/book/book6" -> ujson.Arr(ujson.Value("\"Book\""))))
 
       Try(qr.json("results")("datatypes")) match {
         case Success(_) => assert(true)

@@ -3,7 +3,8 @@
 
 package fr.inrae.metabohub.semantic_web
 
-import fr.inrae.metabohub.semantic_web.rdf.{Literal, Var, SparqlBuilder, URI}
+import fr.inrae.metabohub.semantic_web.exception.UnravelException
+import fr.inrae.metabohub.semantic_web.rdf.{Literal, SparqlBuilder, URI, Var}
 import wvlet.log.Logger.rootLogger.debug
 
 import scala.concurrent.Future
@@ -18,17 +19,43 @@ case class UnravelSessionHelper(sw : UnravelSession) {
     "http://www.w3.org/1999/02/22-rdf-syntax-ns"
   ).mkString("|") + ")")
 
-  def count(lRef : Seq[String],distinct : Boolean = false) : Future[Int] = {
+  def count(
+             lRef: Seq[String],
+             distinct: Boolean = false
+           ): Future[Int] = {
+
+    val datatypeRefs: Set[String] =
+      sw.rootNode.lDatatypeNode
+        .map(_.idRef)
+        .toSet
+
+    val requestedDatatypeRefs: Seq[String] =
+      lRef.filter(datatypeRefs.contains)
+
+    if (requestedDatatypeRefs.nonEmpty) {
+      throw UnravelException(
+        s"""|Datatype reference(s) cannot be used in COUNT:
+            |${requestedDatatypeRefs.map(ref => s"  - $ref").mkString("\n")}
+            |
+            |Datatype values are retrieved after the main structural query and are
+            |available in results.datatypes. COUNT can only use structural RDF
+            |variables, such as the resource variable associated with the datatype.
+            |""".stripMargin
+      )
+    }
+
     sw
       .transaction
       .projection
       .aggregate("count")
-      .count(lRef,distinct)
+      .count(lRef, distinct)
       .commit()
       .raw
-      .map( json => {
-        SparqlBuilder.createLiteral(json("results")("bindings")(0)("count")).toInt
-      })
+      .map { json =>
+        SparqlBuilder
+          .createLiteral(json("results")("bindings")(0)("count"))
+          .toInt
+      }
   }
 
   /**

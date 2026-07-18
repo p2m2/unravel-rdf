@@ -45,19 +45,32 @@ case class QueryResult(results: String, mimetype : String = "json") {
     }.toSeq
   }
 
-  def setDatatype( key : String , uri_values : Map[String,ujson.Value] ): Unit = {
-    val datatype = json("results").obj.getOrElse("datatypes",ujson.Obj())
-    val keyObjet = datatype.obj.getOrElse(key,ujson.Obj())
+  def setDatatype(
+                   key: String,
+                   uriValues: Map[String, ujson.Arr]
+                 ): Unit = {
+    val datatypes =
+      json("results").obj.getOrElse("datatypes", ujson.Obj())
 
-    uri_values.foreach( {
-      case (subkey, value) => {
-        val subkeyObjet = keyObjet.obj.getOrElse(subkey,ujson.Arr())
-        subkeyObjet.arr.append(value)
-        keyObjet.obj.update(subkey,subkeyObjet)
-      }
-    })
+    val valuesByUri =
+      datatypes.obj.getOrElse(key, ujson.Obj())
 
-    datatype.obj.update(key,keyObjet)
-    json("results").update("datatypes",datatype)
+    uriValues.foreach {
+      case (resourceIri, values) =>
+        val existingValues =
+          valuesByUri.obj
+            .getOrElse(resourceIri, ujson.Arr())
+            .arr
+
+        existingValues.appendAll(values.arr)
+
+        valuesByUri.obj.update(
+          resourceIri,
+          ujson.Arr.from(existingValues)
+        )
+    }
+
+    datatypes.obj.update(key, valuesByUri)
+    json("results").obj.update("datatypes", datatypes)
   }
 }

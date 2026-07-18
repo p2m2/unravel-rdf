@@ -20,7 +20,6 @@ object SparqlQueryBuilderTest extends TestSuite {
     test("selectQueryString Root directive") {
       assert(SparqlQueryBuilder.selectQueryString(Root(directives = Seq("test"))).contains("test"))
     }
-
   }
 }
 

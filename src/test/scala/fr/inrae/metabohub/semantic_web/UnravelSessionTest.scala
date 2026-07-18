@@ -114,6 +114,7 @@ object UnravelSessionTest extends TestSuite {
           .raw
           .map(
             response => {
+              println(response("results")("datatypes")("d"))
               assert(response("results")("datatypes")("d")("http://aa3")(0)("value").toString().nonEmpty)
             }
           )
@@ -138,7 +139,7 @@ object UnravelSessionTest extends TestSuite {
         startRequest
           .from("h1",_.set(URI("http://aa3"))
           .datatype(URI("http://propDatatype"), "d"))
-          .select(List("h1"))
+          .select(List("d","h1"))
           .commit()
           .raw
           .map(
