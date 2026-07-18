@@ -568,6 +568,10 @@ case class UnravelSessionJs(
   def console(): UnravelSessionJs =
     UnravelSessionJs(config, sw.console)
 
+  @JSExport
+  def htmlView(): UnravelSessionJs =
+    UnravelSessionJs(config, sw.htmlView)
+
   /**
    * Returns the SPARQL query corresponding to the current session.
    *

@@ -547,6 +547,14 @@ case class UnravelSession(
     this
   }
 
+  def htmlView: UnravelSession = {
+    debug(" -- debug -- ")
+    val snapshot = pm.DebugSnapshot.fromSession(this)
+    pm.DebugOverlay.show(snapshot)
+    println(pm.DebugTextRenderer.render(snapshot))
+    this
+  }
+
   def sparql: String = SparqlQueryBuilder.selectQueryString(rootNode).trim
 
   def sparql_get: String =
