@@ -6,6 +6,52 @@ nav_order: 2
 
 # Getting started
 
+## Installation
+
+### npm
+
+Add the `@p2m2` registry to your `.npmrc`:
+
+```ini
+@p2m2:registry=https://forge.inrae.fr/api/v4/packages/npm/
+```
+
+Then install the package:
+
+```bash
+npm install @p2m2/unravel-rdf
+```
+Import the library in your application:
+
+```javascript
+import { UnravelConfig, UnravelSession } from "@p2m2/unravel-rdf";
+```
+
+### CDN (browser, no build step)
+
+Load the library directly in any HTML page — no npm, no bundler:
+
+```html
+<!-- Latest stable -->
+<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/latest/unravel-rdf.min.js"></script>
+
+<!-- Pinned version (recommended for production) -->
+<script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/0.5.4/unravel-rdf.min.js"></script>
+```
+
+Available versions: [cdn/versions.json](https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/versions.json)
+
+After loading the script, the library is available as `window.UnravelRdf`:
+
+```html
+<script>
+const { UnravelConfig, UnravelSession } = window.UnravelRdf
+</script>
+```
+
+
+## Minimal workflow
+
 This guide shows the minimal workflow for querying RDF with Unravel RDF:
 
 1. Configure an RDF data source
@@ -14,17 +60,23 @@ This guide shows the minimal workflow for querying RDF with Unravel RDF:
 4. Select variables and execute the query
 
 ```javascript
+
 const config = UnravelConfig
   .init()
-  .prefix("ex", "http://example.org/")
   .urlFile("https://example.org/data.ttl")
 
 const query = UnravelSession(config)
+  .prefix("ex", "http://example.org/")
   .something("entity", entity =>
     entity.out("ex:hasProperty", "?value")
   )
   .select("entity", "value")
   .commit()
+  .raw()
+  .then(
+    results => console.log(results)
+  )
+
 ```
 
 This query selects RDF resources connected to a value through
@@ -38,10 +90,4 @@ This query selects RDF resources connected to a value through
 first exploration focus. `out()` adds an RDF graph pattern, while
 `select()` defines the variables returned by the query.
 
-## Next steps
 
-- See [Query model](query-model.html) to learn graph navigation, focus
-  switching, filters, and variable transformations.
-- See [Configuration](configuration.html) to configure prefixes, RDF files,
-  SPARQL endpoints, default graphs, and named graphs.
-- See [Execution](execution.html) to retrieve and process query results.

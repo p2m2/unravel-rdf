@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Query debugging
-nav_order: 7
+nav_order: 6
 ---
 
 # Query debugging

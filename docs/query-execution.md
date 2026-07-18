@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Query execution
-nav_order: 5
+nav_order: 4
 ---
 
 # Query execution
@@ -30,6 +30,7 @@ Example:
 
 ```javascript
 UnravelSession(config)
+  .prefix("dc", "http://purl.org/dc/elements/1.1/")
   .something("record",record => record.out("dc:identifier","?id"))
   .select("record", "id")
   .commit()
@@ -81,6 +82,7 @@ Example:
 
 ```javascript
 UnravelSession(config)
+  .prefix("dc", "http://purl.org/dc/elements/1.1/")
   .something("record",record => record.out("dc:identifier","?id"))
   .selectByPage("record", "id")
   .then(result => {
@@ -126,6 +128,7 @@ Example:
 
 ```javascript
 UnravelSession(config)
+  .prefix("dc", "http://purl.org/dc/elements/1.1/")
   .something( "record", record => record.out("dc:identifier","?id"))
   .selectDistinctByPage("id")
   .then(result => {
@@ -171,23 +174,5 @@ query.orderByDesc("?label")
 query.distinct()
 ```
 
-## Datatype results
 
-Datatype values can be retrieved during query construction.
-
-Example:
-
-```javascript
-query
-  .datatype("rdfs:label", "?entity")
-```
-
-Datatype results are returned in the response metadata:
-
-```javascript
-response.results.datatypes
-```
-
-This allows applications to retrieve additional literal values associated
-with RDF resources.
 

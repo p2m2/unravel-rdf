@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Query model
-nav_order: 4
+nav_order: 3
 ---
 
 # Query model
@@ -13,27 +13,45 @@ Instead of assembling SPARQL strings, applications describe RDF graph
 exploration through navigation steps. Each operation extends the query graph
 while retaining a current **focus**: the resource currently being explored.
 
+## Contents
+
+- [Basic query structure](#basic-query-structure)
+- [RDF terms and variables](#rdf-terms-and-variables)
+- [Navigation primitives](#navigation-primitives)
+  - [Outgoing navigation](#outgoing-navigation)
+  - [Incoming navigation](#incoming-navigation)
+  - [Bidirectional navigation](#bidirectional-navigation)
+- [Nested exploration](#nested-exploration)
+- [Switching focus](#switching-focus)
+- [Fetching literal values](#fetching-literal-values)
+- [Filtering values](#filtering-values)
+- [Transforming values](#transforming-values)
+- [Building the final query](#building-the-final-query)
+
 ## Basic query structure
 
-A query typically starts by introducing an initial variable with
-`something()`.
+A query typically starts from an existing
+[configuration](configuration). It then defines the required namespace
+prefixes and introduces an initial query variable using `something()`.
 
 ```javascript
 const query = UnravelSession(config)
+  .prefix("ex", "http://example.org/")
   .something("entity", entity =>
     entity.out("ex:hasProperty", "?value")
   )
   .select("entity", "value")
 ```
 
-This produces the graph pattern:
+This produces the following graph pattern:
 
 ```sparql
-?entity ex:hasProperty ?value
+?entity ex:hasProperty ?value .
 ```
 
-The `entity` variable is the initial focus. The call to `out()` adds a
-triple pattern from that focus and introduces the `?value` variable.
+The `entity` variable is the initial query focus. The call to `out()`
+adds a triple pattern originating from that focus and introduces the
+`?value` variable.
 
 ## RDF terms and variables
 
@@ -70,7 +88,8 @@ operations.
 
 ### Outgoing navigation
 
-Use `out()` to follow a property from the current focus.
+Use `out()` to follow a property from the current focus, which becomes the
+subject of the generated triple pattern.
 
 ```javascript
 something("entity", entity =>
@@ -79,12 +98,13 @@ something("entity", entity =>
 ```
 
 ```sparql
-?entity ex:hasPart ?part
+?entity ex:hasPart ?part .
 ```
 
 ### Incoming navigation
 
-Use `in()` to find resources that point to the current focus.
+Use `in()` to find resources pointing to the current focus, which becomes
+the object of the generated triple pattern.
 
 ```javascript
 something("entity", entity =>
@@ -93,13 +113,13 @@ something("entity", entity =>
 ```
 
 ```sparql
-?parent ex:isPartOf ?entity
+?parent ex:isPartOf ?entity .
 ```
 
 ### Bidirectional navigation
 
 Use `traverse()` when the direction of a relationship is unknown or should
-not constrain the exploration.
+be ignored.
 
 ```javascript
 something("entity", entity =>
@@ -109,11 +129,11 @@ something("entity", entity =>
 
 ```sparql
 {
-  ?entity ex:relatedTo ?other
+  ?entity ex:relatedTo ?other .
 }
 UNION
 {
-  ?other ex:relatedTo ?entity
+  ?other ex:relatedTo ?entity .
 }
 ```
 
@@ -163,6 +183,72 @@ This produces the same graph pattern as the nested example:
 
 Use nested callbacks for local traversal paths and `from()` when returning
 to an earlier variable improves the readability of a larger query.
+
+## Fetching literal values
+
+RDF graphs often contain both structural relationships and literal
+properties. Structural relationships are usually required to identify
+matching resources, whereas literal properties (such as `rdfs:label`,
+`schema:name`, or `skos:prefLabel`) are primarily used for display.
+
+Unravel distinguishes these two types of information. Structural
+relationships are evaluated by the main SPARQL query, while literal
+properties requested with `datatype()` are retrieved afterwards using
+batched requests.
+
+Instead of including literal property patterns in the main SPARQL query,
+Unravel first executes the structural query. Once matching resources have
+been identified, it retrieves the requested literal values through
+additional batched requests (see
+[Batch processing size](configuration#batch-processing-size)).
+
+This design avoids the use of SPARQL `OPTIONAL` patterns. In many RDF
+datasets, literal properties are not defined for every resource. Rather
+than executing a single complex query containing multiple `OPTIONAL`
+clauses, Unravel retrieves the graph structure first and then fetches only
+the available literal values for the resources that were found.
+
+![Datatype retrieval workflow](images/datatype-retrieval.png)
+
+*Figure — Literal values are retrieved after the main structural query using batched requests.*
+
+For example:
+
+```javascript
+something("entity", entity =>
+  entity.out("ex:hasPart", "?part")
+        .datatype("rdfs:label", "?label")
+)
+```
+
+The main query only contains the structural pattern:
+
+```sparql
+?entity ex:hasPart ?part .
+```
+
+After retrieving the matching resources, Unravel issues additional
+requests such as:
+
+```sparql
+VALUES ?entity {
+  <resource1>
+  <resource2>
+  ...
+}
+
+?entity rdfs:label ?label .
+```
+
+The retrieved literal values are returned separately from the main query
+results and are available through:
+
+```javascript
+response.results.datatypes
+```
+
+This strategy trades a higher number of lightweight SPARQL requests for
+simpler structural queries and avoids unnecessary `OPTIONAL` patterns.
 
 ## Filtering values
 
@@ -257,6 +343,3 @@ query
   .select("entity", "value")
   .commit()
 ```
-
-See [Query execution](query-execution.html) for result retrieval, pagination, progress
-events, and query cancellation.
