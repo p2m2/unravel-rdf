@@ -547,7 +547,7 @@ case class UnravelSession(
     this
   }
 
-  def htmlView: UnravelSession = {
+  def renderConsole: UnravelSession = {
     debug(" -- debug -- ")
     val snapshot = pm.DebugSnapshot.fromSession(this)
     pm.DebugOverlay.show(snapshot)
