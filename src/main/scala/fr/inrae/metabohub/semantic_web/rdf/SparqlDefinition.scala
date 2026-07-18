@@ -201,39 +201,3 @@ case class Var(var name : String) extends SparqlDefinition {
 
   def naiveLabel : String = s"Variable[$name]"
 }
-
-@JSExportTopLevel(name="SparqlBuilder")
-object SparqlBuilder {
-
-  def create(value: ujson.Value): SparqlDefinition = {
-    (Try(value("type").value) match {
-      case Success(v1) => v1
-      case Failure(_) => throw new Error("Can not found key `type` in obj:"+value.toString())
-      }) match {
-      case "uri" => createUri(value)
-      case "literal" | "typed-literal"=> createLiteral(value)
-      case _ => throw new Error("unknown type ")
-    }
-  }
-
-  def createUri(value: ujson.Value): URI = URI(value("value").value.toString)
-
-  def createLiteral(value: ujson.Value): Literal[String] = {
-    val datatype = try { SparqlDefinition.cleanString(value("datatype").toString) match {
-        case v if v.length<=0 => URI.empty
-        case v => URI(v)
-      }
-    } catch {
-      case _ : java.util.NoSuchElementException => URI.empty
-    }
-
-    val tag = try {
-      SparqlDefinition.cleanString(value("tag").toString)
-    } catch {
-      case _ : java.util.NoSuchElementException => ""
-    }
-
-    Literal(value("value").toString, datatype,tag)
-  }
-
-}
