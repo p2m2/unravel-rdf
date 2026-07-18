@@ -178,10 +178,9 @@ case class UnravelSession(
   def directive(directive: String): UnravelSession = UnravelSession(config, rootNode.addDirective(directive), Some(focusNode))
 
   def prefixes(lPrefixes: Map[String, IRI]): UnravelSession =
-    (lPrefixes map { case (key, value) => prefix(key, value)
-    }).toSeq match {
-      case l if l.nonEmpty => l.last
-      case _ => this
+    lPrefixes.foldLeft(this) {
+      case (session, (prefixName, iri)) =>
+        session.prefix(prefixName, iri)
     }
 
   def getPrefix(short: String): IRI = rootNode.getPrefix(short)
