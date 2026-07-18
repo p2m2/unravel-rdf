@@ -166,18 +166,6 @@ federated RDF applications.
 
 ---
 
-# Prefixes
-
-Prefixes are not part of `UnravelConfig`. They are attached to the query
-builder:
-
-```javascript
-UnravelSession(config)
-  .prefix("ex","http://example.org/")
-```
-
----
-
 # Proxy configuration
 
 A proxy can be configured when RDF endpoints cannot be accessed directly
@@ -280,17 +268,6 @@ Default:
 
 ```
 10
-```
-
----
-
-# Loading a configuration from JSON
-
-A configuration can also be reconstructed from a JSON representation:
-
-```javascript
-const config =
-  UnravelConfig.setConfigString(jsonConfiguration)
 ```
 
 This enables configuration persistence and reuse between application
