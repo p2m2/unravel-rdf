@@ -97,7 +97,7 @@ case class URI (localNameUser : String,nameSpaceUser : String = "") extends Spar
     case "" if !localNameUser.contains("://") =>
       localNameUser.split(":") match {
         case arr if arr.length==2 => arr(0)
-        case _ => "" /* something wrong if arity if different that 2 */
+        case _ => "" //"something wrong, no prefix finded localNameUser=$localNameUser, nameSpaceUser=$nameSpaceUser")
       }
 
     case _ => nameSpaceUser

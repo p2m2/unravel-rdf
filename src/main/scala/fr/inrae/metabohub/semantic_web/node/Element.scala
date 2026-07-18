@@ -1452,6 +1452,19 @@ final case class Str(
                    ): Node = Str(term,idRef,children,decoratingAttributeMap)
 }
 
+final case class StrDt(
+                      term: SparqlDefinition,
+                      override val idRef : String,
+                      datatype : SparqlDefinition,
+                      override val children: Seq[Node] = Seq[Node](),
+                      override val decorations: Map[String,String] = Map()
+                    ) extends BuiltInCallNode(idRef,children,decorations) {
+  override def copy(
+                     children: Seq[Node]=children,
+                     decoratingAttributeMap : Map[String,String]=decorations
+                   ): Node = StrDt(term,idRef,datatype,children,decoratingAttributeMap)
+}
+
 object Lang {
   implicit val rw: OptionPickler.ReadWriter[Lang] = OptionPickler.macroRW
 }
