@@ -58,7 +58,8 @@ object UnravelSessionHelperTest  extends TestSuite  {
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
             _.out(URI("http://bb2"),"?obj"))
-          .from("obj").finder
+          .from("obj")
+          .finder
           .count(Seq("h1"),distinct = true)
           .map(count => assert(count == 1))
       }).flatten

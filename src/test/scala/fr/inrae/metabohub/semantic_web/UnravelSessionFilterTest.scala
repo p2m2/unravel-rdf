@@ -52,26 +52,27 @@ object UnravelSessionFilterTest extends TestSuite {
 
   def tests: Tests = Tests {
 
-    test("SW Filter isLiteral") {
-      insertData.map(_ => {
-        UnravelSession(config)
-          .something(
-            _.out(Var("prop"),apply=_.filter.isLiteral))
-          .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
-          .transaction
-          .distinct
-          .projection(List("prop"))
-          .commit()
-          .raw
-          .map(result => {
-            assert(result("results")("bindings").arr.length == 5)
-          })
-      }).flatten
-    }
+      test("SW Filter isLiteral") {
+        insertData.map(_ => {
+          UnravelSession(config)
+            .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+            .something(
+              _.out(Var("prop"),apply=_.filter.isLiteral))
+            .transaction
+            .projection(List("prop"))
+            .distinct
+            .commit()
+            .raw
+            .map(result => {
+              assert(result("results")("bindings").arr.length == 5)
+            })
+        }).flatten
+      }
 
     test("SW Filter isUri") {
       insertData.map(_ => {
         UnravelSession(config)
+          .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something(
             _.out(Var("prop"),apply=_.filter.isUri))
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
