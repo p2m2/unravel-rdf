@@ -92,7 +92,6 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       val onlyUris = lSubUris.collect { case uri: URI => uri }
 
       trace("filtered URI only : " + onlyUris.toString)
-
       val tx = UnravelSession(sw.config)
         .prefixes(root.getPrefixes)
         .something("val_uri",
@@ -111,33 +110,41 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
               Seq.empty
           }
 
-        val datatypeMap = bindings.flatMap { rec =>
-          val maybeUri =
-            try {
-              Some(rec("val_uri")("value").value.toString)
-            } catch {
-              case _: Throwable =>
-                trace("missing val_uri in record: " + rec.toString)
+        val datatypeMap = bindings
+          .flatMap { rec =>
+            val maybeUri =
+              try {
+                Some(rec("val_uri")("value").value.toString)
+              } catch {
+                case _: Throwable =>
+                  trace("missing val_uri in record: " + rec.toString)
+                  None
+              }
+
+            val maybeValue =
+              try {
+                Some(rec(labelProperty))
+              } catch {
+                case _: Throwable =>
+                  trace(
+                    "missing property [" + labelProperty + "] in record: " + rec.toString
+                  )
+                  None
+              }
+
+            (maybeUri, maybeValue) match {
+              case (Some(uri), Some(value)) =>
+                trace(s"datatype pair -> $uri => $value")
+                Some(uri -> value)
+
+              case _ =>
                 None
             }
-
-          val maybeValue =
-            try {
-              Some(rec(labelProperty))
-            } catch {
-              case _: Throwable =>
-                trace("missing property [" + labelProperty + "] in record: " + rec.toString)
-                None
-            }
-
-          (maybeUri, maybeValue) match {
-            case (Some(uri), Some(value)) =>
-              trace(s"datatype pair -> $uri => $value")
-              Some(uri -> value)
-            case _ =>
-              None
           }
-        }.toMap
+          .groupMap(_._1)(_._2)
+          .view
+          .mapValues(values => ujson.Arr.from(values))
+          .toMap
 
         trace("datatypeMap final ======================")
         trace(datatypeMap.toString)
