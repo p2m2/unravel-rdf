@@ -69,10 +69,10 @@ object UnravelSessionHelperTest  extends TestSuite  {
         UnravelSession(config)
           .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
           .something("h1", //http://rdf.ebi.ac.uk/terms/chembl#BioComponent
-             _.datatype(URI("http://fake/"),"?dt1")
+             _.datatype(URI("http://fake/"),"dt1")
              .out(URI("http://bb2"),"?obj"))
           .from("obj",_.finder
-          .count(Seq("h1","dt1"))
+          .count(Seq("h1"))
           .map(count => assert(count == 2)))
       }).flatten
     }

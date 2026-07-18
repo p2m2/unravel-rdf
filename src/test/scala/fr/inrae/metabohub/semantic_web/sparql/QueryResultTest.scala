@@ -62,7 +62,7 @@ object QueryResultTest extends TestSuite {
       }
 
       assert(QueryResult(json).getValues("book") == Seq(URI("http://example.org/book/book6")))
-      assert(QueryResult(json).getValues("title") == Seq(Literal("\"Harry Potter and the Half-Blood Prince\"")))
+      assert(QueryResult(json).getValues("title") == Seq(Literal("Harry Potter and the Half-Blood Prince")))
 
     }
 

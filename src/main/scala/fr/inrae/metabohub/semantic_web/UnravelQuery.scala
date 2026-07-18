@@ -90,6 +90,14 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
       trace("all uris batch    : " + lSubUris.toString)
 
       val onlyUris = lSubUris.collect { case uri: URI => uri }
+      val emptyDatatypeValues: Map[String, ujson.Arr] =
+        onlyUris
+          .map { uri =>
+            uri.localName -> ujson.Arr()
+          }
+          .toMap
+
+      qr.setDatatype(labelProperty, emptyDatatypeValues)
 
       trace("filtered URI only : " + onlyUris.toString)
       val tx = UnravelSession(sw.config)
@@ -158,83 +166,173 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
     }
 }
   def commit(): UnravelQuery = {
-
     notify(UnravelRequestEvent(UnravelStateRequestEvent.START))
 
-    val lSelectedVariable: Seq[Var] =
-      sw.rootNode.getChild(Projection(List(), "")).lastOption match {
-        case Some(proj) => proj.variables.distinct
+    val selectedVariables: Seq[Var] =
+      sw.rootNode
+        .getChild(Projection(List(), ""))
+        .lastOption match {
+        case Some(projection) =>
+          projection.variables.distinct
+
         case None =>
-          notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
-          throw UnravelException("projection/selected required variables are not defined.")
+          notify(
+            UnravelRequestEvent(
+              UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION
+            )
+          )
+
+          throw UnravelException(
+            "Projection/selected required variables are not defined."
+          )
       }
 
-    val lDatatype: Seq[DatatypeNode] =
+    val selectedVariableNames: Set[String] =
+      selectedVariables.map(_.name).toSet
+
+    /*
+     * A DatatypeNode is an optional post-processing request.
+     * It is activated only when its result reference is requested in select(...).
+     */
+    val datatypeNodes: Seq[DatatypeNode] =
       sw.rootNode
         .getChild[DatatypeNode](
-          DatatypeNode("", SubjectOf("", URI(""), Var("")), "unk")
+          DatatypeNode(
+            "",
+            SubjectOf("", URI(""), Var("")),
+            "unk"
+          )
         )
-        .filter(ld => lSelectedVariable.map(_.name).contains(ld.property.reference()))
+        .filter { datatypeNode =>
+          selectedVariableNames.contains(
+            datatypeNode.property.reference()
+          )
+        }
 
-    if (lDatatype.count(d => lSelectedVariable.map(_.name).contains(d.refNode)) != lDatatype.length) {
-      notify(UnravelRequestEvent(UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION))
+    /*
+     * A datatype query needs the IRI of its parent resource.
+     * The parent variable must therefore be part of the main SELECT projection.
+     */
+    val datatypesWithMissingResource: Seq[DatatypeNode] =
+      datatypeNodes.filter { datatypeNode =>
+        !selectedVariableNames.contains(datatypeNode.refNode)
+      }
+
+    if (datatypesWithMissingResource.nonEmpty) {
+      notify(
+        UnravelRequestEvent(
+          UnravelStateRequestEvent.ERROR_REQUEST_DEFINITION
+        )
+      )
+
+      val details =
+        datatypesWithMissingResource
+          .map { datatypeNode =>
+            s"  - datatype '${datatypeNode.property.reference()}' " +
+              s"requires resource '?${datatypeNode.refNode}'"
+          }
+          .mkString("\n")
+
+      val missingResources =
+        datatypesWithMissingResource
+          .map(_.refNode)
+          .distinct
+          .map(ref => s"'$ref'")
+          .mkString(", ")
+
       throw UnravelException(
-        "The user have to select node of interest before setup a desired datatype"
+        s"""|Cannot retrieve requested datatype values because their parent
+            |resource variable(s) are not selected: $missingResources.
+            |
+            |$details
+            |
+            |Add the missing resource variable(s) to select(...).
+            |""".stripMargin
       )
     }
 
     Try(StrategyRequestBuilder.build(sw.config)) match {
-
-      case Failure(e) =>
-        if (!_prom_raw.isCompleted) _prom_raw failure e
-        return this
+      case Failure(error) =>
+        if (!_prom_raw.isCompleted) {
+          _prom_raw.failure(error)
+        }
 
       case Success(driver) =>
+        driver.subscribe(
+          this.asInstanceOf[
+            Subscriber[
+              UnravelRequestEvent,
+              Publisher[UnravelRequestEvent]
+            ]
+          ]
+        )
 
-        driver.subscribe(this.asInstanceOf[Subscriber[UnravelRequestEvent, Publisher[UnravelRequestEvent]]])
+        driver
+          .execute(this)
+          .flatMap { queryResult =>
+            notify(
+              UnravelRequestEvent(
+                UnravelStateRequestEvent.DATATYPE_BUILD
+              )
+            )
 
-        driver.execute(this)
-          .map { qr =>
+            queryResult.json("results").update(
+              "datatypes",
+              ujson.Obj()
+            )
 
-            notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_BUILD))
-
-            qr.json("results").update("datatypes", ujson.Obj())
-
-            Future.sequence(
-              lDatatype.map { datatypeNode =>
+            val datatypeRequests: Seq[Future[Unit]] =
+              datatypeNodes.flatMap { datatypeNode =>
                 sw.rootNode.getRdfNode(datatypeNode.refNode) match {
-
                   case Some(_) =>
-                    val lUris =
-                      try qr.getValues(datatypeNode.refNode)
-                      catch { case _: Throwable => List() }
+                    val uris =
+                      try {
+                        queryResult.getValues(datatypeNode.refNode)
+                      } catch {
+                        case _: Throwable =>
+                          Seq.empty
+                      }
 
-                    Future.sequence(process_datatype(sw.rootNode, qr, datatypeNode, lUris))
+                    process_datatype(
+                      root = sw.rootNode,
+                      qr = queryResult,
+                      datatypeNode = datatypeNode,
+                      lUris = uris
+                    )
 
                   case None =>
-                    Future.successful(())
+                    Seq.empty
                 }
               }
-            ).onComplete {
 
-              case Success(_) =>
-                notify(UnravelRequestEvent(UnravelStateRequestEvent.DATATYPE_DONE))
-
-                if (!_prom_raw.isCompleted)
-                  _prom_raw success qr.json
-
-                notify(UnravelRequestEvent(UnravelStateRequestEvent.REQUEST_DONE))
-
-              case Failure(e) =>
-                if (!_prom_raw.isCompleted)
-                  _prom_raw failure e
+            Future.sequence(datatypeRequests).map { _ =>
+              queryResult
             }
           }
-          .recover { e =>
-            if (!_prom_raw.isCompleted)
-              _prom_raw failure e
+          .map { queryResult =>
+            notify(
+              UnravelRequestEvent(
+                UnravelStateRequestEvent.DATATYPE_DONE
+              )
+            )
+
+            if (!_prom_raw.isCompleted) {
+              _prom_raw.success(queryResult.json)
+            }
+
+            notify(
+              UnravelRequestEvent(
+                UnravelStateRequestEvent.REQUEST_DONE
+              )
+            )
+          }
+          .recover { error =>
+            if (!_prom_raw.isCompleted) {
+              _prom_raw.failure(error)
+            }
           }
     }
+
     this
   }
 

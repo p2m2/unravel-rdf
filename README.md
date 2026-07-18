@@ -113,11 +113,12 @@ Full API documentation: [https://unravel-rdf-5df20c.pages-forge.inrae.fr](https:
 ## Build from source
 
 ```bash
-sbt fastOptJS             # development build with source maps
-sbt fullOptJS             # optimized production build
-sbt npmPrepareRelease     # assemble target/npm/ for npm publication
-sbt npmPrepareDebugRelease # assemble target/npm-debug/ with source maps
-sbt "fullOptJS; cdnPrepare" # build browser-ready UMD bundle → target/cdn/unravel-rdf.min.js
+sbt fastOptJS               # development build with source maps
+sbt fullOptJS               # optimized production build
+sbt npmPrepareRelease       # assemble target/npm/ for npm publication
+sbt npmPrepareDebugRelease  # assemble target/npm-debug/ with source maps
+sbt "fastOptJS;cdnDebugPrepare" # build browser-ready UMD bundle -> target/cdn-debug/unravel-rdf.min.js
+sbt "fullOptJS; cdnPrepare"     # build browser-ready UMD bundle -> target/cdn/unravel-rdf.min.js
 ```
 
 ---

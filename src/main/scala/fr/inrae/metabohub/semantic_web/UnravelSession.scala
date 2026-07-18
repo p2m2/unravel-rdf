@@ -424,14 +424,15 @@ case class UnravelSession(
   */
 
   def datatype(uri: URI, ref: String): UnravelSession = {
-
+    val normalizedRef =
+      ref.stripPrefix("?").stripPrefix("$")
     val focus_current = focusNode
 
     val withDatatype = root.addNodeAndRestoreFocus(
       DatatypeNode(
         focus_current, // parent = le SubjectOf déjà créé
-        SubjectOf(ref, uri, Var(ref)), // le SubjectOf que l’on veut typer
-        ref
+        SubjectOf(normalizedRef , uri, Var(normalizedRef)), // le SubjectOf que l’on veut typer
+        idRef = normalizedRef
       )
     )
 

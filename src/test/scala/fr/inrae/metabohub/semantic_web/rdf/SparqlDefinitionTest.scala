@@ -223,9 +223,5 @@ problem with js generation and round
       val v3 = OptionPickler.read[Var](s)
       assert(v2 == v3)
     }
-
-
-
-
   }
 }
