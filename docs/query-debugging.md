@@ -6,11 +6,14 @@ nav_order: 6
 
 # Query debugging
 
-Unravel RDF provides a built-in console mode to inspect query construction
-and execution.
+Unravel RDF provides two built-in ways to inspect query construction and
+execution during development.
 
-The `console()` operation exposes the internal representation of the query,
-including:
+- `console()` prints a textual debug view to the browser console.
+- `showDebugScreen()` displays the same debugging information in the browser as
+  an interactive HTML debug screen.
+
+Both views help inspect:
 
 - the query construction tree;
 - the current focus position;
@@ -22,15 +25,17 @@ translated into executable SPARQL.
 
 ## Inspecting query construction
 
+### Console output
+
 ```javascript
 const config = UnravelConfig
   .init()
   .sparqlEndpoint("https://rdfportal.org/primary/sparql")
 
 UnravelSession(config)
-  .something("record", record => 
-     record.out("dc:identifier","?id"))
-  .console()  // Display query construction and generated SPARQL
+  .something("record", record =>
+     record.out("dc:identifier", "?id"))
+  .console()
   .select("record", "id")
   .limit(10)
   .commit()
@@ -42,7 +47,7 @@ UnravelSession(config)
 
 The console displays the query graph before execution:
 
-```
+```text
 ROOT NODE
 
 CHILDREN
@@ -68,8 +73,34 @@ WHERE {
 }
 ```
 
-The console output provides a direct view of the transformation from a
+### Browser debug screen
+
+```javascript
+const config = UnravelConfig
+  .init()
+  .sparqlEndpoint("https://rdfportal.org/primary/sparql")
+
+UnravelSession(config)
+  .something("record", record =>
+     record.out("dc:identifier", "?id"))
+  .showDebugScreen()
+  .select("record", "id")
+  .limit(10)
+  .commit()
+  .raw()
+  .then(
+    results => console.log(results)
+  )
+```
+
+The debug screen displays the same information directly in the browser in a
+dedicated visual view.
+
+This is especially useful when inspecting complex query trees or generated
+requests during interactive development.
+
+Both debugging modes provide a direct view of the transformation from a
 focus-oriented query construction to a SPARQL query.
 
-This feature is especially useful when developing interactive RDF
+These features are especially useful when developing interactive RDF
 applications, where queries are dynamically assembled from user actions.

@@ -1,26 +1,18 @@
----
-layout: default
-title: FORVM
-parent: Examples
-nav_order: 2
----
-
-## FORVM    
-
-This example illustrates how Unravel RDF can combine graph navigation, cross-endpoint
-enrichment, and execution monitoring in a single workflow. It first extracts
-molecular information from a KNApSAcK record, then reuses a normalized InChIKey to
-identify related ChEBI compounds and associated MeSH terms.
-
-Because this query performs multiple graph traversals and federates information
-across several RDF endpoints, its execution may take a few seconds. To better
-understand what happens during execution, open your browser's developer tools
-(**F12**) and switch to the **Console** tab before running the example. Unravel
-emits detailed request events that let you follow each step of the query execution
-in real time.
-
-```javascript
-const { UnravelConfig, UnravelSession } = window.UnravelRdf
+<!doctype html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Unravel RDF — KNApSAcK example</title>
+      <link rel="stylesheet" href="console.css" />
+   </head>
+   <body>
+      <pre id="log"></pre>
+      <script src="console.js"></script>
+      <!-- Unravel RDF library -->
+      <script src="../target/cdn-debug/unravel-rdf.min.js"></script>
+      <script>
+         const { UnravelConfig, UnravelSession } = window.UnravelRdf
          
          // Step 1: Configure the SPARQL endpoints used in the query.
          // The first endpoint provides the main metabolomics data.
@@ -91,7 +83,7 @@ const { UnravelConfig, UnravelSession } = window.UnravelRdf
              "molecularEntityNameKnap",
              "valueInchikeyKnap",
              "?compoundChebi",
-             "?meshTerm"
+             "?some"
            )
          
            // Step 6: Limit the number of results.
@@ -106,10 +98,9 @@ const { UnravelConfig, UnravelSession } = window.UnravelRdf
            .progression(value => {
              progressBar.value = value
            })
-
+         
            // Step 9: Track request-level events during execution.
-           // Open the browser Developer Tools (F12) and look at the Console
-           // to follow each stage of the query execution in real time.
+           // This is useful for debugging, tracing, or displaying live request status.
            .requestEvent(event => {
              console.log(event)
            })
@@ -127,4 +118,6 @@ const { UnravelConfig, UnravelSession } = window.UnravelRdf
                error
              )
            })
-```
+      </script>
+   </body>
+</html>
