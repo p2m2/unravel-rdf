@@ -8,8 +8,28 @@ The source code is hosted on [Forge INRAE](https://forge.inrae.fr/p2m2/unravel-r
 
 ## Quick example
 
-The following example retrieves KNApSAcK Core records together with the
-associated molecular entity names from the RDF Portal.
+The following example demonstrates how to build and execute a simple Unravel
+query against the RDF Portal.
+
+The query:
+
+- declares the `dc` namespace,
+- starts from a generic `record` resource,
+- follows the `dc:identifier` property,
+- selects the record and its identifier,
+- limits the result set to 10 results.
+
+During development, Unravel provides two complementary debugging tools:
+
+- `.console()` prints the current Unravel query structure in the **browser
+  developer console**, making it easy to inspect the internal query model.
+- `.showDebugScreen()` opens an **HTML debugging page** where the
+  generated SPARQL query can be viewed, tested, and executed. This interface
+  helps developers understand and troubleshoot queries before running them in
+  their application.
+
+Since Unravel queries are built incrementally, both debugging methods can be
+called **at any point** during query construction.
 
 ```html
 <script src="https://unravel-rdf-5df20c.pages-forge.inrae.fr/cdn/latest/unravel-rdf.min.js"></script>
@@ -19,21 +39,32 @@ const { UnravelConfig, UnravelSession } = window.UnravelRdf
 
 const config = UnravelConfig
   .init()
-  .sparqlEndpoint(
-    "https://rdfportal.org/primary/sparql"
-  )
+  .sparqlEndpoint("https://rdfportal.org/primary/sparql")
 
 UnravelSession(config)
-  .something("record", 
-     record => record.out("dc:identifier","?id"))
+  .prefix("dc", "http://purl.org/dc/elements/1.1/")
+  .something("record", record =>
+    record.out("dc:identifier", "?id")
+  )
+
+  /* Print the current Unravel structure in the browser console */
+  //.console()
+
+  /* Open the HTML debug interface */
+  .showDebugScreen()
+
   .select("record", "id")
   .limit(10)
+
+  /* The debug interface can also be opened later */
+  //.showDebugScreen()
+
   .commit()
   .raw()
-  .then(
-    results => console.log(results)
-  )
+  .then(results => console.log(results))
+</script>
 ```
+
 ## Try It Online
 
 Explore and modify this example directly in [CodePen](https://codepen.io/ofilangi/full/019f69a9-7ccb-74fb-9d29-a0365fe4a3a6).
