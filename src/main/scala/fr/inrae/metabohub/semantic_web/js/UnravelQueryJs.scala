@@ -286,7 +286,7 @@ case class UnravelQueryJs(transaction: UnravelQuery) {
     UnravelQueryJs(transaction.setSerializedString(transaction_string))
 
   /**
-   * Prints or exposes the current query for debugging.
+   * Displays the current query as text in the console for debugging.
    *
    * @example
    * {{{
@@ -296,4 +296,18 @@ case class UnravelQueryJs(transaction: UnravelQuery) {
   @JSExport
   def console(): UnravelQueryJs =
     UnravelQueryJs(transaction.console)
+
+  /**
+   * Displays the current query in the interactive debug screen.
+   *
+   * @example
+   * {{{
+   * query.showDebugScreen()
+   * }}}
+   */
+  @JSExport
+  def showDebugScreen(): UnravelQueryJs =
+    UnravelQueryJs(transaction.showDebugScreen)
+
+
 }

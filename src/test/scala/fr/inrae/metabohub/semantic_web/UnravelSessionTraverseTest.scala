@@ -15,11 +15,11 @@ object UnravelSessionTraverseTest  extends TestSuite {
 
   val insertData: Future[Any] = DataTestFactory.insertVirtuoso1(
     """
-      <some_subject> <http://bb_1> <http://aa> .
-      <http://aa> <http://bb_2> <some_object1> .
-      <http://aa> <http://bb_2> <some_object2> .
-      <some_subject> <http://datatype_prop> "value1" .
-      <some_object1> <http://datatype_prop2> "value2" .
+      <http://some_subject> <http://bb_1> <http://aa> .
+      <http://aa> <http://bb_2> <http://some_object1> .
+      <http://aa> <http://bb_2> <http://some_object2> .
+      <http://some_subject> <http://datatype_prop> "value1" .
+      <http://some_object1> <http://datatype_prop2> "value2" .
       <http://bb_1>  <http://datatype_prop3> "value3" .
       """.stripMargin, this.getClass.getSimpleName)
 
@@ -65,6 +65,7 @@ object UnravelSessionTraverseTest  extends TestSuite {
           })
       }).flatten
     }
+
     test("traverse with var variate detection") {
       insertData.map(_ => {
         UnravelSession(config)
@@ -151,5 +152,70 @@ object UnravelSessionTraverseTest  extends TestSuite {
           })
       }).flatten
     }
+
+    test("continue traverse with traversal out ") {
+      insertData.map(_ => {
+        UnravelSession(config)
+          .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+          .something("h1",
+            _.traverse("?property", "?var",
+              _.out("?property2","http://some_object1")))
+          .select(List("h1","property","var","property2","?value"))
+          .commit()
+          .raw
+          .map(r => {
+            assert(r("results")("bindings").arr.length == 3)
+          })
+      }).flatten
+    }
+    test("continue traverse with in") {
+      insertData.map(_ => {
+        UnravelSession(config)
+          .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+          .something("h1",
+            _.traverse("?property", "?var",
+              _.in("?property2","http://some_object1")))
+          .select(List("h1","property","var","property2","?value"))
+          .commit()
+          .raw
+          .map(r => {
+            assert(r("results")("bindings").arr.length == 1)
+          })
+      }).flatten
+    }
+
+    test("continue traverse with datatype") {
+      insertData.map(_ => {
+        UnravelSession(config)
+          .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+          .something("h1",
+            _.traverse("?property", "?var",
+              _.datatype("?property2","http://some_object1")))
+          .select(List("h1","property","var","property2","?value"))
+          .commit()
+          .raw
+          .map(r => {
+            assert(r("results")("bindings").arr.length == 12)
+          })
+      }).flatten
+    }
+
+    test("continue traverse with traverse") {
+      insertData.map(_ => {
+        UnravelSession(config)
+          .graph(IRI(DataTestFactory.graph1(this.getClass.getSimpleName)))
+          .something("h1",
+            _.traverse("?property", "?var",
+              _.traverse("?property2","http://some_object1")))
+          .console
+          .select(List("h1","property","var","property2","?value"))
+          .commit()
+          .raw
+          .map(r => {
+            assert(r("results")("bindings").arr.length == 4)
+          })
+      }).flatten
+    }
+
   }
 }

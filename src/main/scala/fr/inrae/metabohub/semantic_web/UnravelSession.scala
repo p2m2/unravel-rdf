@@ -112,6 +112,8 @@ case class UnravelSession(
     def datatype(): UnravelSession = manage(Datatype(getUniqueRef()))
 
     def str(): UnravelSession = manage(Str(Var(`var`), getUniqueRef()))
+
+    def strdt(datatype : SparqlDefinition): UnravelSession = manage(StrDt(Var(`var`), getUniqueRef(),datatype))
   }
 
   def bind(`var`: String, f: UnravelSession => UnravelSession = identity): BindIncrement = BindIncrement(`var`, f)
@@ -263,25 +265,61 @@ case class UnravelSession(
 
   def _somethingVar(ref: String): UnravelSession = _somethingVar(ref, identity)
 
-  /* create node which focus is the subject : ?focusId <uri> ?target */
+  private def validatePrefix(term: SparqlDefinition, root: Root): Unit = {
+    term match {
+      case uri: URI =>
+        val sparqlTerm = uri.sparql
+
+        if (!sparqlTerm.startsWith("<") && sparqlTerm.contains(":")) {
+          val prefix = sparqlTerm.split(":", 2)(0)
+          val declaredPrefixes: Set[String] = root.prefixes.keySet
+
+          if (!declaredPrefixes.contains(prefix)) {
+            val declared =
+              if (declaredPrefixes.nonEmpty)
+                declaredPrefixes.toSeq.sorted.mkString(", ")
+              else
+                "(none)"
+
+            throw UnravelException(
+              s"""|Undeclared SPARQL prefix: '$prefix'.
+                  |
+                  |Term: $sparqlTerm
+                  |Declared prefixes: $declared.
+                  |
+                  |Add the missing declaration before using this term:
+                  |PREFIX $prefix: <namespace-IRI>
+                  |""".stripMargin
+            )
+          }
+        }
+
+      case _ =>
+    }
+  }
+
   private def _isSubjectOf(
                             propertyTerm: SparqlDefinition,
                             ref: String,
                             objectTerm: SparqlDefinition,
                             f: UnravelSession => UnravelSession
                           ): UnravelSession = {
+
+    validatePrefix(propertyTerm, rootNode)
+    validatePrefix(objectTerm, rootNode)
+
     val focusCurrent = focusNode
+
     /* manage variable
-    * propertyTerm could be a Var SparqlDefinition.
-    * objectTerm is the possible target Var of this Object.
-    * We have to definine a Something for future target of the propertyTerm Var !
-    * */
+     * propertyTerm could be a Var SparqlDefinition.
+     * objectTerm is the possible target Var of this Object.
+     * We have to definine a Something for future target of the propertyTerm Var !
+     */
     val inner = (propertyTerm match {
-      case v : Var =>
-        // if the var exist in the query tree, no need to add a new something node
+      case v: Var =>
         pm.NodeVisitor.getNodeWithVariableRef(v.name, rootNode).lastOption match {
-          case Some(_) =>this
-          case None => _somethingVar(v.name)
+          case Some(_) => this
+          case None    => _somethingVar(v.name)
         }
       case _ => this
     }).addNodeAndRestoreFocus(SubjectOf(ref, propertyTerm, objectTerm), ref)
@@ -321,6 +359,10 @@ case class UnravelSession(
                            subjectTerm: SparqlDefinition,
                            f: UnravelSession => UnravelSession
                          ): UnravelSession = {
+    validatePrefix(propertyTerm, rootNode)
+    validatePrefix(subjectTerm, rootNode)
+
+
     val focusCurrent = focusNode
     /* manage variable
     * propertyTerm could be a Var SparqlDefinition.
@@ -367,6 +409,9 @@ case class UnravelSession(
                 term: SparqlDefinition,
                 f: UnravelSession => UnravelSession) : UnravelSession = {
 
+    validatePrefix(propertyTerm, rootNode)
+    validatePrefix(term, rootNode)
+
     val focusCurrent = focusNode
     /* manage variable
     * propertyTerm could be a Var SparqlDefinition.
@@ -386,7 +431,8 @@ case class UnravelSession(
         idRef=focusCurrent,
         children = Seq(
         ObjectOf(ref, propertyTerm, term),
-          SubjectOf(ref,propertyTerm,term))), rootNode.idRef)
+          SubjectOf(ref,propertyTerm,term))),
+      ref)
 
     f(inner).copy(fn = Some(focusCurrent))
   }
@@ -424,6 +470,8 @@ case class UnravelSession(
   */
 
   def datatype(uri: URI, ref: String): UnravelSession = {
+    validatePrefix(uri, rootNode)
+
     val normalizedRef =
       ref.stripPrefix("?").stripPrefix("$")
     val focus_current = focusNode
@@ -497,6 +545,14 @@ case class UnravelSession(
         "═══════════════════════════════════════════════════════════\n"
     )
 
+    this
+  }
+
+  def showDebugScreen: UnravelSession = {
+    debug(" -- debug -- ")
+    val snapshot = pm.DebugSnapshot.fromSession(this)
+    pm.DebugOverlay.show(snapshot)
+    println(pm.DebugTextRenderer.render(snapshot))
     this
   }
 

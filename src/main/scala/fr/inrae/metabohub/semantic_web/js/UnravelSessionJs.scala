@@ -557,7 +557,10 @@ case class UnravelSessionJs(
   // ------------------------------------------------------------------ //
 
   /**
-   * Prints or exposes the current session state for debugging.
+   * Renders the current session as a plain-text debug report.
+   *
+   * This method is useful for local debugging, console-based tests,
+   * and non-HTML environments such as Node.js.
    *
    * @example
    * {{{
@@ -568,6 +571,20 @@ case class UnravelSessionJs(
   def console(): UnravelSessionJs =
     UnravelSessionJs(config, sw.console)
 
+  /**
+   * Displays the current session in the browser as an HTML debug screen.
+   *
+   * This view is intended for interactive debugging in a web page and provides
+   * a richer developer experience than plain text output.
+   *
+   * @example
+   * {{{
+   * session.showDebugScreen()
+   * }}}
+   */
+  @JSExport
+  def showDebugScreen(): UnravelSessionJs =
+    UnravelSessionJs(config, sw.showDebugScreen)
   /**
    * Returns the SPARQL query corresponding to the current session.
    *
