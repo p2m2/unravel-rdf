@@ -402,6 +402,16 @@ case class UnravelQuery(sw : UnravelSession = UnravelSession())
     sw.root.addNodeAndRestoreFocus(OrderByDesc(lRef.map(Var(_)),sw.getUniqueRef())).transaction
   }
   def getSerializedString : String = OptionPickler.write(this)
+
   def setSerializedString(query : String) : UnravelQuery = OptionPickler.read[UnravelQuery](query)
+
   def console : UnravelQuery = sw.console.transaction
+
+  def showDebugScreen: UnravelQuery = {
+    debug(" -- debug query -- ")
+    val snapshot = pm.DebugSnapshot.fromTransaction(this)
+    pm.DebugOverlay.show(snapshot)
+    println(pm.DebugTextRenderer.render(snapshot))
+    this
+  }
 }
