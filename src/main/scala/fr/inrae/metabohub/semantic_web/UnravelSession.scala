@@ -431,7 +431,8 @@ case class UnravelSession(
         idRef=focusCurrent,
         children = Seq(
         ObjectOf(ref, propertyTerm, term),
-          SubjectOf(ref,propertyTerm,term))), rootNode.idRef)
+          SubjectOf(ref,propertyTerm,term))),
+      ref)
 
     f(inner).copy(fn = Some(focusCurrent))
   }
